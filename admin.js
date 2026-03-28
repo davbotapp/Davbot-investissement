@@ -13,7 +13,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // 🔒 PROTECTION ADMIN
-const adminPhone = "099XXXXXXX";
+const adminPhone = "0982697752";
 if(localStorage.getItem("userPhone") !== adminPhone){
     alert("Accès refusé");
     window.location.href = "index.html";
