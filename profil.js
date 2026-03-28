@@ -16,7 +16,7 @@ const db = getDatabase(app);
 const userPhone = localStorage.getItem("userPhone");
 
 if(!userPhone){
-    window.location.href = "login.html";
+    window.location.href = "index.html";
 }
 
 // ELEMENTS
@@ -25,9 +25,12 @@ const codeEl = document.getElementById("code");
 const avatarEl = document.getElementById("avatar");
 const soldeEl = document.getElementById("solde");
 const pointsEl = document.getElementById("points");
+const inboxEl = document.getElementById("inbox");
 
-// 🔄 LIVE DATA
-onValue(ref(db, "users/" + userPhone), (snap)=>{
+// =====================
+// USER DATA
+// =====================
+onValue(ref(db, "users/" + userPhone), snap=>{
     if(!snap.exists()) return;
 
     const data = snap.val();
@@ -37,17 +40,65 @@ onValue(ref(db, "users/" + userPhone), (snap)=>{
 
     avatarEl.innerText = userPhone.substring(0,2);
 
-    // 💰 FC
     soldeEl.innerText = (data.balance || 0).toLocaleString();
-
-    // ⭐ POINTS
     pointsEl.innerText = (data.points || 0);
 });
 
-// 🚪 LOGOUT
+// =====================
+// 📩 INBOX ADMIN
+// =====================
+onValue(ref(db, "messages/" + userPhone), snap=>{
+
+    inboxEl.innerHTML = "";
+
+    if(!snap.exists()){
+        inboxEl.innerHTML = "<p>Aucun message</p>";
+        return;
+    }
+
+    const data = snap.val();
+
+    Object.values(data).reverse().forEach(msg=>{
+
+        let html = "";
+
+        if(msg.text){
+            html += `<p>📝 ${msg.text}</p>`;
+        }
+
+        if(msg.image){
+            html += `<img src="${msg.image}" style="width:100%;border-radius:10px;">`;
+        }
+
+        if(msg.file){
+            html += `<a href="${msg.file}" target="_blank">📎 Télécharger fichier</a>`;
+        }
+
+        if(msg.commande){
+            html += `
+                <div>
+                    📦 ${msg.commande.service}<br>
+                    💰 ${msg.commande.price} FC
+                </div>
+            `;
+        }
+
+        inboxEl.innerHTML += `
+            <div class="message">
+                ${html}
+                <small>${new Date(msg.date).toLocaleString()}</small>
+            </div>
+        `;
+    });
+
+});
+
+// =====================
+// LOGOUT
+// =====================
 document.getElementById("logout").onclick = ()=>{
     if(confirm("Se déconnecter ?")){
         localStorage.clear();
-        window.location.href = "login.html";
+        window.location.href = "index.html";
     }
 };
