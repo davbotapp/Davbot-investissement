@@ -1,113 +1,90 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Starlink - Connexion</title>
-    <style>
-        :root { --blue: #00d2ff; --dark: #050a14; }
-        body { 
-            margin: 0; font-family: 'Segoe UI', sans-serif; 
-            background: var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
-            background-size: cover; color: white; 
-            display: flex; justify-content: center; align-items: center; 
-            min-height: 100vh; text-align: center; 
-        }
-        .overlay-login { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0, 0, 0, 0.6); z-index: 1; 
-        }
-        .card { 
-            background: rgba(0, 0, 0, 0.85); padding: 30px; border-radius: 25px; 
-            border: 1px solid var(--blue); width: 85%; max-width: 350px; 
-            backdrop-filter: blur(15px); z-index: 2; position: relative;
-            box-shadow: 0 0 30px rgba(0, 210, 255, 0.3);
-        }
-        input { 
-            width: 100%; padding: 14px; margin: 10px 0; border-radius: 10px; 
-            border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); 
-            color: white; box-sizing: border-box; font-size: 16px;
-        }
-        button { 
-            width: 100%; padding: 15px; background: var(--blue); color: black; 
-            border: none; border-radius: 10px; font-weight: bold; cursor: pointer; 
-            font-size: 16px; margin-top: 15px; transition: 0.3s;
-        }
-        button:active { transform: scale(0.95); }
-        .status { margin-top: 15px; font-size: 13px; color: #ffeb3b; min-height: 20px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starlink - Accès</title>
+
+<style>
+:root { --blue:#00d2ff; --dark:#050a14; }
+
+body{
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    background:var(--dark);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+
+.card{
+    background:#111;
+    padding:25px;
+    border-radius:15px;
+    width:90%;
+    max-width:350px;
+    border:1px solid var(--blue);
+}
+
+h2{text-align:center;color:var(--blue);}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border-radius:10px;
+    border:none;
+    background:#222;
+    color:white;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    margin-top:10px;
+    background:var(--blue);
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+}
+
+.switch{
+    text-align:center;
+    margin-top:10px;
+    cursor:pointer;
+    color:var(--blue);
+}
+
+.status{
+    margin-top:10px;
+    font-size:13px;
+    text-align:center;
+}
+</style>
 </head>
+
 <body>
-    <div class="overlay-login"></div>
 
-    <div class="card">
-        <h1 style="color:var(--blue); letter-spacing:3px; margin-bottom: 5px;">STARLINK</h1>
-        <p style="margin-top: 0; opacity: 0.8;">ACCÈS AU TERMINAL</p>
-        
-        <input type="tel" id="logPhone" placeholder="Numéro de téléphone">
-        <input type="password" id="logPass" placeholder="Mot de passe">
-        
-        <button id="btnLog">SE CONNECTER</button>
-        <div id="statusMsg" class="status"></div>
-        
-        <p style="font-size:13px; margin-top: 20px;">
-            Nouveau sur Starlink ? <br>
-            <a href="register.html" style="color:var(--blue); text-decoration: none; font-weight: bold;">Créer un compte</a>
-        </p>
-    </div>
+<div class="card">
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<h2 id="title">Connexion</h2>
 
-    // NOUVELLE CONFIGURATION STARLINK INVESTIT
-    const firebaseConfig = {
-        apiKey: "AIzaSyA24pBo8mBWiZssPtep--MMBdB7c8_Lu4U",
-        authDomain: "starlink-investit.firebaseapp.com",
-        databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
-        projectId: "starlink-investit",
-        storageBucket: "starlink-investit.firebasestorage.app",
-        messagingSenderId: "807081599583",
-        appId: "1:807081599583:web:e00ec3959bc4acdae031ea"
-    };
+<input type="tel" id="phone" placeholder="Téléphone">
+<input type="password" id="pass" placeholder="Mot de passe">
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+<input type="text" id="invite" placeholder="Code parrain (optionnel)" style="display:none;">
 
-    document.getElementById("btnLog").addEventListener("click", async () => {
-        const phone = document.getElementById("logPhone").value.trim();
-        const pass = document.getElementById("logPass").value.trim();
-        const status = document.getElementById("statusMsg");
+<button id="btn">Se connecter</button>
 
-        if(!phone || !pass) { 
-            status.innerText = "❌ Veuillez remplir tous les champs."; 
-            return; 
-        }
+<div class="switch" id="switch">Créer un compte</div>
 
-        try {
-            status.innerText = "⏳ Authentification terminal...";
-            const userRef = ref(db, 'users/' + phone);
-            const snap = await get(userRef);
+<div class="status" id="msg"></div>
 
-            if (snap.exists()) {
-                const userData = snap.val();
-                if (userData.password === pass) {
-                    // Sauvegarde de la session
-                    localStorage.setItem("userPhone", phone);
-                    status.style.color = "#4caf50";
-                    status.innerText = "🚀 Accès autorisé. Connexion...";
-                    setTimeout(() => { window.location.href = "dashboard.html"; }, 1200);
-                } else {
-                    status.innerText = "❌ Mot de passe incorrect.";
-                }
-            } else {
-                status.innerText = "❌ Aucun compte trouvé pour ce numéro.";
-            }
-        } catch (e) {
-            status.innerText = "⚠️ Erreur de liaison satellite.";
-            console.error(e);
-        }
-    });
-</script>
+</div>
+
+<script type="module" src="index.js"></script>
+
 </body>
 </html>
