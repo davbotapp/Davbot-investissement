@@ -38,7 +38,7 @@ onValue(ref(db, "users/" + user), (snap)=>{
 
     currentData = data;
 
-    const balance = data.balence || 0;
+    const balance = data.balance || 0;
     const points = data.points || 0;
 
     // UI
