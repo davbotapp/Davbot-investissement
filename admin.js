@@ -12,7 +12,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // 🔐 ADMIN
-const ADMIN = "0850000000";
+const ADMIN = "0982697752";
 const me = localStorage.getItem("userPhone");
 
 if(me !== ADMIN){
