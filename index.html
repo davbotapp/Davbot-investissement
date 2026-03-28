@@ -3,85 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Starlink - Accès</title>
+<title>Davbot - Accès</title>
 
-<style>
-:root { --blue:#00d2ff; --dark:#050a14; }
-
-body{
-    margin:0;
-    font-family:'Segoe UI',sans-serif;
-    background:var(--dark);
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-
-.card{
-    background:#111;
-    padding:25px;
-    border-radius:15px;
-    width:90%;
-    max-width:350px;
-    border:1px solid var(--blue);
-}
-
-h2{text-align:center;color:var(--blue);}
-
-input{
-    width:100%;
-    padding:12px;
-    margin:8px 0;
-    border-radius:10px;
-    border:none;
-    background:#222;
-    color:white;
-}
-
-button{
-    width:100%;
-    padding:14px;
-    margin-top:10px;
-    background:var(--blue);
-    border:none;
-    border-radius:10px;
-    font-weight:bold;
-}
-
-.switch{
-    text-align:center;
-    margin-top:10px;
-    cursor:pointer;
-    color:var(--blue);
-}
-
-.status{
-    margin-top:10px;
-    font-size:13px;
-    text-align:center;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
+<div class="overlay"></div>
+
+<div class="container">
 <div class="card">
 
-<h2 id="title">Connexion</h2>
+<h1 id="title">CONNEXION</h1>
 
 <input type="tel" id="phone" placeholder="Téléphone">
 <input type="password" id="pass" placeholder="Mot de passe">
 
-<input type="text" id="invite" placeholder="Code parrain (optionnel)" style="display:none;">
+<input type="text" id="invite" placeholder="Code parrain" style="display:none;">
 
-<button id="btn">Se connecter</button>
+<button id="btn">SE CONNECTER</button>
 
-<div class="switch" id="switch">Créer un compte</div>
+<p style="text-align:center; margin-top:10px;">
+<span id="switch" style="color:var(--blue); cursor:pointer;">
+Créer un compte
+</span>
+</p>
 
-<div class="status" id="msg"></div>
+<div id="status" class="status"></div>
 
+</div>
 </div>
 
 <script type="module" src="index.js"></script>
