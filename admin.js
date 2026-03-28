@@ -1,164 +1,219 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, update, remove, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import {
+    getDatabase, ref, onValue, update, remove, get
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// 🔐 CONFIG FIREBASE
+// CONFIG
 const firebaseConfig = {
-    apiKey: "AIzaSy...",
+    apiKey: "AIzaSyA24pBo8mBWiZssPtep--MMBdB7c8_Lu4U",
     authDomain: "starlink-investit.firebaseapp.com",
     databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
     projectId: "starlink-investit",
+    storageBucket: "starlink-investit.appspot.com",
+    messagingSenderId: "807081599583",
+    appId: "1:807081599583:web:e00ec3959bc4acdae031ea"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 🔒 PROTECTION ADMIN
-const adminPhone = "0982697752";
-if(localStorage.getItem("userPhone") !== adminPhone){
-    alert("Accès refusé");
-    window.location.href = "index.html";
-}
+const container = document.getElementById("adminData");
 
-// ==========================
-// 💰 RECHARGES
-// ==========================
-onValue(ref(db,"demandes_recharges"), snap=>{
-    let html="";
-    snap.forEach(s=>{
-        let d=s.val();
-        html+=`
-        <div class="card">
-        📱 ${d.telephone}<br>
-        💰 ${d.montant} FC<br>
-        🆔 ${d.transactionID}
-        <br>
-        <button class="ok" onclick="validerRecharge('${s.key}','${d.telephone}',${d.montant})">VALIDER</button>
-        <button class="no" onclick="refuser('${s.key}','demandes_recharges')">REFUSER</button>
-        </div>`;
+
+// =========================
+// 🔄 RECHARGES
+// =========================
+onValue(ref(db, "demandes_recharges"), snap => {
+    snap.forEach(child => {
+        const d = child.val();
+        const id = child.key;
+
+        const div = document.createElement("div");
+        div.innerHTML = `
+            <p>📥 ${d.telephone} - ${d.montant} FC</p>
+            <button onclick="validerRecharge('${id}','${d.telephone}',${d.montant})">✅ Valider</button>
+            <button onclick="supprimer('${id}','demandes_recharges')">❌ Supprimer</button>
+            <hr>
+        `;
+        container.appendChild(div);
     });
-    document.getElementById("recharges").innerHTML = html;
 });
 
-window.validerRecharge = async(id,phone,montant)=>{
-    await runTransaction(ref(db,"users/"+phone+"/balance"), val=>(val||0)+montant);
-    await remove(ref(db,"demandes_recharges/"+id));
-    alert("Recharge validée");
+window.validerRecharge = async (id, phone, montant) => {
+    const userRef = ref(db, "users/" + phone);
+
+    const snap = await get(userRef);
+    if(!snap.exists()) return;
+
+    const data = snap.val();
+    const newBalance = (data.balance || 0) + montant;
+
+    await update(userRef, { balance: newBalance });
+
+    await remove(ref(db, "demandes_recharges/" + id));
+
+    alert("✅ Recharge validée");
 };
 
-// ==========================
+
+// =========================
 // 💸 RETRAITS
-// ==========================
-onValue(ref(db,"demandes_retraits"), snap=>{
-    let html="";
-    snap.forEach(s=>{
-        let d=s.val();
-        html+=`
-        <div class="card">
-        📱 ${d.telephone}<br>
-        💰 ${d.montant} FC
-        <br>
-        <button class="ok" onclick="validerRetrait('${s.key}','${d.telephone}',${d.montant})">VALIDER</button>
-        <button class="no" onclick="refuser('${s.key}','demandes_retraits')">REFUSER</button>
-        </div>`;
+// =========================
+onValue(ref(db, "demandes_retraits"), snap => {
+    snap.forEach(child => {
+        const d = child.val();
+        const id = child.key;
+
+        const div = document.createElement("div");
+        div.innerHTML = `
+            <p>📤 ${d.telephone} - ${d.montant} FC</p>
+            <button onclick="validerRetrait('${id}','${d.telephone}',${d.montant})">✅ Valider</button>
+            <button onclick="refuserRetrait('${id}')">❌ Refuser</button>
+            <hr>
+        `;
+        container.appendChild(div);
     });
-    document.getElementById("withdraws").innerHTML = html;
 });
 
-window.validerRetrait = async(id,phone,montant)=>{
-    const frais = montant * 0.1;
+window.validerRetrait = async (id, phone, montant) => {
 
-    await runTransaction(ref(db,"users/"+phone+"/balance"), val=>(val||0)-(montant+frais));
+    const frais = Math.floor(montant * 0.1); // 10%
+    const total = montant + frais;
 
-    await runTransaction(ref(db,"site_gain"), val=>(val||0)+frais);
+    const userRef = ref(db, "users/" + phone);
+    const snap = await get(userRef);
 
-    await remove(ref(db,"demandes_retraits/"+id));
+    if(!snap.exists()) return;
 
-    alert("Retrait validé avec frais");
+    const data = snap.val();
+    let balance = data.balance || 0;
+
+    if(balance < total){
+        alert("Solde insuffisant");
+        return;
+    }
+
+    balance -= total;
+
+    await update(userRef, { balance });
+
+    await remove(ref(db, "demandes_retraits/" + id));
+
+    alert("✅ Retrait validé (- frais)");
 };
 
-// ==========================
-// 📦 COMMANDES
-// ==========================
-onValue(ref(db,"commandes"), snap=>{
-    let html="";
-    snap.forEach(s=>{
-        let d=s.val();
-        if(d.statut !== "valide"){
-            html+=`
-            <div class="card">
-            👤 ${d.user}<br>
-            📦 ${d.service}<br>
-            💰 ${d.price}
-            <br>
-            <button class="ok" onclick="validerCommande('${s.key}')">VALIDER</button>
-            <button class="no" onclick="annulerCommande('${s.key}','${d.user}',${d.price})">ANNULER</button>
-            </div>`;
-        }
+window.refuserRetrait = async (id) => {
+    await remove(ref(db, "demandes_retraits/" + id));
+    alert("❌ Retrait refusé");
+};
+
+
+// =========================
+// 🛒 COMMANDES
+// =========================
+onValue(ref(db, "commandes"), snap => {
+    snap.forEach(child => {
+        const d = child.val();
+        const id = child.key;
+
+        const div = document.createElement("div");
+        div.innerHTML = `
+            <p>🛒 ${d.telephone} - ${d.service} (${d.prix} FC)</p>
+            <button onclick="validerCommande('${id}')">✅ Valider</button>
+            <button onclick="refuserCommande('${id}','${d.telephone}',${d.prix})">❌ Refuser</button>
+            <hr>
+        `;
+        container.appendChild(div);
     });
-    document.getElementById("orders").innerHTML = html;
 });
 
-window.validerCommande = async(id)=>{
-    await update(ref(db,"commandes/"+id), { statut:"valide" });
-    alert("Commande validée ✅");
+window.validerCommande = async (id) => {
+    await update(ref(db, "commandes/" + id), { statut: "Validé" });
+    alert("Commande validée");
 };
 
-window.annulerCommande = async(id,user,price)=>{
-    await runTransaction(ref(db,"users/"+user+"/balance"), val=>(val||0)+price);
-    await remove(ref(db,"commandes/"+id));
+window.refuserCommande = async (id, phone, prix) => {
+
+    const userRef = ref(db, "users/" + phone);
+    const snap = await get(userRef);
+
+    if(snap.exists()){
+        const data = snap.val();
+        const balance = (data.balance || 0) + prix;
+
+        await update(userRef, { balance });
+    }
+
+    await remove(ref(db, "commandes/" + id));
+
     alert("Commande annulée + remboursée");
 };
 
-// ==========================
-// 🔁 TRANSFERT
-// ==========================
-onValue(ref(db,"transferts"), snap=>{
-    let html="";
-    snap.forEach(s=>{
-        let d=s.val();
-        if(d.status === "pending"){
-            html+=`
-            <div class="card">
-            🔁 ${d.from} ➜ ${d.to}<br>
-            💰 ${d.amount}
-            <br>
-            <button class="ok" onclick="validerTransfert('${s.key}','${d.from}','${d.to}',${d.amount})">VALIDER</button>
-            <button class="no" onclick="refuser('${s.key}','transferts')">REFUSER</button>
-            </div>`;
-        }
+
+// =========================
+// 🔁 TRANSFERT UTILISATEUR
+// =========================
+onValue(ref(db, "transferts"), snap => {
+    snap.forEach(child => {
+        const d = child.val();
+        const id = child.key;
+
+        const div = document.createElement("div");
+        div.innerHTML = `
+            <p>🔁 ${d.from} ➜ ${d.to} (${d.amount} FC)</p>
+            <button onclick="validerTransfert('${id}')">✅ Valider</button>
+            <button onclick="refuserTransfert('${id}')">❌ Refuser</button>
+            <hr>
+        `;
+        container.appendChild(div);
     });
-    document.getElementById("transfers").innerHTML = html;
 });
 
-window.validerTransfert = async(id,from,to,amount)=>{
-    await runTransaction(ref(db,"users/"+from+"/balance"), val=>(val||0)-amount);
-    await runTransaction(ref(db,"users/"+to+"/balance"), val=>(val||0)+amount);
+window.validerTransfert = async (id) => {
 
-    await update(ref(db,"transferts/"+id), { status:"done" });
+    const snap = await get(ref(db, "transferts/" + id));
+    if(!snap.exists()) return;
 
-    alert("Transfert validé 🔥");
+    const d = snap.val();
+
+    const fromRef = ref(db, "users/" + d.from);
+    const toRef = ref(db, "users/" + d.to);
+
+    const fromSnap = await get(fromRef);
+    const toSnap = await get(toRef);
+
+    if(!fromSnap.exists() || !toSnap.exists()) return;
+
+    const fromData = fromSnap.val();
+    const toData = toSnap.val();
+
+    if((fromData.balance || 0) < d.amount){
+        alert("Solde insuffisant");
+        return;
+    }
+
+    await update(fromRef, {
+        balance: (fromData.balance || 0) - d.amount
+    });
+
+    await update(toRef, {
+        balance: (toData.balance || 0) + d.amount
+    });
+
+    await update(ref(db, "transferts/" + id), { statut: "Validé" });
+
+    alert("✅ Transfert validé");
 };
 
-// ==========================
-// 👤 UTILISATEURS
-// ==========================
-onValue(ref(db,"users"), snap=>{
-    let html="";
-    snap.forEach(s=>{
-        let d=s.val();
-        html+=`
-        <div class="card">
-        📱 ${s.key}<br>
-        💰 ${d.balance || 0} FC
-        </div>`;
-    });
-    document.getElementById("users").innerHTML = html;
-});
+window.refuserTransfert = async (id) => {
+    await remove(ref(db, "transferts/" + id));
+    alert("❌ Transfert refusé");
+};
 
-// ==========================
-// ❌ REFUSER GLOBAL
-// ==========================
-window.refuser = async(id,path)=>{
-    await remove(ref(db, path+"/"+id));
-    alert("Refusé ❌");
+
+// =========================
+// 🧹 SUPPRESSION SIMPLE
+// =========================
+window.supprimer = async (id, path) => {
+    await remove(ref(db, path + "/" + id));
 };
