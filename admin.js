@@ -1,154 +1,137 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-getDatabase, ref, onValue, get, update, remove, push
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, get, update, remove, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = {
+const app = initializeApp({
     apiKey:"AIza...",
-    databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
-};
+    databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com"
+});
 
-const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // 🔐 ADMIN
 const ADMIN = "0982697752";
-const me = localStorage.getItem("userPhone");
-
-if(me !== ADMIN){
+if(localStorage.getItem("userPhone") !== ADMIN){
     alert("Accès refusé");
     location.href="index.html";
 }
 
-// =======================
-// 👤 USERS
-// =======================
+// ================= USERS =================
 onValue(ref(db,"users"), snap=>{
     const box = document.getElementById("users");
     box.innerHTML="";
 
     const data = snap.val();
+    if(!data) return;
 
-    Object.keys(data).forEach(phone=>{
-        const u = data[phone];
+    Object.keys(data).forEach(p=>{
+        const u = data[p];
 
         box.innerHTML += `
-        <div class="user">
-        📱 ${phone}<br>
+        <div class="item">
+        📱 ${p}<br>
         💰 ${u.balance || 0} FC<br>
+        ⭐ ${u.points || 0}
 
-        <button class="green" onclick="addMoney('${phone}')">+1000</button>
-        <button class="red" onclick="removeMoney('${phone}')">-1000</button>
-        <button class="red" onclick="delUser('${phone}')">Supprimer</button>
-        </div>
-        `;
+        <button class="no" onclick="delUser('${p}')">Supprimer</button>
+        </div>`;
     });
 });
 
-window.addMoney = async (phone)=>{
-    const snap = await get(ref(db,"users/"+phone));
-    const bal = snap.val().balance || 0;
-
-    await update(ref(db,"users/"+phone),{
-        balance: bal + 1000
-    });
-};
-
-window.removeMoney = async (phone)=>{
-    const snap = await get(ref(db,"users/"+phone));
-    const bal = snap.val().balance || 0;
-
-    await update(ref(db,"users/"+phone),{
-        balance: Math.max(0, bal - 1000)
-    });
-};
-
-window.delUser = async (phone)=>{
-    if(confirm("Supprimer ?")){
-        await remove(ref(db,"users/"+phone));
+window.delUser = async (p)=>{
+    if(confirm("Supprimer compte ?")){
+        await remove(ref(db,"users/"+p));
     }
 };
 
-// =======================
-// 🔄 TRANSFERT
-// =======================
-window.transfer = async ()=>{
+// ================= TRANSFERT =================
+onValue(ref(db,"demandes_transferts"), snap=>{
+    const box = document.getElementById("transferts");
+    box.innerHTML="";
 
-    const from = document.getElementById("from").value;
-    const to = document.getElementById("to").value;
-    const amount = parseInt(document.getElementById("amount").value);
+    const data = snap.val();
+    if(!data) return;
 
-    const s1 = await get(ref(db,"users/"+from));
-    const s2 = await get(ref(db,"users/"+to));
+    Object.entries(data).forEach(([id,d])=>{
+        box.innerHTML += `
+        <div class="item">
+        ${d.from} ➜ ${d.to}<br>
+        💰 ${d.amount}
 
-    if(!s1.exists() || !s2.exists()) return alert("Erreur");
+        <button class="ok" onclick="okTrans('${id}')">✔</button>
+        <button class="no" onclick="noTrans('${id}')">✖</button>
+        </div>`;
+    });
+});
+
+window.okTrans = async (id)=>{
+    const snap = await get(ref(db,"demandes_transferts/"+id));
+    const d = snap.val();
+
+    const s1 = await get(ref(db,"users/"+d.from));
+    const s2 = await get(ref(db,"users/"+d.to));
 
     const b1 = s1.val().balance || 0;
     const b2 = s2.val().balance || 0;
 
-    if(b1 < amount) return alert("Solde insuffisant");
+    if(b1 < d.amount) return alert("Solde insuffisant");
 
-    await update(ref(db,"users/"+from),{ balance: b1 - amount });
-    await update(ref(db,"users/"+to),{ balance: b2 + amount });
+    await update(ref(db,"users/"+d.from),{balance:b1 - d.amount});
+    await update(ref(db,"users/"+d.to),{balance:b2 + d.amount});
 
-    alert("Transfert OK");
+    await remove(ref(db,"demandes_transferts/"+id));
 };
 
-// =======================
-// 💸 RETRAITS
-// =======================
+window.noTrans = async (id)=>{
+    await remove(ref(db,"demandes_transferts/"+id));
+};
+
+// ================= RETRAIT =================
 onValue(ref(db,"demandes_retraits"), snap=>{
     const box = document.getElementById("retraits");
     box.innerHTML="";
 
     const data = snap.val();
-
     if(!data) return;
 
     Object.entries(data).forEach(([id,d])=>{
         box.innerHTML += `
-        <div class="user">
+        <div class="item">
         ${d.telephone} - ${d.montant}
 
-        <button onclick="validerRetrait('${id}')">✔</button>
-        <button class="red" onclick="refuserRetrait('${id}')">✖</button>
-        </div>
-        `;
+        <button class="ok" onclick="okRet('${id}')">✔</button>
+        <button class="no" onclick="noRet('${id}')">✖</button>
+        </div>`;
     });
 });
 
-window.validerRetrait = async (id)=>{
+window.okRet = async (id)=>{
     await update(ref(db,"demandes_retraits/"+id),{statut:"validé"});
 };
 
-window.refuserRetrait = async (id)=>{
+window.noRet = async (id)=>{
     await remove(ref(db,"demandes_retraits/"+id));
 };
 
-// =======================
-// 💰 RECHARGES
-// =======================
+// ================= RECHARGE =================
 onValue(ref(db,"demandes_recharges"), snap=>{
     const box = document.getElementById("recharges");
     box.innerHTML="";
 
     const data = snap.val();
-
     if(!data) return;
 
     Object.entries(data).forEach(([id,d])=>{
         box.innerHTML += `
-        <div class="user">
+        <div class="item">
         ${d.user} - ${d.amount}
 
-        <button onclick="validerRecharge('${id}','${d.user}',${d.amount})">✔</button>
-        </div>
-        `;
+        <button class="ok" onclick="okRec('${id}','${d.user}',${d.amount})">✔</button>
+        <button class="no" onclick="noRec('${id}')">✖</button>
+        </div>`;
     });
 });
 
-window.validerRecharge = async (id,user,amount)=>{
-
+window.okRec = async (id,user,amount)=>{
     const snap = await get(ref(db,"users/"+user));
     const bal = snap.val().balance || 0;
 
@@ -156,14 +139,14 @@ window.validerRecharge = async (id,user,amount)=>{
         balance: bal + amount
     });
 
-    await update(ref(db,"demandes_recharges/"+id),{
-        status:"validé"
-    });
+    await remove(ref(db,"demandes_recharges/"+id));
 };
 
-// =======================
-// 📦 COMMANDES
-// =======================
+window.noRec = async (id)=>{
+    await remove(ref(db,"demandes_recharges/"+id));
+};
+
+// ================= COMMANDES =================
 onValue(ref(db,"orders"), snap=>{
     const box = document.getElementById("orders");
     box.innerHTML="";
@@ -173,29 +156,25 @@ onValue(ref(db,"orders"), snap=>{
 
     Object.entries(data).forEach(([id,d])=>{
         box.innerHTML += `
-        <div class="user">
+        <div class="item">
         ${d.user} - ${d.service}
 
-        <button onclick="validerCmd('${id}')">✔</button>
-        <button class="red" onclick="delCmd('${id}')">✖</button>
-        </div>
-        `;
+        <button class="ok" onclick="okCmd('${id}')">✔</button>
+        <button class="no" onclick="noCmd('${id}')">✖</button>
+        </div>`;
     });
 });
 
-window.validerCmd = async (id)=>{
+window.okCmd = async (id)=>{
     await update(ref(db,"orders/"+id),{statut:"validé"});
 };
 
-window.delCmd = async (id)=>{
+window.noCmd = async (id)=>{
     await remove(ref(db,"orders/"+id));
 };
 
-// =======================
-// 📩 MESSAGE
-// =======================
+// ================= MESSAGE =================
 window.sendMsg = async ()=>{
-
     const tel = document.getElementById("target").value;
     const msg = document.getElementById("msg").value;
     const img = document.getElementById("img").value;
@@ -208,5 +187,5 @@ window.sendMsg = async ()=>{
         date: Date.now()
     });
 
-    alert("Envoyé");
+    alert("Message envoyé");
 };
