@@ -15,24 +15,25 @@ let mode = "login";
 
 const title = document.getElementById("title");
 const btn = document.getElementById("btn");
-const sw = document.getElementById("switch");
+const switchBtn = document.getElementById("switch");
 const inviteInput = document.getElementById("invite");
-const msg = document.getElementById("msg");
+const status = document.getElementById("status");
 
-// 🔁 SWITCH LOGIN / REGISTER
-sw.onclick = () => {
+// 🔁 SWITCH MODE
+switchBtn.onclick = () => {
+
     if(mode === "login"){
         mode = "register";
-        title.innerText = "Créer un compte";
-        btn.innerText = "S'inscrire";
+        title.innerText = "INSCRIPTION";
+        btn.innerText = "CRÉER COMPTE";
         inviteInput.style.display = "block";
-        sw.innerText = "Déjà un compte ?";
+        switchBtn.innerText = "Déjà un compte ?";
     } else {
         mode = "login";
-        title.innerText = "Connexion";
-        btn.innerText = "Se connecter";
+        title.innerText = "CONNEXION";
+        btn.innerText = "SE CONNECTER";
         inviteInput.style.display = "none";
-        sw.innerText = "Créer un compte";
+        switchBtn.innerText = "Créer un compte";
     }
 };
 
@@ -44,7 +45,7 @@ btn.onclick = async () => {
     const invite = inviteInput.value.trim();
 
     if(!phone || !pass){
-        msg.innerText = "Remplis tout";
+        status.innerText = "❌ Remplis tous les champs";
         return;
     }
 
@@ -55,12 +56,12 @@ btn.onclick = async () => {
     if(mode === "login"){
 
         if(!snap.exists()){
-            msg.innerText = "Compte introuvable";
+            status.innerText = "❌ Compte introuvable";
             return;
         }
 
         if(snap.val().password !== pass){
-            msg.innerText = "Mot de passe incorrect";
+            status.innerText = "❌ Mot de passe incorrect";
             return;
         }
 
@@ -72,13 +73,12 @@ btn.onclick = async () => {
     else{
 
         if(snap.exists()){
-            msg.innerText = "Compte existe déjà";
+            status.innerText = "❌ Compte existe déjà";
             return;
         }
 
-        const code = "STAR-" + Math.floor(Math.random()*99999);
+        const code = "DAV-" + Math.floor(Math.random()*99999);
 
-        // créer user
         await set(userRef,{
             password: pass,
             inviteCode: code,
@@ -90,27 +90,23 @@ btn.onclick = async () => {
             date: Date.now()
         });
 
-        // 🎁 BONUS PARRAIN
+        // 🎁 BONUS PARRAIN (1 point)
         if(invite){
+            const users = await get(ref(db,"users"));
 
-            const usersRef = ref(db, "users");
-            const all = await get(usersRef);
+            users.forEach(child=>{
+                if(child.val().inviteCode === invite){
 
-            all.forEach(child => {
-                const u = child.val();
+                    const newPts = (child.val().points || 0) + 1;
 
-                if(u.inviteCode === invite){
-                    const parrainRef = ref(db, "users/" + child.key);
-
-                    const newPoints = (u.points || 0) + 1;
-
-                    update(parrainRef,{
-                        points: newPoints
+                    update(ref(db,"users/"+child.key),{
+                        points: newPts
                     });
                 }
             });
         }
 
-        msg.innerText = "Compte créé !";
+        status.style.color="#4caf50";
+        status.innerText="✅ Compte créé !";
     }
 };
