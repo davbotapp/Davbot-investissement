@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commande</title>
+
+<style>
+:root { --blue:#00d2ff; --dark:#050a14; }
+
+body {
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+    background:var(--dark);
+    color:white;
+    padding:20px;
+}
+
+h2 { text-align:center; }
+
+.card {
+    background:rgba(255,255,255,0.05);
+    padding:20px;
+    border-radius:15px;
+    margin-top:20px;
+}
+
+input, select, textarea {
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border-radius:10px;
+    border:none;
+    background:rgba(255,255,255,0.1);
+    color:white;
+}
+
+button {
+    width:100%;
+    padding:15px;
+    background:var(--blue);
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+}
+
+.price {
+    margin-top:10px;
+    font-weight:bold;
+    color:#4caf50;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📦 Commander</h2>
+
+<div class="card">
+
+    <input type="text" id="serviceName" readonly>
+
+    <div id="formZone"></div>
+
+    <div class="price">Prix : <span id="price">0</span> FC</div>
+
+    <button onclick="valider()">Valider la commande</button>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+// 🔥 CONFIG
+const firebaseConfig = {
+    apiKey: "AIza...",
+    authDomain: "starlink-investit.firebaseapp.com",
+    databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
+    projectId: "starlink-investit"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// SERVICE
+const service = localStorage.getItem("serviceCommande");
+document.getElementById("serviceName").value = service;
+
+const zone = document.getElementById("formZone");
+const priceDisplay = document.getElementById("price");
+
+// 🔥 FORMULAIRE
+if(service === "Application"){
+    zone.innerHTML = `
+        <select id="typeApp" onchange="calcPrice()">
+            <option>Simple</option>
+            <option>Composé</option>
+        </select>
+        <textarea id="desc" placeholder="Description"></textarea>
+    `;
+}
+
+else if(service === "Site Web Pro"){
+    zone.innerHTML = `
+        <select id="typeSite" onchange="calcPrice()">
+            <option>Simple</option>
+            <option>Pro</option>
+            <option>Premium</option>
+        </select>
+        <textarea id="desc"></textarea>
+    `;
+}
+
+else if(service === "Hébergement"){
+    zone.innerHTML = `
+        <select id="duree" onchange="calcPrice()">
+            <option>7 jours</option>
+            <option>15 jours</option>
+            <option>30 jours</option>
+            <option>Autre</option>
+        </select>
+        <input type="number" id="customDays" placeholder="Nombre de jours" oninput="calcPrice()">
+    `;
+}
+
+else if(service === "Réseaux Sociaux"){
+    zone.innerHTML = `
+        <select id="platform">
+            <option>Facebook</option>
+            <option>WhatsApp</option>
+            <option>TikTok</option>
+            <option>YouTube</option>
+            <option>Instagram</option>
+        </select>
+
+        <select id="type" onchange="calcPrice()">
+            <option>Vues</option>
+            <option>Likes</option>
+            <option>Followers</option>
+        </select>
+
+        <input type="number" id="nombre" placeholder="Nombre" oninput="calcPrice()">
+    `;
+}
+
+else if(service === "Intelligence Artificielle"){
+    zone.innerHTML = `<textarea id="desc"></textarea>`;
+    priceDisplay.innerText = 10000;
+}
+
+// 🔥 CALCUL PRIX
+window.calcPrice = function(){
+
+    let price = 0;
+
+    // APP
+    if(service === "Application"){
+        const t = document.getElementById("typeApp").value;
+        price = (t === "Simple") ? 40000 : 60000;
+    }
+
+    // SITE
+    if(service === "Site Web Pro"){
+        const t = document.getElementById("typeSite").value;
+        if(t === "Simple") price = 20000;
+        if(t === "Pro") price = 30000;
+        if(t === "Premium") price = 40000;
+    }
+
+    // VPN
+    if(service === "Hébergement"){
+        const d = document.getElementById("duree").value;
+
+        if(d === "7 jours") price = 3500;
+        else if(d === "15 jours") price = 6000;
+        else if(d === "30 jours") price = 8000;
+        else {
+            const days = document.getElementById("customDays").value;
+            price = days * 300;
+        }
+    }
+
+    // BOOST
+    if(service === "Réseaux Sociaux"){
+        const type = document.getElementById("type").value;
+        const nb = document.getElementById("nombre").value;
+
+        let base = 0;
+        if(type === "Vues") base = 2000;
+        if(type === "Likes") base = 4000;
+        if(type === "Followers") base = 12000;
+
+        price = (nb / 1000) * base;
+    }
+
+    priceDisplay.innerText = price;
+};
+
+// 🔥 VALIDER
+window.valider = async function(){
+
+    const user = localStorage.getItem("userPhone");
+
+    const price = parseInt(priceDisplay.innerText);
+
+    const snap = await get(ref(db, "users/" + user + "/balance"));
+    const balance = snap.val() || 0;
+
+    if(balance < price){
+        alert("❌ Solde insuffisant");
+        return;
+    }
+
+    let data = {
+        service,
+        price,
+        date: Date.now(),
+        user
+    };
+
+    document.querySelectorAll("#formZone input, #formZone select, #formZone textarea")
+    .forEach(el=>{
+        data[el.id] = el.value;
+    });
+
+    const id = Date.now();
+
+    await set(ref(db, "orders/pending/" + user + "/" + id), data);
+
+    alert("✅ Commande envoyée !");
+};
+
+</script>
+
+</body>
+</html>
