@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Recharge - DAVBOT</title>
+<title>Recharge - Starlink</title>
 
 <style>
 :root { --blue:#00d2ff; --dark:#050a14; }
@@ -11,7 +11,8 @@
 body{
     margin:0;
     font-family:'Segoe UI',sans-serif;
-    background:var(--dark);
+    background:var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
+    background-size:cover;
     color:white;
     display:flex;
     justify-content:center;
@@ -19,47 +20,72 @@ body{
     min-height:100vh;
 }
 
+.overlay{
+    background:rgba(5,10,20,0.9);
+    width:100%;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
 .card{
-    background:#111;
+    background:rgba(0,0,0,0.85);
     padding:25px;
     border-radius:20px;
     width:90%;
     max-width:400px;
+    border:1px solid var(--blue);
+    backdrop-filter:blur(10px);
+}
+
+h2{
+    text-align:center;
+    color:var(--blue);
 }
 
 .price-grid{
     display:grid;
     grid-template-columns:1fr 1fr 1fr;
     gap:10px;
+    margin-top:15px;
 }
 
 .price-item{
-    padding:10px;
-    background:#222;
+    padding:12px;
+    background:rgba(255,255,255,0.08);
     text-align:center;
     border-radius:10px;
     cursor:pointer;
+    transition:0.3s;
 }
 
 .price-item.active{
-    background:#00d2ff;
+    background:var(--blue);
     color:black;
+    font-weight:bold;
 }
 
 input{
     width:100%;
-    padding:12px;
+    padding:14px;
     margin:10px 0;
     border-radius:10px;
     border:none;
-    background:#000;
+    background:rgba(255,255,255,0.08);
     color:white;
+}
+
+.info{
+    font-size:13px;
+    opacity:0.8;
+    margin:10px 0;
 }
 
 button{
     width:100%;
     padding:15px;
-    background:#00d2ff;
+    background:var(--blue);
     border:none;
     border-radius:10px;
     font-weight:bold;
@@ -69,11 +95,22 @@ button{
 button:disabled{
     background:#444;
 }
+
+.back{
+    text-align:center;
+    margin-top:10px;
+    font-size:13px;
+}
+.back a{
+    color:white;
+    text-decoration:none;
+}
 </style>
 </head>
 
 <body>
 
+<div class="overlay">
 <div class="card">
 
 <h2>💰 Recharge</h2>
@@ -89,83 +126,23 @@ button:disabled{
 
 <input type="number" id="amount" placeholder="Montant">
 
-<div>
-📱 Airtel : 243 982697752<br>
-
+<div class="info">
+📱 Paiement Airtel : <b>243 982697752</b><br>
+⚠️ Envoyer puis entrer l’ID de transaction
 </div>
 
 <input type="text" id="tid" placeholder="ID Transaction">
 
 <button id="btn">Envoyer</button>
 
+<div class="back">
+<a href="profil.html">← Retour</a>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+</div>
+</div>
 
-const firebaseConfig = {
-apiKey:"AIzaSy...",
-authDomain:"starlink-investit.firebaseapp.com",
-databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
-projectId:"starlink-investit",
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-const user = localStorage.getItem("userPhone");
-if(!user) location.href="index.html";
-
-// 🎯 SELECT PRIX
-document.querySelectorAll(".price-item").forEach(el=>{
-    el.onclick=()=>{
-        document.querySelectorAll(".price-item").forEach(i=>i.classList.remove("active"));
-        el.classList.add("active");
-        document.getElementById("amount").value = el.dataset.val;
-    };
-});
-
-// 🚀 ENVOI DEMANDE
-document.getElementById("btn").onclick = async ()=>{
-
-    const btn = document.getElementById("btn");
-    const amount = parseInt(document.getElementById("amount").value);
-    const tid = document.getElementById("tid").value.trim();
-
-    if(!amount || amount < 5000){
-        return alert("Minimum 5000 FC");
-    }
-
-    if(tid.length < 5){
-        return alert("ID invalide");
-    }
-
-    try{
-        btn.disabled = true;
-        btn.innerText = "Envoi...";
-
-        const newRef = push(ref(db,"demandes_recharges"));
-
-        await set(newRef,{
-            user: user,
-            amount: amount,
-            tid: tid,
-            status: "pending",
-            date: Date.now()
-        });
-
-        alert("✅ Envoyé, en attente validation admin");
-        location.href="dashboard.html";
-
-    }catch(e){
-        alert("Erreur");
-        console.error(e);
-        btn.disabled = false;
-        btn.innerText = "Envoyer";
-    }
-};
-</script>
+<script type="module" src="recharge.js"></script>
 
 </body>
 </html>
