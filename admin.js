@@ -1,235 +1,212 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-    getDatabase, ref, onValue, get,
-    update, remove
+getDatabase, ref, onValue, get, update, remove, push
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG
 const firebaseConfig = {
-    apiKey: "AIzaSyA24pBo8mBWiZssPtep--MMBdB7c8_Lu4U",
-    authDomain: "starlink-investit.firebaseapp.com",
-    databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
-    projectId: "starlink-investit",
-    storageBucket: "starlink-investit.appspot.com",
-    messagingSenderId: "807081599583",
-    appId: "1:807081599583:web:e00ec3959bc4acdae031ea"
+    apiKey:"AIza...",
+    databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ==========================
-// 💰 RECHARGES
-// ==========================
-onValue(ref(db,"demandes_recharges"), snap=>{
-    const box = document.getElementById("recharges");
-    box.innerHTML = "";
+// 🔐 ADMIN
+const ADMIN = "0850000000";
+const me = localStorage.getItem("userPhone");
 
-    snap.forEach(child=>{
-        const d = child.val();
-        const id = child.key;
+if(me !== ADMIN){
+    alert("Accès refusé");
+    location.href="index.html";
+}
 
-        box.innerHTML += `
-        <div class="card">
-            📱 ${d.telephone || "?"}<br>
-            💰 ${d.montant || 0} FC<br>
-            🆔 ${d.transactionID || "-"}
-            <br>
-            <button class="ok" onclick="validerRecharge('${id}','${d.telephone}',${d.montant})">Valider</button>
-            <button class="no" onclick="supprimer('demandes_recharges','${id}')">Supprimer</button>
-        </div>`;
-    });
-});
-
-window.validerRecharge = async(id, phone, montant)=>{
-    const userRef = ref(db,"users/"+phone);
-    const snap = await get(userRef);
-
-    if(!snap.exists()) return alert("Utilisateur introuvable");
-
-    const data = snap.val();
-    const balance = (data.balance || 0) + montant;
-
-    await update(userRef,{ balance });
-    await remove(ref(db,"demandes_recharges/"+id));
-
-    alert("Recharge validée");
-};
-
-// ==========================
-// 💸 RETRAITS
-// ==========================
-onValue(ref(db,"demandes_retraits"), snap=>{
-    const box = document.getElementById("withdraws");
-    box.innerHTML = "";
-
-    snap.forEach(child=>{
-        const d = child.val();
-        const id = child.key;
-
-        box.innerHTML += `
-        <div class="card">
-            📱 ${d.telephone}<br>
-            💸 ${d.montant} FC<br>
-            📲 ${d.numero}
-            <br>
-            <button class="ok" onclick="validerRetrait('${id}','${d.telephone}',${d.montant})">Valider</button>
-            <button class="no" onclick="refuserRetrait('${id}')">Refuser</button>
-        </div>`;
-    });
-});
-
-window.validerRetrait = async(id, phone, montant)=>{
-    const userRef = ref(db,"users/"+phone);
-    const snap = await get(userRef);
-
-    if(!snap.exists()) return;
-
-    const data = snap.val();
-    let balance = data.balance || 0;
-
-    const frais = Math.floor(montant * 0.1); // 10%
-    const total = montant + frais;
-
-    if(balance < total) return alert("Solde insuffisant");
-
-    balance -= total;
-
-    await update(userRef,{ balance });
-    await remove(ref(db,"demandes_retraits/"+id));
-
-    alert("Retrait validé (frais inclus)");
-};
-
-window.refuserRetrait = async(id)=>{
-    await remove(ref(db,"demandes_retraits/"+id));
-    alert("Retrait refusé");
-};
-
-// ==========================
-// 📦 COMMANDES
-// ==========================
-onValue(ref(db,"commandes"), snap=>{
-    const box = document.getElementById("orders");
-    box.innerHTML = "";
-
-    snap.forEach(child=>{
-        const d = child.val();
-        const id = child.key;
-
-        box.innerHTML += `
-        <div class="card">
-            📱 ${d.telephone}<br>
-            🛒 ${d.service}<br>
-            💰 ${d.prix} FC
-            <br>
-            <button class="ok" onclick="validerCommande('${id}')">Valider</button>
-            <button class="no" onclick="refuserCommande('${id}','${d.telephone}',${d.prix})">Annuler</button>
-        </div>`;
-    });
-});
-
-window.validerCommande = async(id)=>{
-    await update(ref(db,"commandes/"+id),{ statut:"Validé" });
-    alert("Commande validée");
-};
-
-window.refuserCommande = async(id, phone, prix)=>{
-    const userRef = ref(db,"users/"+phone);
-    const snap = await get(userRef);
-
-    if(snap.exists()){
-        const data = snap.val();
-        const balance = (data.balance || 0) + prix;
-        await update(userRef,{ balance });
-    }
-
-    await remove(ref(db,"commandes/"+id));
-    alert("Commande annulée + remboursée");
-};
-
-// ==========================
-// 🔁 TRANSFERTS
-// ==========================
-onValue(ref(db,"transferts"), snap=>{
-    const box = document.getElementById("transfers");
-    box.innerHTML = "";
-
-    snap.forEach(child=>{
-        const d = child.val();
-        const id = child.key;
-
-        box.innerHTML += `
-        <div class="card">
-            🔁 ${d.from} → ${d.to}<br>
-            💰 ${d.amount} FC
-            <br>
-            <button class="ok" onclick="validerTransfert('${id}')">Valider</button>
-            <button class="no" onclick="refuserTransfert('${id}')">Refuser</button>
-        </div>`;
-    });
-});
-
-window.validerTransfert = async(id)=>{
-    const snap = await get(ref(db,"transferts/"+id));
-    if(!snap.exists()) return;
-
-    const d = snap.val();
-
-    const fromRef = ref(db,"users/"+d.from);
-    const toRef = ref(db,"users/"+d.to);
-
-    const fromSnap = await get(fromRef);
-    const toSnap = await get(toRef);
-
-    if(!fromSnap.exists() || !toSnap.exists()) return;
-
-    const fromData = fromSnap.val();
-    const toData = toSnap.val();
-
-    if((fromData.balance || 0) < d.amount)
-        return alert("Solde insuffisant");
-
-    await update(fromRef,{
-        balance:(fromData.balance || 0) - d.amount
-    });
-
-    await update(toRef,{
-        balance:(toData.balance || 0) + d.amount
-    });
-
-    await update(ref(db,"transferts/"+id),{ statut:"Validé" });
-
-    alert("Transfert validé");
-};
-
-window.refuserTransfert = async(id)=>{
-    await remove(ref(db,"transferts/"+id));
-    alert("Transfert refusé");
-};
-
-// ==========================
-// 👤 UTILISATEURS
-// ==========================
+// =======================
+// 👤 USERS
+// =======================
 onValue(ref(db,"users"), snap=>{
     const box = document.getElementById("users");
-    box.innerHTML = "";
+    box.innerHTML="";
 
-    snap.forEach(child=>{
-        const d = child.val();
+    const data = snap.val();
+
+    Object.keys(data).forEach(phone=>{
+        const u = data[phone];
 
         box.innerHTML += `
-        <div class="card">
-            📱 ${d.phone}<br>
-            💰 ${d.balance || 0} FC<br>
-            🎟️ ${d.inviteCode || "-"}
-        </div>`;
+        <div class="user">
+        📱 ${phone}<br>
+        💰 ${u.balance || 0} FC<br>
+
+        <button class="green" onclick="addMoney('${phone}')">+1000</button>
+        <button class="red" onclick="removeMoney('${phone}')">-1000</button>
+        <button class="red" onclick="delUser('${phone}')">Supprimer</button>
+        </div>
+        `;
     });
 });
 
-// ==========================
-// 🧹 SUPPRESSION
-// ==========================
-window.supprimer = async(path,id)=>{
-    await remove(ref(db, path+"/"+id));
+window.addMoney = async (phone)=>{
+    const snap = await get(ref(db,"users/"+phone));
+    const bal = snap.val().balance || 0;
+
+    await update(ref(db,"users/"+phone),{
+        balance: bal + 1000
+    });
+};
+
+window.removeMoney = async (phone)=>{
+    const snap = await get(ref(db,"users/"+phone));
+    const bal = snap.val().balance || 0;
+
+    await update(ref(db,"users/"+phone),{
+        balance: Math.max(0, bal - 1000)
+    });
+};
+
+window.delUser = async (phone)=>{
+    if(confirm("Supprimer ?")){
+        await remove(ref(db,"users/"+phone));
+    }
+};
+
+// =======================
+// 🔄 TRANSFERT
+// =======================
+window.transfer = async ()=>{
+
+    const from = document.getElementById("from").value;
+    const to = document.getElementById("to").value;
+    const amount = parseInt(document.getElementById("amount").value);
+
+    const s1 = await get(ref(db,"users/"+from));
+    const s2 = await get(ref(db,"users/"+to));
+
+    if(!s1.exists() || !s2.exists()) return alert("Erreur");
+
+    const b1 = s1.val().balance || 0;
+    const b2 = s2.val().balance || 0;
+
+    if(b1 < amount) return alert("Solde insuffisant");
+
+    await update(ref(db,"users/"+from),{ balance: b1 - amount });
+    await update(ref(db,"users/"+to),{ balance: b2 + amount });
+
+    alert("Transfert OK");
+};
+
+// =======================
+// 💸 RETRAITS
+// =======================
+onValue(ref(db,"demandes_retraits"), snap=>{
+    const box = document.getElementById("retraits");
+    box.innerHTML="";
+
+    const data = snap.val();
+
+    if(!data) return;
+
+    Object.entries(data).forEach(([id,d])=>{
+        box.innerHTML += `
+        <div class="user">
+        ${d.telephone} - ${d.montant}
+
+        <button onclick="validerRetrait('${id}')">✔</button>
+        <button class="red" onclick="refuserRetrait('${id}')">✖</button>
+        </div>
+        `;
+    });
+});
+
+window.validerRetrait = async (id)=>{
+    await update(ref(db,"demandes_retraits/"+id),{statut:"validé"});
+};
+
+window.refuserRetrait = async (id)=>{
+    await remove(ref(db,"demandes_retraits/"+id));
+};
+
+// =======================
+// 💰 RECHARGES
+// =======================
+onValue(ref(db,"demandes_recharges"), snap=>{
+    const box = document.getElementById("recharges");
+    box.innerHTML="";
+
+    const data = snap.val();
+
+    if(!data) return;
+
+    Object.entries(data).forEach(([id,d])=>{
+        box.innerHTML += `
+        <div class="user">
+        ${d.user} - ${d.amount}
+
+        <button onclick="validerRecharge('${id}','${d.user}',${d.amount})">✔</button>
+        </div>
+        `;
+    });
+});
+
+window.validerRecharge = async (id,user,amount)=>{
+
+    const snap = await get(ref(db,"users/"+user));
+    const bal = snap.val().balance || 0;
+
+    await update(ref(db,"users/"+user),{
+        balance: bal + amount
+    });
+
+    await update(ref(db,"demandes_recharges/"+id),{
+        status:"validé"
+    });
+};
+
+// =======================
+// 📦 COMMANDES
+// =======================
+onValue(ref(db,"orders"), snap=>{
+    const box = document.getElementById("orders");
+    box.innerHTML="";
+
+    const data = snap.val();
+    if(!data) return;
+
+    Object.entries(data).forEach(([id,d])=>{
+        box.innerHTML += `
+        <div class="user">
+        ${d.user} - ${d.service}
+
+        <button onclick="validerCmd('${id}')">✔</button>
+        <button class="red" onclick="delCmd('${id}')">✖</button>
+        </div>
+        `;
+    });
+});
+
+window.validerCmd = async (id)=>{
+    await update(ref(db,"orders/"+id),{statut:"validé"});
+};
+
+window.delCmd = async (id)=>{
+    await remove(ref(db,"orders/"+id));
+};
+
+// =======================
+// 📩 MESSAGE
+// =======================
+window.sendMsg = async ()=>{
+
+    const tel = document.getElementById("target").value;
+    const msg = document.getElementById("msg").value;
+    const img = document.getElementById("img").value;
+    const file = document.getElementById("file").value;
+
+    await push(ref(db,"messages_admin/"+tel),{
+        text: msg,
+        image: img || "",
+        file: file || "",
+        date: Date.now()
+    });
+
+    alert("Envoyé");
 };
