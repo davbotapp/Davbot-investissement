@@ -13,7 +13,6 @@ body{
     font-family:sans-serif;
     background:var(--dark);
     color:white;
-    padding-bottom:100px;
 }
 
 .container{padding:20px;}
@@ -23,29 +22,31 @@ h2{color:var(--blue);}
 .card{
     background:#111;
     padding:15px;
-    border-radius:10px;
+    border-radius:12px;
     margin-top:10px;
 }
 
-.counter{
-    font-size:28px;
-    text-align:center;
+.flex{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 }
 
 .btn{
     width:100%;
-    padding:15px;
+    padding:12px;
     background:var(--green);
     border:none;
     border-radius:10px;
     margin-top:10px;
+    font-weight:bold;
 }
 
 .order{
+    background:#1a1a1a;
     padding:10px;
     border-radius:10px;
     margin-top:10px;
-    background:#1a1a1a;
 }
 
 .pending{border-left:5px solid orange;}
@@ -71,19 +72,22 @@ h2{color:var(--blue);}
 
 <h2 id="welcome">Bienvenue...</h2>
 
-<div class="card">
-    💰 Solde principal : <b id="balPrincipal">0</b> FC
+<!-- SOLDE -->
+<div class="card flex">
+    <div>
+        💰 Balance<br>
+        <b id="balance">0</b> FC
+    </div>
 </div>
 
+<!-- POINTS -->
 <div class="card">
-    💸 Solde gains : <b id="balGains">0</b> FC
+    🎯 Points : <b id="points">0</b><br>
+    💱 = <b id="pointsFC">0</b> FC
+    <button class="btn" onclick="convertPoints()">Convertir points</button>
 </div>
 
-<div class="card">
-    <div class="counter" id="liveCounter">0</div>
-    <button class="btn" id="btnCollect">Récupérer gains</button>
-</div>
-
+<!-- COMMANDES -->
 <h3>📦 Mes commandes</h3>
 <div id="orders"></div>
 
