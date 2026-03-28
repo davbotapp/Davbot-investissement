@@ -2,36 +2,63 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>ADMIN</title>
+<title>Admin</title>
 
 <style>
-:root { --blue:#00d2ff; --dark:#050a14; --red:#f44336; --green:#4caf50; }
+:root { --blue:#00d2ff; --dark:#050a14; --green:#4caf50; --red:#f44336; }
 
-body{background:var(--dark); color:white; font-family:sans-serif; padding:15px;}
-.card{background:#111; padding:15px; margin-top:15px; border-radius:10px;}
-.user{background:#1a1a1a; padding:10px; margin-top:10px; border-radius:10px;}
-button{margin:3px; padding:8px; border:none; border-radius:8px; cursor:pointer;}
-.red{background:var(--red);} .green{background:var(--green);} .blue{background:var(--blue);}
+body{
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+    background:var(--dark);
+    color:white;
+    padding:20px;
+}
+
+h2{text-align:center;color:var(--blue);}
+
+.card{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(0,210,255,0.2);
+    border-radius:15px;
+    padding:15px;
+    margin-top:20px;
+}
+
+.item{
+    background:#111;
+    padding:12px;
+    margin-top:10px;
+    border-radius:10px;
+}
+
+button{
+    padding:8px;
+    border:none;
+    border-radius:8px;
+    margin-top:5px;
+    cursor:pointer;
+}
+
+.ok{background:var(--green);}
+.no{background:var(--red);}
 </style>
 </head>
 
 <body>
 
-<h2>⚙️ ADMIN TOTAL</h2>
+<h2>⚙️ ADMIN PANEL</h2>
 
 <!-- USERS -->
 <div class="card">
-<h3>👤 Utilisateurs</h3>
+<h3>👤 Comptes</h3>
 <div id="users"></div>
 </div>
 
-<!-- TRANSFERT -->
+<!-- TRANSFERTS -->
 <div class="card">
-<h3>🔄 Transfert entre comptes</h3>
-<input id="from" placeholder="De (tel)">
-<input id="to" placeholder="Vers (tel)">
-<input id="amount" placeholder="Montant">
-<button onclick="transfer()">Envoyer</button>
+<h3>🔄 Transferts</h3>
+<div id="transferts"></div>
 </div>
 
 <!-- RETRAITS -->
@@ -54,14 +81,14 @@ button{margin:3px; padding:8px; border:none; border-radius:8px; cursor:pointer;}
 
 <!-- MESSAGE -->
 <div class="card">
-<h3>📩 Message utilisateur</h3>
-<input id="target">
-<input id="msg">
-<input id="img">
-<input id="file">
+<h3>📩 Envoyer message</h3>
+<input id="target" placeholder="Téléphone">
+<input id="msg" placeholder="Message">
+<input id="img" placeholder="Image URL">
+<input id="file" placeholder="Fichier URL">
 <button onclick="sendMsg()">Envoyer</button>
 </div>
 
 <script type="module" src="admin.js"></script>
 </body>
-</html>
+  </html>
