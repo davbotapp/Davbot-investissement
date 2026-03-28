@@ -31,24 +31,21 @@ body {
     border-radius:15px;
     padding:15px;
     margin-bottom:15px;
+    display:flex;
+    align-items:center;
+}
+
+.icon {
+    font-size:30px;
+    margin-right:15px;
+}
+
+.content {
+    flex:1;
 }
 
 .title { color:var(--blue); font-weight:bold; }
 .desc { font-size:13px; }
-
-.actions {
-    margin-top:10px;
-    display:flex;
-    justify-content:space-between;
-}
-
-.like-btn {
-    border:1px solid var(--blue);
-    background:transparent;
-    color:white;
-    padding:5px 10px;
-    border-radius:10px;
-}
 
 .order-btn {
     background:var(--blue);
@@ -56,6 +53,7 @@ body {
     padding:8px 12px;
     border-radius:10px;
     font-weight:bold;
+    margin-top:8px;
 }
 </style>
 </head>
@@ -69,13 +67,14 @@ body {
 <div class="container" id="services"></div>
 
 <script>
-// SERVICES
+
+// SERVICES AVEC ICÔNES
 const services = [
-    { nom:"Application", desc:"Création application mobile" },
-    { nom:"Site Web Pro", desc:"Création site professionnel" },
-    { nom:"Intelligence Artificielle", desc:"Chatbot et IA" },
-    { nom:"Réseaux Sociaux", desc:"Boost et gestion comptes" },
-    { nom:"Hébergement", desc:"Serveur rapide et sécurisé" }
+    { nom:"Application", desc:"Création application mobile", icon:"📱" },
+    { nom:"Site Web Pro", desc:"Création site professionnel", icon:"🌐" },
+    { nom:"Intelligence Artificielle", desc:"Chatbot et IA", icon:"🤖" },
+    { nom:"Réseaux Sociaux", desc:"Boost et gestion comptes", icon:"📲" },
+    { nom:"Hébergement", desc:"Serveur rapide et sécurisé", icon:"💾" }
 ];
 
 // AFFICHAGE
@@ -86,29 +85,27 @@ services.forEach(s=>{
     div.className="card";
 
     div.innerHTML = `
-        <div class="title">${s.nom}</div>
-        <div class="desc">${s.desc}</div>
+        <div class="icon">${s.icon}</div>
 
-        <div class="actions">
-            <button class="like-btn" onclick="like(this)">❤️ <span>0</span></button>
-            <button class="order-btn" onclick="commander('${s.nom}')">Commander</button>
+        <div class="content">
+            <div class="title">${s.nom}</div>
+            <div class="desc">${s.desc}</div>
+
+            <button class="order-btn" onclick="commander('${s.nom}')">
+                Commander
+            </button>
         </div>
     `;
 
     container.appendChild(div);
 });
 
-// LIKE
-function like(btn){
-    let span = btn.querySelector("span");
-    span.innerText = parseInt(span.innerText)+1;
-}
-
 // COMMANDER
 function commander(service){
     localStorage.setItem("serviceCommande", service);
     window.location.href = "commande.html";
 }
+
 </script>
 
 </body>
