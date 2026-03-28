@@ -96,7 +96,7 @@ onValue(ref(db,"demandes_retraits"), snap=>{
     Object.entries(data).forEach(([id,d])=>{
         box.innerHTML += `
         <div class="item">
-        ${d.telephone} - ${d.montant}
+        ${d.telephone} - ${d.amount}
 
         <button class="ok" onclick="okRet('${id}')">✔</button>
         <button class="no" onclick="noRet('${id}')">✖</button>
