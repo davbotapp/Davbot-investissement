@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG FIREBASE
 const firebaseConfig = {
     apiKey: "AIza...",
     authDomain: "starlink-investit.firebaseapp.com",
@@ -12,20 +11,21 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// USER
 const user = localStorage.getItem("userPhone");
 if(!user) window.location.href = "index.html";
 
-// SERVICE
 const service = localStorage.getItem("serviceCommande");
-document.getElementById("serviceName").value = service;
 
 const zone = document.getElementById("formZone");
 const priceDisplay = document.getElementById("price");
 
-// =======================
+document.getElementById("serviceName").value = service;
+
+// =====================
 // FORMULAIRES
-// =======================
+// =====================
+function renderForm(){
+
 if(service === "Application"){
     zone.innerHTML = `
         <select id="typeApp">
@@ -81,15 +81,30 @@ else if(service === "Réseaux Sociaux"){
 
 else if(service === "Intelligence Artificielle"){
     zone.innerHTML = `<textarea id="desc"></textarea>`;
-    priceDisplay.innerText = 10000;
 }
 
-// =======================
-// CALCUL PRIX AUTO
-// =======================
-setInterval(calcPrice, 1000);
+attachEvents();
+calcPrice();
+}
 
+renderForm();
+
+// =====================
+// EVENTS (IMPORTANT)
+// =====================
+function attachEvents(){
+    document.querySelectorAll("#formZone input, #formZone select")
+    .forEach(el=>{
+        el.addEventListener("input", calcPrice);
+        el.addEventListener("change", calcPrice);
+    });
+}
+
+// =====================
+// CALCUL PRIX
+// =====================
 function calcPrice(){
+
     let price = 0;
 
     if(service === "Application"){
@@ -111,14 +126,14 @@ function calcPrice(){
         else if(d === "15 jours") price = 6000;
         else if(d === "30 jours") price = 8000;
         else {
-            const days = document.getElementById("customDays")?.value || 0;
+            const days = parseInt(document.getElementById("customDays")?.value) || 0;
             price = days * 300;
         }
     }
 
     if(service === "Réseaux Sociaux"){
         const type = document.getElementById("type")?.value;
-        const nb = document.getElementById("nombre")?.value || 0;
+        const nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
         let base = 0;
         if(type === "Vues") base = 2000;
@@ -128,15 +143,24 @@ function calcPrice(){
         price = (nb / 1000) * base;
     }
 
+    if(service === "Intelligence Artificielle"){
+        price = 10000;
+    }
+
     priceDisplay.innerText = Math.floor(price);
 }
 
-// =======================
-// VALIDER COMMANDE
-// =======================
+// =====================
+// VALIDER
+// =====================
 window.valider = async function(){
 
     const price = parseInt(priceDisplay.innerText);
+
+    if(price <= 0){
+        alert("❌ Prix invalide");
+        return;
+    }
 
     const snap = await get(ref(db, "users/" + user));
     if(!snap.exists()) return;
@@ -149,7 +173,7 @@ window.valider = async function(){
         return;
     }
 
-    // 🔻 Déduction directe
+    // Déduction
     await update(ref(db, "users/" + user), {
         balance: balance - price
     });
@@ -157,12 +181,11 @@ window.valider = async function(){
     let data = {
         service,
         price,
-        statut: "En attente",
+        statut: "pending",
         date: Date.now(),
         user
     };
 
-    // Récupérer inputs
     document.querySelectorAll("#formZone input, #formZone select, #formZone textarea")
     .forEach(el=>{
         data[el.id] = el.value;
@@ -170,7 +193,8 @@ window.valider = async function(){
 
     const id = Date.now();
 
-    await set(ref(db, "orders/" + id), data);
+    await set(ref(db, "orders/pending/" + user + "/" + id), data);
 
     alert("✅ Commande envoyée !");
+    window.location.href = "dashboard.html";
 };
