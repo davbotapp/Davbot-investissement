@@ -3,100 +3,124 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard</title>
+<title> Davbot - Dashboard</title>
 
 <style>
 :root { --blue:#00d2ff; --dark:#050a14; --green:#4caf50; --red:#f44336; }
 
 body{
     margin:0;
-    font-family:sans-serif;
-    background:var(--dark);
+    font-family:'Segoe UI', sans-serif;
+    background: var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
+    background-size: cover;
     color:white;
 }
 
-.container{padding:20px;}
-
-h2{color:var(--blue);}
-
-.card{
-    background:#111;
-    padding:15px;
-    border-radius:12px;
-    margin-top:10px;
+.overlay{
+    background: rgba(0,0,0,0.7);
+    min-height:100vh;
+    padding:20px;
 }
 
+/* CARD STYLE GLOBAL */
+.card{
+    background: rgba(0,0,0,0.85);
+    border:1px solid var(--blue);
+    border-radius:20px;
+    padding:20px;
+    margin-top:15px;
+    backdrop-filter: blur(15px);
+    box-shadow:0 0 15px rgba(0,210,255,0.2);
+}
+
+h2{
+    text-align:center;
+    color:var(--blue);
+    letter-spacing:2px;
+}
+
+/* FLEX */
 .flex{
     display:flex;
     justify-content:space-between;
-    align-items:center;
 }
 
+/* BUTTON */
 .btn{
     width:100%;
-    padding:12px;
+    padding:14px;
     background:var(--green);
     border:none;
     border-radius:10px;
     margin-top:10px;
     font-weight:bold;
+    cursor:pointer;
 }
 
+/* COMMANDES */
 .order{
-    background:#1a1a1a;
-    padding:10px;
-    border-radius:10px;
+    background:rgba(255,255,255,0.05);
+    padding:12px;
+    border-radius:12px;
     margin-top:10px;
+    font-size:14px;
 }
 
 .pending{border-left:5px solid orange;}
 .valid{border-left:5px solid var(--green);}
 .cancel{border-left:5px solid var(--red);}
 
+/* NAVBAR */
 .navbar{
     position:fixed;
     bottom:0;
     width:100%;
-    background:#000;
+    background: rgba(0,0,0,0.9);
     display:flex;
     justify-content:space-around;
-    padding:10px;
+    padding:12px;
+    border-top:1px solid var(--blue);
+}
+.navbar a{
+    color:white;
+    text-decoration:none;
+    font-size:12px;
+    text-align:center;
 }
 </style>
-
 </head>
 
 <body>
 
-<div class="container">
+<div class="overlay">
 
 <h2 id="welcome">Bienvenue...</h2>
 
 <!-- SOLDE -->
 <div class="card flex">
     <div>
-        💰 Balance<br>
-        <b id="balance">0</b> FC
+        💰 Solde FC<br>
+        <b id="balance">0</b>
     </div>
 </div>
 
 <!-- POINTS -->
 <div class="card">
-    🎯 Points : <b id="points">0</b><br>
+    🎯 Points fidélité : <b id="points">0</b><br>
     💱 = <b id="pointsFC">0</b> FC
-    <button class="btn" onclick="convertPoints()">Convertir points</button>
+    <button class="btn" id="convertBtn">Convertir en FC</button>
 </div>
 
 <!-- COMMANDES -->
-<h3>📦 Mes commandes</h3>
+<h3 style="margin-top:20px;">📦 Mes commandes</h3>
 <div id="orders"></div>
 
 </div>
 
 <nav class="navbar">
-<a href="dashboard.html">Dash</a>
-<a href="service.html">Shop</a>
-<a href="profil.html">Profil</a>
+<a href="dashboard.html">📊<br>Dash</a>
+<a href="service.html">📡<br>Shop</a>
+<a href="profil.html">👤<br>Profil</a>
 </nav>
 
 <script type="module" src="dash.js"></script>
