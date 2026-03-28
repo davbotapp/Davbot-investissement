@@ -2,72 +2,66 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ADMIN DAVBOT</title>
+<title>ADMIN</title>
 
 <style>
-body{
-    background:#050a14;
-    color:white;
-    font-family:sans-serif;
-    padding:20px;
-}
+:root { --blue:#00d2ff; --dark:#050a14; --red:#f44336; --green:#4caf50; }
 
-h2{color:#00d2ff;}
-
-.section{margin-bottom:30px;}
-
-.card{
-    background:#111;
-    padding:15px;
-    margin-bottom:10px;
-    border-radius:10px;
-}
-
-button{
-    margin-top:5px;
-    margin-right:5px;
-    padding:8px 12px;
-    border:none;
-    border-radius:5px;
-    cursor:pointer;
-}
-
-.ok{background:#00d2ff;color:black;}
-.no{background:red;color:white;}
+body{background:var(--dark); color:white; font-family:sans-serif; padding:15px;}
+.card{background:#111; padding:15px; margin-top:15px; border-radius:10px;}
+.user{background:#1a1a1a; padding:10px; margin-top:10px; border-radius:10px;}
+button{margin:3px; padding:8px; border:none; border-radius:8px; cursor:pointer;}
+.red{background:var(--red);} .green{background:var(--green);} .blue{background:var(--blue);}
 </style>
 </head>
 
 <body>
 
-<h2>👑 ADMIN PANEL</h2>
+<h2>⚙️ ADMIN TOTAL</h2>
 
-<div class="section">
-<h3>💰 Recharges</h3>
-<div id="recharges"></div>
-</div>
-
-<div class="section">
-<h3>💸 Retraits</h3>
-<div id="withdraws"></div>
-</div>
-
-<div class="section">
-<h3>📦 Commandes</h3>
-<div id="orders"></div>
-</div>
-
-<div class="section">
-<h3>🔁 Transferts</h3>
-<div id="transfers"></div>
-</div>
-
-<div class="section">
+<!-- USERS -->
+<div class="card">
 <h3>👤 Utilisateurs</h3>
 <div id="users"></div>
 </div>
 
-<script type="module" src="admin.js"></script>
+<!-- TRANSFERT -->
+<div class="card">
+<h3>🔄 Transfert entre comptes</h3>
+<input id="from" placeholder="De (tel)">
+<input id="to" placeholder="Vers (tel)">
+<input id="amount" placeholder="Montant">
+<button onclick="transfer()">Envoyer</button>
+</div>
 
+<!-- RETRAITS -->
+<div class="card">
+<h3>💸 Retraits</h3>
+<div id="retraits"></div>
+</div>
+
+<!-- RECHARGES -->
+<div class="card">
+<h3>💰 Recharges</h3>
+<div id="recharges"></div>
+</div>
+
+<!-- COMMANDES -->
+<div class="card">
+<h3>📦 Commandes</h3>
+<div id="orders"></div>
+</div>
+
+<!-- MESSAGE -->
+<div class="card">
+<h3>📩 Message utilisateur</h3>
+<input id="target">
+<input id="msg">
+<input id="img">
+<input id="file">
+<button onclick="sendMsg()">Envoyer</button>
+</div>
+
+<script type="module" src="admin.js"></script>
 </body>
 </html>
