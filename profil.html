@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Profil</title>
+<title>Profil - Davbot</title>
 
 <style>
 :root { --blue:#00d2ff; --dark:#050a14; }
@@ -11,21 +11,29 @@
 body{
     margin:0;
     font-family:'Segoe UI', sans-serif;
-    background:var(--dark);
+    background:var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
+    background-size:cover;
     color:white;
 }
 
+.overlay{
+    background:rgba(5,10,20,0.9);
+    min-height:100vh;
+}
+
+/* HEADER */
 .header{
     text-align:center;
     padding:30px;
     border-bottom:1px solid var(--blue);
+    backdrop-filter:blur(10px);
 }
 
 .avatar{
     width:80px;
     height:80px;
     border-radius:50%;
-    background:var(--blue);
+    background:linear-gradient(135deg,var(--blue),white);
     display:flex;
     align-items:center;
     justify-content:center;
@@ -33,55 +41,115 @@ body{
     font-weight:bold;
     margin:auto;
     color:black;
+    box-shadow:0 0 20px var(--blue);
 }
 
+/* CARD */
 .card{
-    background:#111;
+    background:rgba(255,255,255,0.05);
     margin:15px;
     padding:15px;
-    border-radius:10px;
+    border-radius:15px;
+    border:1px solid rgba(0,210,255,0.2);
 }
 
+/* MENU */
 .menu a{
     display:block;
-    padding:12px;
-    margin:8px 0;
-    background:#111;
-    border-radius:10px;
+    padding:14px;
+    margin:10px 15px;
+    background:rgba(255,255,255,0.05);
+    border-radius:12px;
     text-decoration:none;
     color:white;
 }
 
 .logout{
-    background:red;
+    background:#f44336;
     text-align:center;
 }
-</style>
 
+/* INBOX */
+.message{
+    background:#111;
+    padding:10px;
+    border-radius:10px;
+    margin-top:10px;
+    border-left:3px solid var(--blue);
+}
+
+/* NAVBAR */
+.navbar{
+    position:fixed;
+    bottom:0;
+    width:100%;
+    background:rgba(5,10,20,0.95);
+    display:flex;
+    justify-content:space-around;
+    padding:12px;
+    border-top:1px solid var(--blue);
+}
+
+.navbar a{
+    color:white;
+    text-decoration:none;
+    font-size:12px;
+    opacity:0.6;
+}
+
+.navbar a.active{
+    opacity:1;
+    color:var(--blue);
+}
+</style>
 </head>
 
 <body>
 
+<div class="overlay">
+
+<!-- HEADER -->
 <div class="header">
     <div class="avatar" id="avatar">U</div>
     <h3 id="phone">...</h3>
     <small id="code">ID</small>
 </div>
 
+<!-- SOLDE -->
 <div class="card">
     💰 Solde FC : <b id="solde">0</b><br>
     ⭐ Points fidélité : <b id="points">0</b>
 </div>
 
+<!-- MENU -->
 <div class="menu">
     <a href="recharge.html">📥 Recharger</a>
     <a href="retrait.html">📤 Retirer</a>
     <a href="dashboard.html">📊 Dashboard</a>
     <a href="equipe.html">👥 Équipe</a>
+</div>
+
+<!-- 📩 INBOX -->
+<div class="card">
+    <h3>📩 Messages Admin</h3>
+    <div id="inbox"></div>
+</div>
+
+<!-- LOGOUT -->
+<div class="menu">
     <a href="#" class="logout" id="logout">🚪 Déconnexion</a>
+</div>
+
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+    <a href="dashboard.html">📊<br>Dash</a>
+    <a href="service.html">🛒<br>Shop</a>
+    <a href="profil.html" class="active">👤<br>Profil</a>
 </div>
 
 <script type="module" src="profil.js"></script>
 
 </body>
-</html>
+    </html>
