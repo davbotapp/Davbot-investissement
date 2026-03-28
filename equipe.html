@@ -16,16 +16,23 @@ body{
     padding:20px;
 }
 
-h2{text-align:center;}
-
-.card{
-    background:#111;
-    padding:20px;
-    border-radius:15px;
-    margin-top:20px;
+/* HEADER */
+h2{
     text-align:center;
+    color:var(--blue);
 }
 
+/* CARD STYLE GLOBAL */
+.card{
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(0,210,255,0.2);
+    border-radius:15px;
+    padding:20px;
+    margin-top:20px;
+    backdrop-filter: blur(10px);
+}
+
+/* CODE */
 .code{
     font-size:28px;
     color:var(--blue);
@@ -33,26 +40,36 @@ h2{text-align:center;}
     margin:15px 0;
 }
 
+/* GRID */
 .grid{
     display:grid;
     grid-template-columns:1fr 1fr 1fr;
     gap:10px;
-    margin-top:20px;
+    margin-top:15px;
 }
 
 .box{
     background:#111;
-    padding:10px;
+    padding:12px;
     border-radius:10px;
+    text-align:center;
 }
 
+/* BUTTON */
 button{
     width:100%;
-    padding:15px;
+    padding:12px;
     background:var(--blue);
     border:none;
     border-radius:10px;
+    font-weight:bold;
     margin-top:10px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+button:active{
+    transform:scale(0.95);
 }
 </style>
 </head>
@@ -61,6 +78,7 @@ button{
 
 <h2>👥 Mon Équipe</h2>
 
+<!-- PARRAINAGE -->
 <div class="card">
     <p>Votre code</p>
     <div class="code" id="code">...</div>
@@ -69,28 +87,44 @@ button{
     <button id="whatsappBtn">📤 Partager WhatsApp</button>
 </div>
 
+<!-- NIVEAUX -->
 <div class="grid">
-    <div class="box">
-        Niveau 1
-        <b id="lvl1">0</b>
-    </div>
-    <div class="box">
-        Niveau 2
-        <b id="lvl2">0</b>
-    </div>
-    <div class="box">
-        Niveau 3
-        <b id="lvl3">0</b>
-    </div>
+    <div class="box">Niveau 1<br><b id="lvl1">0</b></div>
+    <div class="box">Niveau 2<br><b id="lvl2">0</b></div>
+    <div class="box">Niveau 3<br><b id="lvl3">0</b></div>
 </div>
 
+<!-- STATS -->
 <div class="card">
     👥 Total : <b id="total">0</b><br>
     💰 Gains : <b id="gains">0</b> FC<br>
-    ⭐ Points gagnés : <b id="points">0</b>
+    ⭐ Points : <b id="points">0</b>
+</div>
+
+<!-- 🎟️ MES JETONS -->
+<div class="card">
+    <h3>🎟️ Mes Jetons</h3>
+    <div id="tokensList">Aucun jeton actif</div>
+</div>
+
+<!-- 💼 ACHAT -->
+<div class="card">
+    <h3>💼 Acheter un jeton</h3>
+
+    <div class="grid">
+        <div class="box">
+            G3<br>3 jours<br>3500 FC
+            <button onclick="buyToken('G3',3500,3)">Acheter</button>
+        </div>
+
+        <div class="box">
+            P7<br>7 jours<br>5000 FC
+            <button onclick="buyToken('P7',5000,7)">Acheter</button>
+        </div>
+    </div>
 </div>
 
 <script type="module" src="equipe.js"></script>
 
 </body>
-</html>
+    </html>
