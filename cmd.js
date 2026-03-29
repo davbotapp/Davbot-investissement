@@ -90,7 +90,7 @@ calcPrice();
 renderForm();
 
 // =====================
-// EVENTS (IMPORTANT)
+// EVENTS
 // =====================
 function attachEvents(){
     document.querySelectorAll("#formZone input, #formZone select")
@@ -173,17 +173,20 @@ window.valider = async function(){
         return;
     }
 
-    // Déduction
+    // 🔻 Déduction
     await update(ref(db, "users/" + user), {
         balance: balance - price
     });
 
+    const id = Date.now();
+
     let data = {
+        id,
         service,
         price,
         statut: "pending",
-        date: Date.now(),
-        user
+        user,
+        date: Date.now()
     };
 
     document.querySelectorAll("#formZone input, #formZone select, #formZone textarea")
@@ -191,9 +194,8 @@ window.valider = async function(){
         data[el.id] = el.value;
     });
 
-    const id = Date.now();
-
-    await set(ref(db, "orders/pending/" + user + "/" + id), data);
+    // ✅ STRUCTURE ADMIN SIMPLE
+    await set(ref(db, "orders/pending/" + id), data);
 
     alert("✅ Commande envoyée !");
     window.location.href = "dashboard.html";
