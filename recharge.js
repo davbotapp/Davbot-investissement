@@ -1,73 +1,110 @@
+// 🔥 FIREBASE IMPORT
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG
+// 🔥 CONFIG COMPLETE (IMPORTANT)
 const firebaseConfig = {
-    apiKey:"AIza...",
-    authDomain:"starlink-investit.firebaseapp.com",
-    databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
-    projectId:"starlink-investit"
+    apiKey: "AIzaSyA24pBo8mBWiZssPtep--MMBdB7c8_Lu4U",
+    authDomain: "starlink-investit.firebaseapp.com",
+    databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
+    projectId: "starlink-investit",
+    storageBucket: "starlink-investit.appspot.com",
+    messagingSenderId: "807081599583",
+    appId: "1:807081599583:web:e00ec3959bc4acdae031ea"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// 🔐 USER CONNECTÉ
 const user = localStorage.getItem("userPhone");
-if(!user) window.location.href="index.html";
 
-// 🎯 SELECTION MONTANT
+if(!user){
+    window.location.href = "index.html";
+}
+
+// 🎯 ELEMENTS
+const btn = document.getElementById("btn");
+const amountInput = document.getElementById("amount");
+const tidInput = document.getElementById("tid");
+
+// ============================
+// 🎯 SELECTION RAPIDE MONTANT
+// ============================
 document.querySelectorAll(".price-item").forEach(el=>{
-    el.onclick=()=>{
-        document.querySelectorAll(".price-item")
-        .forEach(i=>i.classList.remove("active"));
+    el.onclick = () => {
 
+        // reset
+        document.querySelectorAll(".price-item")
+        .forEach(i => i.classList.remove("active"));
+
+        // active
         el.classList.add("active");
-        document.getElementById("amount").value = el.dataset.val;
+
+        // set value
+        amountInput.value = el.dataset.val;
     };
 });
 
-// 🚀 ENVOYER DEMANDE
-document.getElementById("btn").onclick = async ()=>{
+// ============================
+// 🚀 ENVOI DEMANDE RECHARGE
+// ============================
+btn.onclick = async () => {
 
-    const btn = document.getElementById("btn");
-    const amount = parseInt(document.getElementById("amount").value);
-    const tid = document.getElementById("tid").value.trim();
+    const amount = parseInt(amountInput.value);
+    const tid = tidInput.value.trim();
 
+    // 🔎 VALIDATION
     if(!amount || amount < 5000){
         alert("❌ Minimum 5000 FC");
         return;
     }
 
-    if(tid.length < 5){
+    if(!tid || tid.length < 5){
         alert("❌ ID transaction invalide");
         return;
     }
 
     try{
+
+        // 🔄 UI LOADING
         btn.disabled = true;
-        btn.innerText = "⏳ Envoi...";
+        btn.innerText = "⏳ Envoi en cours...";
 
-        
+        // 🔥 CREER DEMANDE
+        const newRef = push(ref(db, "demandes_recharges"));
 
+        await set(newRef, {
+            user: user,
+            amount: amount,
+            tid: tid,
+            status: "pending",
+            date: Date.now()
+        });
 
-onValue(ref(db, "demandes_recharges"), snap=>{
-    const box = document.getElementById("recharges");
-    box.innerHTML = "";
+        // ✅ SUCCESS
+        alert("✅ Demande envoyée ! En attente de validation admin");
 
-    const data = snap.val();
-    if(!data) return;
+        // 🔁 RESET
+        amountInput.value = "";
+        tidInput.value = "";
 
-    Object.entries(data).forEach(([id, d])=>{
+        document.querySelectorAll(".price-item")
+        .forEach(i => i.classList.remove("active"));
 
-        box.innerHTML += `
-        <div class="card">
-            👤 ${d.user}<br>
-            💰 ${d.amount} FC<br>
-            🧾 ID: ${d.tid}<br>
+        // 🔄 REDIRECTION
+        setTimeout(()=>{
+            window.location.href = "dashboard.html";
+        }, 1500);
 
-            <button onclick="validerRecharge('${id}', '${d.user}', ${d.amount})">✅ Valider</button>
-            <button onclick="refuserRecharge('${id}')">❌ Refuser</button>
-        </div>
-        `;
-    });
-});
+    } catch(e){
+
+        console.error(e);
+
+        alert("❌ Erreur lors de l'envoi");
+
+        // 🔁 RESET BTN
+        btn.disabled = false;
+        btn.innerText = "Envoyer";
+    }
+};
