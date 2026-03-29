@@ -163,6 +163,8 @@ await remove(ref(db,"demandes_recharges/"+id));
 };
 
 // ✅ RETRAIT
+
+
 window.valRetrait = async(id)=>{
 
     const retraitRef = ref(db,"demandes_retraits/"+id);
@@ -172,7 +174,7 @@ window.valRetrait = async(id)=>{
 
     const data = snap.val();
 
-    const user = data.telephone;
+    const user = data.user; // ✅ CORRIGÉ
     const amount = data.montant;
 
     const userRef = ref(db,"users/"+user);
@@ -182,20 +184,19 @@ window.valRetrait = async(id)=>{
 
     const balance = snapUser.val().balance || 0;
 
-    // sécurité
+        // sécurité
+
     if(balance < amount){
         alert("❌ Solde insuffisant !");
         return;
     }
-
-    // 🔻 déduction
+// 🔻 déduction
     await update(userRef,{
         balance: balance - amount
     });
 
     // 🧾 supprimer demande
     await remove(retraitRef);
-
     // 📩 notifier utilisateur
     await push(ref(db,"messages/"+user),{
         text: "✅ Retrait validé : " + amount + " FC",
@@ -204,6 +205,7 @@ window.valRetrait = async(id)=>{
 
     alert("✅ Retrait validé");
 };
+
 // ✅ COMMANDES
 window.valCmd = async(user,id)=>{
 const snapRef = ref(db,"orders/pending/"+user+"/"+id);
