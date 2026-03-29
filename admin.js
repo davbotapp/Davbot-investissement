@@ -94,7 +94,7 @@ if(r.statut === "validé") return;
 
 box.innerHTML += `
 <div class="card">
-${r.telephone} - ${r.montant} FC<br>
+${r.numero} - ${r.montant} FC<br>
 
 <button class="ok" onclick="valRetrait('${id}')">Valider</button>
 <button class="no" onclick="deleteItem('demandes_retraits','${id}')">Refuser</button>
