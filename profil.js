@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // CONFIG
 const firebaseConfig = {
@@ -58,7 +58,7 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
 
     const data = snap.val();
 
-    Object.values(data).reverse().forEach(msg=>{
+    Object.entries(data).reverse().forEach(([id, msg])=>{
 
         let html = "";
 
@@ -67,7 +67,7 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
         }
 
         if(msg.image){
-            html += `<img src="${msg.image}" style="width:100%;border-radius:10px;">`;
+            html += `<img src="${msg.image}" style="width:100%;border-radius:10px;margin-top:5px;">`;
         }
 
         if(msg.file){
@@ -76,7 +76,7 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
 
         if(msg.commande){
             html += `
-                <div>
+                <div style="margin-top:5px;">
                     📦 ${msg.commande.service}<br>
                     💰 ${msg.commande.price} FC
                 </div>
@@ -84,14 +84,65 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
         }
 
         inboxEl.innerHTML += `
-            <div class="message">
+            <div class="message" style="
+                background:#111;
+                padding:10px;
+                border-radius:10px;
+                margin-top:10px;
+                border-left:4px solid ${msg.read ? '#444' : '#00d2ff'};
+            ">
+
                 ${html}
+
                 <small>${new Date(msg.date).toLocaleString()}</small>
+
+                <div style="margin-top:8px; display:flex; gap:5px;">
+
+                    <button onclick="copyMsg('${msg.text || ''}')">
+                        📋 Copier
+                    </button>
+
+                    <button onclick="markRead('${id}')">
+                        ✔️ Lu
+                    </button>
+
+                    <button onclick="deleteMsg('${id}')" style="background:red;">
+                        🗑️ Supprimer
+                    </button>
+
+                </div>
             </div>
         `;
     });
 
 });
+
+// =====================
+// ACTIONS MESSAGES
+// =====================
+
+// 📋 Copier
+window.copyMsg = (text)=>{
+    if(!text) return alert("Rien à copier");
+
+    navigator.clipboard.writeText(text)
+    .then(()=> alert("Copié"))
+    .catch(()=> alert(text));
+};
+
+// ✔️ Marquer comme lu
+window.markRead = async(id)=>{
+    await update(ref(db, "messages/" + userPhone + "/" + id), {
+        read: true
+    });
+};
+
+// 🗑️ Supprimer
+window.deleteMsg = async(id)=>{
+    if(confirm("Supprimer ce message ?")){
+        await remove(ref(db, "messages/" + userPhone + "/" + id));
+    }
+};
 
 // =====================
 // LOGOUT
