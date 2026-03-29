@@ -2,59 +2,76 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Memory G3</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tâche 2 – Duel IA</title>
 
 <style>
-body{background:#050a14;color:white;text-align:center;}
-button{padding:15px;background:#00d2ff;}
+body{
+margin:0;
+background:radial-gradient(circle at top,#1a0033,#000);
+font-family:Arial,sans-serif;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.card{
+width:95%;
+max-width:500px;
+background:#140033;
+padding:30px;
+border-radius:20px;
+text-align:center;
+box-shadow:0 0 40px rgba(255,0,200,.4);
+}
+
+h2{color:#ff2bd6;}
+
+button{
+margin:6px;
+padding:12px 15px;
+border:none;
+border-radius:10px;
+background:linear-gradient(135deg,#ff2bd6,#6a00ff);
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+#result{margin-top:20px;font-weight:bold;font-size:1.1rem;}
+.success{color:#00ffb3;}
+.fail{color:#ff4d6d;}
+
+.stats{margin-top:15px;font-size:.9rem;opacity:.8;}
+.note{margin-top:10px;font-size:.8rem;opacity:.7;}
 </style>
 </head>
 
 <body>
 
-<h2>🧠 Memory G3</h2>
-<button onclick="play()">Jouer</button>
-<p id="res"></p>
+<div class="card">
+<h2>🤖 Duel IA – Mode PRO</h2>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+<p>Choisis une option 👇</p>
 
-const app = initializeApp({apiKey:"AIza...",databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com"});
-const db = getDatabase(app);
-const user = localStorage.getItem("userPhone");
+<div id="choices">
+<button onclick="play(0)">🔴</button>
+<button onclick="play(1)">🔵</button>
+<button onclick="play(2)">🟢</button>
+</div>
 
-function smart(d){
-let r=Math.random()*100;
-let g = r<55?0:r<80?5000:r<96?15000:25000;
+<div id="result"></div>
+<div class="stats" id="stats"></div>
 
-if((d.todayGain||0)>=25000) g=0;
-if((d.points||0)>200000) g*=0.3;
+<div class="note">
+Perte 55% • Petit 25% • Moyen 16% • Jackpot 4%
+</div>
 
-return Math.floor(g);
-}
+</div>
 
-window.play = async()=>{
-const snap = await get(ref(db,"users/"+user));
-const d = snap.val();
-
-if(!d.tokenG3) return alert("Jeton requis");
-
-const today = new Date().toDateString();
-if(d.memoryDate===today) return alert("Déjà joué");
-
-let gain = smart(d);
-
-await update(ref(db,"users/"+user),{
-points:(d.points||0)+gain,
-todayGain:(d.todayGain||0)+gain,
-memoryDate:today,
-totalPlayed:(d.totalPlayed||0)+1
-});
-
-document.getElementById("res").innerText = gain?"🎉 "+gain:"❌ Perdu";
-};
-</script>
+<script type="module" src="2.js"></script>
 
 </body>
 </html>
