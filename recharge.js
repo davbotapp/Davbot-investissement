@@ -47,24 +47,27 @@ document.getElementById("btn").onclick = async ()=>{
         btn.disabled = true;
         btn.innerText = "⏳ Envoi...";
 
-        const newRef = push(ref(db,"recharges"));
+        
 
-        await set(newRef,{
-            user: user,
-            amount: amount,
-            tid: tid,
-            status: "pending",
-            date: Date.now()
-        });
 
-        alert("✅ Recharge envoyée\nEn attente validation admin");
+onValue(ref(db, "demandes_recharges"), snap=>{
+    const box = document.getElementById("recharges");
+    box.innerHTML = "";
 
-        window.location.href="dashboard.html";
+    const data = snap.val();
+    if(!data) return;
 
-    }catch(e){
-        console.error(e);
-        alert("❌ Erreur réseau");
-        btn.disabled = false;
-        btn.innerText = "Envoyer";
-    }
-};
+    Object.entries(data).forEach(([id, d])=>{
+
+        box.innerHTML += `
+        <div class="card">
+            👤 ${d.user}<br>
+            💰 ${d.amount} FC<br>
+            🧾 ID: ${d.tid}<br>
+
+            <button onclick="validerRecharge('${id}', '${d.user}', ${d.amount})">✅ Valider</button>
+            <button onclick="refuserRecharge('${id}')">❌ Refuser</button>
+        </div>
+        `;
+    });
+});
