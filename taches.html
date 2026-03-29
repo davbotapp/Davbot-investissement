@@ -6,12 +6,16 @@
 <title>Tâches - DAVBOT</title>
 
 <style>
-:root { --blue:#00d2ff; --dark:#050a14; }
+:root { 
+    --blue:#00d2ff; 
+    --dark:#050a14; 
+    --glass:rgba(255,255,255,0.05);
+}
 
 body{
     margin:0;
     font-family:'Segoe UI', sans-serif;
-    background:var(--dark);
+    background: var(--dark);
     color:white;
     padding:20px;
 }
@@ -22,27 +26,43 @@ h2{
 }
 
 .card{
-    background:#111;
+    background:var(--glass);
+    border:1px solid rgba(0,210,255,0.2);
+    border-radius:20px;
     padding:20px;
-    border-radius:15px;
     margin-top:20px;
     text-align:center;
+    backdrop-filter: blur(10px);
 }
 
 button{
     width:100%;
-    padding:15px;
-    background:var(--blue);
+    padding:14px;
     border:none;
     border-radius:10px;
     margin-top:10px;
     font-weight:bold;
+    cursor:pointer;
+}
+
+.buy{
+    background:#4caf50;
+}
+
+.play{
+    background:var(--blue);
 }
 
 .info{
     margin-top:10px;
     font-size:14px;
     color:#ccc;
+}
+
+.row{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
 }
 </style>
 </head>
@@ -51,26 +71,43 @@ button{
 
 <h2>🎯 Système de Tâches</h2>
 
-<!-- G3 -->
+<!-- 🪙 G3 -->
 <div class="card">
     <h3>🪙 Jeton G3</h3>
-    <p>Durée : 3 jours</p>
-    <p>Prix : 3500 FC</p>
-    <p>Jackpot total : 6000 FC</p>
+    
+    <p>⏱ Durée : 3 jours</p>
+    <p>💰 Prix : 3500 FC</p>
+    <p>🎁 Jackpot total : 6000 FC</p>
+    <p>📊 Jackpot / jour : 1000 FC</p>
 
-    <button onclick="startTask('G3')">Acheter & Jouer</button>
-    <div class="info" id="g3info"></div>
+    <div class="row">
+        <button class="buy" onclick="buyToken('G3')">💰 Acheter</button>
+        <button class="play" onclick="playGame('G3')">🎮 Jouer</button>
+    </div>
+
+    <div class="info" id="g3info">Chargement...</div>
 </div>
 
-<!-- P7 -->
+<!-- 🚀 P7 -->
 <div class="card">
     <h3>🚀 Jeton P7</h3>
-    <p>Durée : 7 jours</p>
-    <p>Prix : 5000 FC</p>
-    <p>Jackpot total : 8000 FC</p>
+    
+    <p>⏱ Durée : 7 jours</p>
+    <p>💰 Prix : 5000 FC</p>
+    <p>🎁 Jackpot total : 8000 FC</p>
+    <p>📊 Jackpot / jour : ~1140 FC</p>
 
-    <button onclick="startTask('P7')">Acheter & Jouer</button>
-    <div class="info" id="p7info"></div>
+    <div class="row">
+        <button class="buy" onclick="buyToken('P7')">💰 Acheter</button>
+        <button class="play" onclick="playGame('P7')">🎮 Jouer</button>
+    </div>
+
+    <div class="info" id="p7info">Chargement...</div>
+</div>
+
+<!-- 🔙 RETOUR -->
+<div style="text-align:center;margin-top:20px;">
+    <a href="dashboard.html" style="color:#00d2ff;">← Retour</a>
 </div>
 
 <script type="module" src="taches.js"></script>
