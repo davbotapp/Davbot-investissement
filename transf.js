@@ -1,9 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, get, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// 🔥 CONFIG FIREBASE
+// ================= CONFIG =================
 const firebaseConfig = {
-    apiKey: "AIza...",
+    apiKey: "AIzaSyA24pBo8mBWiZssPtep--MMBdB7c8_Lu4U",
     authDomain: "starlink-investit.firebaseapp.com",
     databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
     projectId: "starlink-investit"
@@ -12,96 +12,99 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 👤 USER CONNECTÉ
+// ================= USER =================
 const user = localStorage.getItem("userPhone");
-if(!user) window.location.href = "index.html";
 
-// 📌 ELEMENTS
-const soldeEl = document.getElementById("solde");
-const statusEl = document.getElementById("status");
+if(!user){
+    window.location.href = "index.html";
+}
 
-// ==========================
-// 🔄 SOLDE EN TEMPS RÉEL
-// ==========================
-onValue(ref(db, "users/" + user), snap=>{
-    if(!snap.exists()) return;
+// ================= ELEMENTS =================
+const btn = document.getElementById("btn");
+const toInput = document.getElementById("to");
+const amountInput = document.getElementById("amount");
+const statusBox = document.getElementById("status");
 
-    const data = snap.val();
-    soldeEl.innerText = (data.balance || 0).toLocaleString();
-});
+// ================= TRANSFERT =================
+btn.onclick = async ()=>{
 
-// ==========================
-// 🚀 DEMANDE TRANSFERT
-// ==========================
-document.getElementById("btn").onclick = async ()=>{
+    const to = toInput.value.trim();
+    const amount = parseInt(amountInput.value);
 
-    const to = document.getElementById("to").value.trim();
-    const amount = parseInt(document.getElementById("amount").value);
-
-    // 🔴 VALIDATIONS
-    if(!to || to.length < 9){
-        statusEl.innerText = "❌ Numéro invalide";
+    // 🔒 VALIDATIONS
+    if(!to || !amount){
+        statusBox.innerText = "❌ Remplir tous les champs";
         return;
     }
 
     if(to === user){
-        statusEl.innerText = "❌ Impossible de s'envoyer à soi-même";
+        statusBox.innerText = "❌ Impossible de s'envoyer";
         return;
     }
 
-    if(!amount || amount < 500){
-        statusEl.innerText = "❌ Minimum 500 FC";
+    if(amount < 500){
+        statusBox.innerText = "❌ Minimum 500 FC";
         return;
     }
 
     try{
-
-        // 🔍 Vérifier utilisateur source
-        const snapUser = await get(ref(db, "users/" + user));
-        if(!snapUser.exists()){
-            statusEl.innerText = "❌ Utilisateur introuvable";
-            return;
-        }
-
-        const myData = snapUser.val();
-        const myBalance = myData.balance || 0;
-
-        if(amount > myBalance){
-            statusEl.innerText = "❌ Solde insuffisant";
-            return;
-        }
+        statusBox.innerText = "⏳ Vérification...";
 
         // 🔍 Vérifier destinataire
         const snapTo = await get(ref(db, "users/" + to));
+
         if(!snapTo.exists()){
-            statusEl.innerText = "❌ Destinataire introuvable";
+            statusBox.innerText = "❌ Destinataire introuvable";
             return;
         }
 
-        statusEl.innerText = "⏳ Envoi de la demande...";
+        // 🔍 Vérifier solde utilisateur
+        const snapMe = await get(ref(db, "users/" + user));
 
-        // 🔥 ENVOI DEMANDE (ADMIN VA VALIDER)
-        await push(ref(db, "transferts"), {
+        if(!snapMe.exists()){
+            statusBox.innerText = "❌ Erreur compte";
+            return;
+        }
+
+        const myData = snapMe.val();
+        const balance = myData.balance || 0;
+
+        if(balance < amount){
+            statusBox.innerText = "❌ Solde insuffisant";
+            return;
+        }
+
+        // 🚀 ENVOI DEMANDE ADMIN
+        btn.disabled = true;
+
+        const newRef = push(ref(db, "transferts"));
+
+        await set(newRef, {
             from: user,
             to: to,
             amount: amount,
-            status: "pending", // IMPORTANT
+            status: "pending",
             date: Date.now()
         });
 
-        statusEl.style.color = "lightgreen";
-        statusEl.innerText = "✅ Demande envoyée à l'admin";
+        // 🔔 MESSAGE UTILISATEUR
+        await push(ref(db, "messages/" + user), {
+            text: `📤 Demande de transfert envoyée vers ${to} (${amount} FC)`,
+            type: "transfert",
+            date: Date.now()
+        });
 
-        // RESET
-        document.getElementById("amount").value = "";
-        document.getElementById("to").value = "";
+        statusBox.style.color = "lightgreen";
+        statusBox.innerText = "✅ Demande envoyée à l'admin";
 
         setTimeout(()=>{
             window.location.href = "dashboard.html";
-        },1500);
+        },1200);
 
     }catch(e){
         console.error(e);
-        statusEl.innerText = "❌ Erreur réseau";
+        statusBox.innerText = "❌ Erreur système";
+
+        btn.disabled = false;
     }
 };
