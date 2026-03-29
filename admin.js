@@ -1,8 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-getDatabase, ref, onValue, update, remove, push, set
+getDatabase, ref, onValue, update, remove, push, set, get
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// CONFIG
 const firebaseConfig = {
 apiKey:"AIza...",
 authDomain:"starlink-investit.firebaseapp.com",
@@ -43,10 +44,11 @@ onValue(ref(db,"demandes_recharges"), snap=>{
     Object.entries(data).forEach(([id,r])=>{
         box.innerHTML += `
         <div class="card">
-        ${r.user} - ${r.amount} FC<br>
+        📱 ${r.user}<br>
+        💰 ${r.amount} FC<br>
 
         <button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">Valider</button>
-        <button class="no" onclick="refuse('demandes_recharges','${id}')">Refuser</button>
+        <button class="no" onclick="refRecharge('${id}')">Refuser</button>
         </div>`;
     });
 });
@@ -62,10 +64,11 @@ onValue(ref(db,"demandes_retraits"), snap=>{
     Object.entries(data).forEach(([id,r])=>{
         box.innerHTML += `
         <div class="card">
-        ${r.telephone} - ${r.montant} FC<br>
+        📱 ${r.telephone}<br>
+        💰 ${r.montant} FC<br>
 
         <button class="ok" onclick="valRetrait('${id}')">Valider</button>
-        <button class="no" onclick="refuse('demandes_retraits','${id}')">Refuser</button>
+        <button class="no" onclick="refRetrait('${id}','${r.telephone}',${r.montant})">Refuser</button>
         </div>`;
     });
 });
@@ -78,15 +81,19 @@ onValue(ref(db,"orders/pending"), snap=>{
     const data = snap.val();
     if(!data) return;
 
-    Object.entries(data).forEach(([id,c])=>{
-        box.innerHTML += `
-        <div class="card">
-        ${c.user} - ${c.service}<br>
-        💰 ${c.price} FC<br>
+    Object.entries(data).forEach(([user,cmds])=>{
+        Object.entries(cmds).forEach(([id,c])=>{
 
-        <button class="ok" onclick="valCmd('${id}')">Valider</button>
-        <button class="no" onclick="refCmd('${id}')">Refuser</button>
-        </div>`;
+            box.innerHTML += `
+            <div class="card">
+            📱 ${c.user}<br>
+            📦 ${c.service}<br>
+            💰 ${c.price} FC<br>
+
+            <button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
+            <button class="no" onclick="refCmd('${user}','${id}')">Refuser</button>
+            </div>`;
+        });
     });
 });
 
@@ -107,100 +114,142 @@ onValue(ref(db,"transferts"), snap=>{
         💰 ${t.amount} FC<br>
 
         <button class="ok" onclick="valTrans('${id}',${t.amount},'${t.to}')">Valider</button>
-        <button class="no" onclick="refuse('transferts','${id}')">Refuser</button>
+        <button class="no" onclick="refTrans('${id}','${t.from}',${t.amount})">Refuser</button>
         </div>`;
     });
 });
 
 // ================= ACTIONS =================
 
-// RECHARGE
-window.valRecharge = async(id,user,amount)=>{
-    const refUser = ref(db,"users/"+user);
+// 💰 VALIDER RECHARGE
+window.valRecharge = async (id, user, amount)=>{
+    const userRef = ref(db,"users/"+user);
+    const snap = await get(userRef);
 
-    onValue(refUser, snap=>{
+    if(snap.exists()){
         const bal = snap.val().balance || 0;
 
-        update(refUser,{
+        await update(userRef,{
             balance: bal + amount
         });
-    },{onlyOnce:true});
+    }
 
-    update(ref(db,"demandes_recharges/"+id),{
-        status:"validated"
-    });
+    await remove(ref(db,"demandes_recharges/"+id));
 };
 
-// RETRAIT
-window.valRetrait = async(id)=>{
-    update(ref(db,"demandes_retraits/"+id),{
-        statut:"validé"
-    });
+// ❌ REFUSER RECHARGE
+window.refRecharge = async (id)=>{
+    await remove(ref(db,"demandes_recharges/"+id));
 };
 
-// CMD
-window.valCmd = async(id)=>{
-    const snapRef = ref(db,"orders/pending/"+id);
-
-    onValue(snapRef, snap=>{
-        const data = snap.val();
-
-        set(ref(db,"orders/validated/"+id), data);
-        remove(snapRef);
-
-    },{onlyOnce:true});
+// 💸 VALIDER RETRAIT
+window.valRetrait = async (id)=>{
+    await remove(ref(db,"demandes_retraits/"+id));
 };
 
-window.refCmd = async(id)=>{
-    const snapRef = ref(db,"orders/pending/"+id);
+// ❌ REFUSER RETRAIT + REMBOURSEMENT
+window.refRetrait = async (id,user,amount)=>{
+    const userRef = ref(db,"users/"+user);
+    const snap = await get(userRef);
 
-    onValue(snapRef, snap=>{
-        const data = snap.val();
+    if(snap.exists()){
+        const bal = snap.val().balance || 0;
 
-        set(ref(db,"orders/cancelled/"+id), data);
-        remove(snapRef);
+        await update(userRef,{
+            balance: bal + amount
+        });
+    }
 
-    },{onlyOnce:true});
+    await remove(ref(db,"demandes_retraits/"+id));
 };
 
-// TRANSFERT
-window.valTrans = async(id,amount,to)=>{
+// 📦 VALIDER COMMANDE
+window.valCmd = async (user,id)=>{
+    const cmdRef = ref(db,"orders/pending/"+user+"/"+id);
+    const snap = await get(cmdRef);
+
+    if(!snap.exists()) return;
+
+    const data = snap.val();
+
+    await set(ref(db,"orders/validated/"+user+"/"+id), data);
+    await remove(cmdRef);
+};
+
+// ❌ REFUSER COMMANDE + REMBOURSEMENT
+window.refCmd = async (user,id)=>{
+    const cmdRef = ref(db,"orders/pending/"+user+"/"+id);
+    const snap = await get(cmdRef);
+
+    if(!snap.exists()) return;
+
+    const data = snap.val();
+
+    // remboursement
+    const userRef = ref(db,"users/"+user);
+    const userSnap = await get(userRef);
+
+    if(userSnap.exists()){
+        const bal = userSnap.val().balance || 0;
+
+        await update(userRef,{
+            balance: bal + data.price
+        });
+    }
+
+    await set(ref(db,"orders/cancelled/"+user+"/"+id), data);
+    await remove(cmdRef);
+};
+
+// 🔁 VALIDER TRANSFERT
+window.valTrans = async (id,amount,to)=>{
     const userRef = ref(db,"users/"+to);
+    const snap = await get(userRef);
 
-    onValue(userRef, snap=>{
+    if(snap.exists()){
         const bal = snap.val().balance || 0;
 
-        update(userRef,{
+        await update(userRef,{
             balance: bal + amount
         });
-    },{onlyOnce:true});
+    }
 
-    update(ref(db,"transferts/"+id),{
-        status:"validated"
-    });
+    await remove(ref(db,"transferts/"+id));
 };
 
-// REFUSER
-window.refuse = async(path,id)=>{
-    update(ref(db,path+"/"+id),{
-        status:"رفض"
-    });
+// ❌ REFUSER TRANSFERT + REMBOURSEMENT
+window.refTrans = async (id,from,amount)=>{
+    const userRef = ref(db,"users/"+from);
+    const snap = await get(userRef);
+
+    if(snap.exists()){
+        const bal = snap.val().balance || 0;
+
+        await update(userRef,{
+            balance: bal + amount
+        });
+    }
+
+    await remove(ref(db,"transferts/"+id));
 };
 
-// DELETE USER
-window.delUser = async(phone)=>{
-    if(confirm("Supprimer ?")){
-        remove(ref(db,"users/"+phone));
+// 🗑️ SUPPRIMER USER
+window.delUser = async (phone)=>{
+    if(confirm("Supprimer ce compte ?")){
+        await remove(ref(db,"users/"+phone));
     }
 };
 
-// MESSAGE
-window.sendMsg = async()=>{
+// 💬 ENVOYER MESSAGE
+window.sendMsg = async ()=>{
     const user = document.getElementById("target").value;
     const msg = document.getElementById("msg").value;
     const file = document.getElementById("file").value;
 
-    if(!user || !msg) return alert("Remplir");
+    if(!user || !msg){
+        alert("Remplir les champs");
+        return;
+    }
 
     await push(ref(db,"messages/"+user),{
         text: msg,
@@ -208,5 +257,5 @@ window.sendMsg = async()=>{
         date: Date.now()
     });
 
-    alert("Envoyé");
+    alert("✅ Message envoyé");
 };
