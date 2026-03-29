@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// 🔥 CONFIG
+// 🔥 CONFIG FIREBASE
 const firebaseConfig = {
     apiKey: "AIza...",
     authDomain: "starlink-investit.firebaseapp.com",
@@ -12,7 +12,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 👤 USER
+// 👤 UTILISATEUR
 const user = localStorage.getItem("userPhone");
 if(!user) window.location.href = "index.html";
 
@@ -26,29 +26,48 @@ async function loadStatus(){
 
     const data = snap.val();
 
-    // G3
-    if(data.tokenG3 && Date.now() < data.tokenG3.expire){
-        const daysLeft = Math.ceil((data.tokenG3.expire - Date.now()) / 86400000);
+    const now = Date.now();
+
+    // =========================
+    // G3 (3 jours)
+    // =========================
+    if(data.tokenG3 && now < data.tokenG3.expire){
+        const daysLeft = Math.ceil((data.tokenG3.expire - now) / 86400000);
         document.getElementById("g3info").innerText =
         "✅ Actif (" + daysLeft + " jours restants)";
     }else{
         document.getElementById("g3info").innerText = "❌ Inactif";
     }
 
-    // P7
-    if(data.token && (Date.now() - data.token.start) < (7*86400000)){
-        const daysLeft = 7 - Math.floor((Date.now() - data.token.start)/86400000);
+    // =========================
+    // P7 (7 jours)
+    // =========================
+    if(data.token && (now - data.token.start) < (7*86400000)){
+        const daysLeft = 7 - Math.floor((now - data.token.start)/86400000);
         document.getElementById("p7info").innerText =
         "✅ Actif (" + daysLeft + " jours restants)";
     }else{
         document.getElementById("p7info").innerText = "❌ Inactif";
     }
+
+    // =========================
+    // 🔒 BLOQUER BOUTON SI DÉJÀ JOUÉ
+    // =========================
+    if(data.lastPlay && (now - data.lastPlay) < 86400000){
+
+        if(document.getElementById("btnPlayG3"))
+            document.getElementById("btnPlayG3").disabled = true;
+
+        if(document.getElementById("btnPlayP7"))
+            document.getElementById("btnPlayP7").disabled = true;
+    }
 }
 
 loadStatus();
 
+
 // ============================
-// 💰 ACHETER
+// 💰 ACHETER TOKEN
 // ============================
 window.buyToken = async(type)=>{
 
@@ -66,7 +85,8 @@ window.buyToken = async(type)=>{
     }
 
     let updateData = {
-        balance: (data.balance || 0) - price
+        balance: (data.balance || 0) - price,
+        todayGain: 0
     };
 
     if(type === "G3"){
@@ -74,14 +94,12 @@ window.buyToken = async(type)=>{
             start: Date.now(),
             expire: Date.now() + (3 * 86400000)
         };
-        updateData.todayGain = 0;
     }
 
     if(type === "P7"){
         updateData.token = {
             start: Date.now()
         };
-        updateData.todayGain = 0;
     }
 
     await update(ref(db,"users/"+user), updateData);
@@ -90,18 +108,50 @@ window.buyToken = async(type)=>{
     loadStatus();
 };
 
-// ============================
-// 🎮 JOUER
-// ============================
-window.playGame = (type)=>{
 
+// ============================
+// 🎮 JOUER (AVEC BLOQUAGE)
+// ============================
+window.playGame = async(type)=>{
+
+    const snap = await get(ref(db,"users/"+user));
+    if(!snap.exists()) return;
+
+    const data = snap.val();
+    const now = Date.now();
+
+    // 🔒 Déjà joué ?
+    if(data.lastPlay && (now - data.lastPlay) < 86400000){
+        alert("⛔ Tu as déjà joué aujourd'hui !");
+        return;
+    }
+
+    // 🔒 Vérifier token actif
     if(type === "G3"){
-        // 👉 redirection vers jeux G3
+        if(!data.tokenG3 || now > data.tokenG3.expire){
+            alert("❌ Ton token G3 est expiré");
+            return;
+        }
+    }
+
+    if(type === "P7"){
+        if(!data.token || (now - data.token.start) > (7*86400000)){
+            alert("❌ Ton token P7 est expiré");
+            return;
+        }
+    }
+
+    // 💾 Sauvegarder jeu
+    await update(ref(db,"users/"+user), {
+        lastPlay: now
+    });
+
+    // 🚀 Redirection
+    if(type === "G3"){
         window.location.href = "1.html";
     }
 
     if(type === "P7"){
-        // 👉 redirection vers jeux P7
         window.location.href = "3.html";
     }
 };
