@@ -2,85 +2,32 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Slot G3</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tâche 1 – Mémoire</title>
 <style>
-:root{--blue:#00d2ff;--dark:#050a14;}
-body{background:var(--dark);color:white;text-align:center;font-family:sans-serif;}
-.card{background:#111;padding:20px;border-radius:15px;margin:20px;}
-button{padding:15px;background:var(--blue);border:none;border-radius:10px;}
+:root{--bg1:#020e1a;--bg2:#061f35;--card:#0b4f80;--accent:#8a2cff;--accent2:#b266ff;--success:#1fa36a}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,var(--bg2),var(--bg1));font-family:Arial,sans-serif;color:#e8f4ff;display:flex;justify-content:center;align-items:center}
+.container{width:95%;max-width:520px;text-align:center;padding:20px;border-radius:16px;background:rgba(10,20,40,.4);box-shadow:0 0 25px rgba(138,44,255,.25)}
+h1{color:#fff;text-shadow:0 0 5px var(--accent),0 0 15px var(--accent),0 0 30px var(--accent2)}
+.board{margin-top:20px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.card{height:70px;background:linear-gradient(145deg,var(--card),#06355a);border-radius:12px;font-size:2rem;display:flex;justify-content:center;align-items:center;cursor:pointer;color:transparent;user-select:none;box-shadow:0 6px 14px rgba(0,0,0,.6),0 0 10px rgba(138,44,255,.2);transition:.25s}
+.card:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 8px 18px rgba(0,0,0,.8),0 0 18px rgba(138,44,255,.6)}
+.card.flipped{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;text-shadow:0 0 8px #fff;box-shadow:0 0 20px var(--accent)}
+.card.matched{background:var(--success);box-shadow:0 0 18px #1fa36a}
+.status{margin-top:15px;font-size:1.3rem;font-weight:bold;text-shadow:0 0 10px rgba(138,44,255,.7)}
+.timer{margin-top:8px;font-size:1.3rem;color:var(--accent2);text-shadow:0 0 8px var(--accent)}
+.score{margin-top:6px;color:#ffd700;font-weight:bold;text-shadow:0 0 8px #ffd700}
 </style>
 </head>
-
 <body>
-
-<div class="card">
-<h2>🎰 Slot G3</h2>
-<button onclick="play()">Jouer</button>
-<p id="res"></p>
+<div class="container">
+<h1>🧠 Tâche 1 – Mémoire</h1>
+<div class="board" id="board"></div>
+<div class="status" id="status">Bonne chance 🍀</div>
+<div class="timer" id="timer">Temps : 0:25</div>
+<div class="score" id="score">Score : 0</div>
 </div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-const app = initializeApp({apiKey:"AIza...",databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com"});
-const db = getDatabase(app);
-
-const user = localStorage.getItem("userPhone");
-
-function smartGain(data){
-let r = Math.random()*100;
-let gain = 0;
-
-if(r<55) gain=0;
-else if(r<80) gain=5000;
-else if(r<96) gain=15000;
-else gain=25000;
-
-// 🔒 limite utilisateur
-if((data.todayGain||0)>=25000) gain=0;
-
-// 🧠 réduction si trop riche
-if((data.points||0)>200000) gain*=0.3;
-
-// 💀 anti abus
-if((data.totalPlayed||0)>50) gain=0;
-
-return Math.floor(gain);
-}
-
-window.play = async()=>{
-
-const snap = await get(ref(db,"users/"+user));
-const d = snap.val();
-
-// 🔐 jeton
-if(!d.tokenG3 || Date.now()>d.tokenG3.expire){
-alert("Jeton G3 requis");
-return;
-}
-
-// ⛔ 1 fois / jour
-const today = new Date().toDateString();
-if(d.slotDate===today){
-alert("Déjà joué aujourd'hui");
-return;
-}
-
-let gain = smartGain(d);
-
-await update(ref(db,"users/"+user),{
-points:(d.points||0)+gain,
-todayGain:(d.todayGain||0)+gain,
-totalPlayed:(d.totalPlayed||0)+1,
-slotDate:today
-});
-
-document.getElementById("res").innerText =
-gain?("🎉 +"+gain+" pts"):"❌ Perdu";
-};
-</script>
-
+<script type="module" src="1.js" ></script>
 </body>
 </html>
