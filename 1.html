@@ -2,170 +2,84 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tâche G3</title>
+<title>Slot G3</title>
 
 <style>
-:root { --blue:#00d2ff; --dark:#050a14; }
-
-body{
-    margin:0;
-    font-family:'Segoe UI', sans-serif;
-    background:var(--dark);
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
-}
-
-.card{
-    background:#111;
-    padding:25px;
-    border-radius:15px;
-    width:90%;
-    max-width:400px;
-    text-align:center;
-}
-
-button{
-    width:100%;
-    padding:15px;
-    background:var(--blue);
-    border:none;
-    border-radius:10px;
-    margin-top:15px;
-    font-weight:bold;
-}
-
-.result{
-    margin-top:15px;
-    font-size:18px;
-}
-
+:root{--blue:#00d2ff;--dark:#050a14;}
+body{background:var(--dark);color:white;text-align:center;font-family:sans-serif;}
+.card{background:#111;padding:20px;border-radius:15px;margin:20px;}
+button{padding:15px;background:var(--blue);border:none;border-radius:10px;}
 </style>
 </head>
 
 <body>
 
 <div class="card">
-
-<h2>🎯 Tâche G3</h2>
-
-<p>1 essai par jour</p>
-
-<button id="playBtn">Jouer</button>
-
-<div class="result" id="result"></div>
-
+<h2>🎰 Slot G3</h2>
+<button onclick="play()">Jouer</button>
+<p id="res"></p>
 </div>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-getDatabase, ref, get, update
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG
-const firebaseConfig = {
-apiKey:"AIza...",
-authDomain:"starlink-investit.firebaseapp.com",
-databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
-projectId:"starlink-investit"
-};
-
-const app = initializeApp(firebaseConfig);
+const app = initializeApp({apiKey:"AIza...",databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com"});
 const db = getDatabase(app);
 
-// USER
 const user = localStorage.getItem("userPhone");
-if(!user) location.href = "index.html";
 
-const btn = document.getElementById("playBtn");
-const resultEl = document.getElementById("result");
+function smartGain(data){
+let r = Math.random()*100;
+let gain = 0;
 
-// DATE DU JOUR
-const today = new Date().toISOString().slice(0,10);
+if(r<55) gain=0;
+else if(r<80) gain=5000;
+else if(r<96) gain=15000;
+else gain=25000;
 
-// CLICK
-btn.onclick = async ()=>{
+// 🔒 limite utilisateur
+if((data.todayGain||0)>=25000) gain=0;
 
-    btn.disabled = true;
+// 🧠 réduction si trop riche
+if((data.points||0)>200000) gain*=0.3;
 
-    const userRef = ref(db,"users/"+user);
-    const snap = await get(userRef);
+// 💀 anti abus
+if((data.totalPlayed||0)>50) gain=0;
 
-    if(!snap.exists()) return;
+return Math.floor(gain);
+}
 
-    const data = snap.val();
+window.play = async()=>{
 
-    // =========================
-    // 🔒 CHECK TOKEN G3
-    // =========================
-    const token = data.tokenG3;
+const snap = await get(ref(db,"users/"+user));
+const d = snap.val();
 
-    if(!token){
-        resultEl.innerText = "❌ Aucun jeton G3";
-        return;
-    }
+// 🔐 jeton
+if(!d.tokenG3 || Date.now()>d.tokenG3.expire){
+alert("Jeton G3 requis");
+return;
+}
 
-    const now = Date.now();
+// ⛔ 1 fois / jour
+const today = new Date().toDateString();
+if(d.slotDate===today){
+alert("Déjà joué aujourd'hui");
+return;
+}
 
-    if(now > token.expire){
-        resultEl.innerText = "❌ Jeton expiré";
-        return;
-    }
+let gain = smartGain(d);
 
-    // =========================
-    // 🔒 CHECK JOUR
-    // =========================
-    if(token.lastPlay === today){
-        resultEl.innerText = "❌ Déjà joué aujourd'hui";
-        return;
-    }
+await update(ref(db,"users/"+user),{
+points:(d.points||0)+gain,
+todayGain:(d.todayGain||0)+gain,
+totalPlayed:(d.totalPlayed||0)+1,
+slotDate:today
+});
 
-    // =========================
-    // 🎯 PROBABILITÉ
-    // =========================
-    const rand = Math.random();
-
-    let gainPoints = 0;
-    let message = "";
-
-    if(rand < 0.55){
-        message = "❌ Perdu";
-    }
-    else if(rand < 0.80){
-        gainPoints = 5000;
-        message = "🟢 Petit gain +5000 pts";
-    }
-    else if(rand < 0.96){
-        gainPoints = 15000;
-        message = "🔵 Gain moyen +15000 pts";
-    }
-    else{
-        gainPoints = 25000; // jackpot journalier max
-        message = "🟡 JACKPOT +25000 pts";
-    }
-
-    // =========================
-    // 💰 AJOUT POINTS
-    // =========================
-    const points = data.points || 0;
-
-    await update(userRef,{
-        points: points + gainPoints,
-        tokenG3: {
-            ...token,
-            lastPlay: today
-        }
-    });
-
-    resultEl.innerText = message;
-
+document.getElementById("res").innerText =
+gain?("🎉 +"+gain+" pts"):"❌ Perdu";
 };
-
 </script>
 
 </body>
