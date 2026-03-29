@@ -2,178 +2,55 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tâche P7 - 2</title>
+<title>Disque P7</title>
 
 <style>
-:root { --blue:#00d2ff; --dark:#050a14; }
-
-body{
-    margin:0;
-    font-family:'Segoe UI', sans-serif;
-    background:var(--dark);
-    color:white;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    min-height:100vh;
-}
-
-.card{
-    width:90%;
-    max-width:400px;
-    background:#111;
-    padding:20px;
-    border-radius:15px;
-    text-align:center;
-}
-
-h2{ color:var(--blue); }
-
-button{
-    width:100%;
-    padding:15px;
-    background:var(--blue);
-    border:none;
-    border-radius:10px;
-    margin-top:15px;
-    font-weight:bold;
-}
-
-.result{
-    margin-top:15px;
-    font-size:18px;
-}
+body{background:#050a14;color:white;text-align:center;}
+.disk{width:60px;height:60px;background:#222;border-radius:50%;display:inline-block;margin:10px;}
 </style>
 </head>
 
 <body>
 
-<div class="card">
+<h2>🔴 Disque P7</h2>
 
-<h2>🚀 Tâche P7 (2)</h2>
-
-<p id="info"></p>
-
-<button id="play">Jouer</button>
-
-<div class="result" id="result"></div>
-
-</div>
+<div id="d"></div>
+<p id="res"></p>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import {
-getDatabase, ref, get, update
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG
-const firebaseConfig = {
-apiKey:"AIza...",
-authDomain:"starlink-investit.firebaseapp.com",
-databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
-projectId:"starlink-investit"
-};
-
-const app = initializeApp(firebaseConfig);
+const app = initializeApp({apiKey:"AIza...",databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com"});
 const db = getDatabase(app);
-
-// USER
 const user = localStorage.getItem("userPhone");
-if(!user) location.href="index.html";
 
-const info = document.getElementById("info");
-const result = document.getElementById("result");
-const btn = document.getElementById("play");
+let good=Math.floor(Math.random()*4);
 
-const today = new Date().toDateString();
+for(let i=0;i<4;i++){
+let d=document.createElement("div");
+d.className="disk";
 
-// =====================
-// LOAD USER
-// =====================
+d.onclick=async()=>{
 const snap = await get(ref(db,"users/"+user));
-if(!snap.exists()) return;
-
 const data = snap.val();
 
-// =====================
-// TOKEN P7
-// =====================
-const token = data.token || null;
+let gain = (i===good)?30000:0;
 
-if(!token || token.type !== "P7"){
-    info.innerText = "❌ Aucun jeton P7";
-    btn.disabled = true;
-}
-else{
-    const daysUsed = Math.floor((Date.now() - token.start)/(1000*60*60*24));
+if((data.todayGain||0)>=30000) gain=0;
 
-    if(daysUsed >= 7){
-        info.innerText = "⛔ Jeton expiré";
-        btn.disabled = true;
-    }else{
-        info.innerText = "✅ Essai disponible";
-    }
-}
+await update(ref(db,"users/"+user),{
+points:(data.points||0)+gain,
+todayGain:(data.todayGain||0)+gain,
+totalPlayed:(data.totalPlayed||0)+1
+});
 
-// =====================
-// JOUER
-// =====================
-btn.onclick = async()=>{
-
-    if(data.task4Date === today){
-        result.innerText = "❌ Déjà joué aujourd'hui";
-        return;
-    }
-
-    let rand = Math.random()*100;
-
-    let gain = 0;
-    let type = "";
-
-    if(rand < 55){
-        type = "lose";
-        gain = 0;
-    }
-    else if(rand < 80){
-        type = "small";
-        gain = 8000;
-    }
-    else if(rand < 96){
-        type = "medium";
-        gain = 20000;
-    }
-    else{
-        type = "jackpot";
-        gain = 25000;
-    }
-
-    // =====================
-    // 🔒 LIMITE JOURNALIER (PARTAGÉE AVEC 3.html)
-    // =====================
-    let todayGain = data.p7TodayGain || 0;
-
-    if(type === "jackpot" && todayGain >= 25000){
-        type = "medium";
-        gain = 20000;
-    }
-
-    // ➕ UPDATE
-    await update(ref(db,"users/"+user),{
-        points: (data.points || 0) + gain,
-        task4Date: today,
-        p7TodayGain: todayGain + gain
-    });
-
-    result.innerText =
-        gain === 0
-        ? "❌ Perdu"
-        : "🎉 +" + gain + " points";
-
-    btn.disabled = true;
+document.getElementById("res").innerText =
+gain?"🎉 Jackpot":"❌ Perdu";
 };
 
+document.getElementById("d").appendChild(d);
+}
 </script>
 
 </body>
