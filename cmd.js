@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// CONFIG
 const firebaseConfig = {
     apiKey: "AIza...",
     authDomain: "starlink-investit.firebaseapp.com",
@@ -11,19 +12,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// USER
 const user = localStorage.getItem("userPhone");
 if(!user) window.location.href = "index.html";
 
+// SERVICE
 const service = localStorage.getItem("serviceCommande");
 
 const zone = document.getElementById("formZone");
 const priceDisplay = document.getElementById("price");
-
 document.getElementById("serviceName").value = service;
 
-// =====================
-// FORMULAIRES
-// =====================
+// ================= FORM =================
 function renderForm(){
 
 if(service === "Application"){
@@ -61,6 +61,8 @@ else if(service === "Hébergement"){
 
 else if(service === "Réseaux Sociaux"){
     zone.innerHTML = `
+        <input type="text" id="link" placeholder="🔗 Lien du post / vidéo" />
+
         <select id="platform">
             <option>Facebook</option>
             <option>WhatsApp</option>
@@ -75,7 +77,7 @@ else if(service === "Réseaux Sociaux"){
             <option>Followers</option>
         </select>
 
-        <input type="number" id="nombre" placeholder="Nombre">
+        <input type="number" id="nombre" placeholder="Quantité">
     `;
 }
 
@@ -89,9 +91,7 @@ calcPrice();
 
 renderForm();
 
-// =====================
-// EVENTS
-// =====================
+// ================= EVENTS =================
 function attachEvents(){
     document.querySelectorAll("#formZone input, #formZone select")
     .forEach(el=>{
@@ -100,9 +100,7 @@ function attachEvents(){
     });
 }
 
-// =====================
-// CALCUL PRIX
-// =====================
+// ================= PRIX =================
 function calcPrice(){
 
     let price = 0;
@@ -150,9 +148,7 @@ function calcPrice(){
     priceDisplay.innerText = Math.floor(price);
 }
 
-// =====================
-// VALIDER
-// =====================
+// ================= VALIDATION =================
 window.valider = async function(){
 
     const price = parseInt(priceDisplay.innerText);
@@ -162,7 +158,17 @@ window.valider = async function(){
         return;
     }
 
-    const snap = await get(ref(db, "users/" + user));
+    // 🔗 CHECK BOOST
+    if(service === "Réseaux Sociaux"){
+        const link = document.getElementById("link").value.trim();
+
+        if(!link || !link.startsWith("http")){
+            alert("❌ Lien invalide");
+            return;
+        }
+    }
+
+    const snap = await get(ref(db,"users/"+user));
     if(!snap.exists()) return;
 
     const dataUser = snap.val();
@@ -173,20 +179,17 @@ window.valider = async function(){
         return;
     }
 
-    // 🔻 Déduction
-    await update(ref(db, "users/" + user), {
+    // 💰 DÉDUCTION
+    await update(ref(db,"users/"+user),{
         balance: balance - price
     });
 
-    const id = Date.now();
-
     let data = {
-        id,
         service,
         price,
-        statut: "pending",
+        statut:"pending",
         user,
-        date: Date.now()
+        date:Date.now()
     };
 
     document.querySelectorAll("#formZone input, #formZone select, #formZone textarea")
@@ -194,8 +197,9 @@ window.valider = async function(){
         data[el.id] = el.value;
     });
 
-    // ✅ STRUCTURE ADMIN SIMPLE
-    await set(ref(db, "orders/pending/" + id), data);
+    const id = Date.now();
+
+    await set(ref(db,"orders/pending/"+user+"/"+id), data);
 
     alert("✅ Commande envoyée !");
     window.location.href = "dashboard.html";
