@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, get, onValue, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // ================= CONFIG =================
 const firebaseConfig = {
@@ -20,18 +20,29 @@ if(!user){
 }
 
 // ================= ELEMENTS =================
+const soldeEl = document.getElementById("solde");
 const btn = document.getElementById("btn");
 const toInput = document.getElementById("to");
 const amountInput = document.getElementById("amount");
 const statusBox = document.getElementById("status");
 
-// ================= TRANSFERT =================
+// ================= 🔄 AFFICHER SOLDE =================
+onValue(ref(db, "users/" + user), snap=>{
+    if(!snap.exists()) return;
+
+    const data = snap.val();
+    const balance = data.balance || 0;
+
+    soldeEl.innerText = balance.toLocaleString();
+});
+
+// ================= 🚀 TRANSFERT =================
 btn.onclick = async ()=>{
 
     const to = toInput.value.trim();
     const amount = parseInt(amountInput.value);
 
-    // 🔒 VALIDATIONS
+    // 🔒 VALIDATION
     if(!to || !amount){
         statusBox.innerText = "❌ Remplir tous les champs";
         return;
@@ -50,17 +61,15 @@ btn.onclick = async ()=>{
     try{
         statusBox.innerText = "⏳ Vérification...";
 
-        // 🔍 Vérifier destinataire
+        // 🔍 DESTINATAIRE
         const snapTo = await get(ref(db, "users/" + to));
-
         if(!snapTo.exists()){
-            statusBox.innerText = "❌ Destinataire introuvable";
+            statusBox.innerText = "❌ Compte destinataire introuvable";
             return;
         }
 
-        // 🔍 Vérifier solde utilisateur
+        // 🔍 SOLDE ACTUEL
         const snapMe = await get(ref(db, "users/" + user));
-
         if(!snapMe.exists()){
             statusBox.innerText = "❌ Erreur compte";
             return;
@@ -74,8 +83,9 @@ btn.onclick = async ()=>{
             return;
         }
 
-        // 🚀 ENVOI DEMANDE ADMIN
+        // 🚀 ENVOI DEMANDE
         btn.disabled = true;
+        btn.innerText = "Envoi...";
 
         const newRef = push(ref(db, "transferts"));
 
@@ -87,15 +97,15 @@ btn.onclick = async ()=>{
             date: Date.now()
         });
 
-        // 🔔 MESSAGE UTILISATEUR
+        // 🔔 MESSAGE USER
         await push(ref(db, "messages/" + user), {
-            text: `📤 Demande de transfert envoyée vers ${to} (${amount} FC)`,
+            text: `📤 Transfert en attente vers ${to} (${amount} FC)`,
             type: "transfert",
             date: Date.now()
         });
 
         statusBox.style.color = "lightgreen";
-        statusBox.innerText = "✅ Demande envoyée à l'admin";
+        statusBox.innerText = "✅ Demande envoyée";
 
         setTimeout(()=>{
             window.location.href = "dashboard.html";
@@ -103,8 +113,8 @@ btn.onclick = async ()=>{
 
     }catch(e){
         console.error(e);
-        statusBox.innerText = "❌ Erreur système";
-
+        statusBox.innerText = "❌ Erreur réseau";
         btn.disabled = false;
+        btn.innerText = "Envoyer";
     }
 };
