@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG
+// ================= CONFIG =================
 const firebaseConfig = {
     apiKey: "AIzaSyA24pBo8mBWiZssPtep--MMBdB7c8_Lu4U",
     authDomain: "starlink-investit.firebaseapp.com",
@@ -12,14 +12,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// USER
+// ================= USER =================
 const userPhone = localStorage.getItem("userPhone");
 
 if(!userPhone){
     window.location.href = "index.html";
 }
 
-// ELEMENTS
+// ================= ELEMENTS =================
 const phoneEl = document.getElementById("phone");
 const codeEl = document.getElementById("code");
 const avatarEl = document.getElementById("avatar");
@@ -27,9 +27,7 @@ const soldeEl = document.getElementById("solde");
 const pointsEl = document.getElementById("points");
 const inboxEl = document.getElementById("inbox");
 
-// =====================
-// USER DATA
-// =====================
+// ================= USER DATA =================
 onValue(ref(db, "users/" + userPhone), snap=>{
     if(!snap.exists()) return;
 
@@ -44,15 +42,13 @@ onValue(ref(db, "users/" + userPhone), snap=>{
     pointsEl.innerText = (data.points || 0);
 });
 
-// =====================
-// 📩 INBOX ADMIN
-// =====================
+// ================= INBOX ADMIN =================
 onValue(ref(db, "messages/" + userPhone), snap=>{
 
     inboxEl.innerHTML = "";
 
     if(!snap.exists()){
-        inboxEl.innerHTML = "<p>Aucun message</p>";
+        inboxEl.innerHTML = "<p style='text-align:center'>Aucun message</p>";
         return;
     }
 
@@ -86,28 +82,33 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
         inboxEl.innerHTML += `
             <div class="message" style="
                 background:#111;
-                padding:10px;
+                padding:12px;
                 border-radius:10px;
                 margin-top:10px;
                 border-left:4px solid ${msg.read ? '#444' : '#00d2ff'};
+                box-shadow:0 0 10px rgba(0,210,255,0.2);
             ">
+
+                ${!msg.read ? "<b style='color:#00d2ff'>● Nouveau</b>" : ""}
 
                 ${html}
 
-                <small>${new Date(msg.date).toLocaleString()}</small>
+                <small style="display:block;margin-top:5px;opacity:0.7;">
+                    ${new Date(msg.date).toLocaleString()}
+                </small>
 
-                <div style="margin-top:8px; display:flex; gap:5px;">
+                <div style="margin-top:10px; display:flex; gap:5px;">
 
                     <button onclick="copyMsg('${msg.text || ''}')">
-                        📋 Copier
+                        📋
                     </button>
 
                     <button onclick="markRead('${id}')">
-                        ✔️ Lu
+                        ✔️
                     </button>
 
-                    <button onclick="deleteMsg('${id}')" style="background:red;">
-                        🗑️ Supprimer
+                    <button onclick="deleteMsg('${id}')" style="background:red;color:white;">
+                        🗑️
                     </button>
 
                 </div>
@@ -117,36 +118,40 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
 
 });
 
-// =====================
-// ACTIONS MESSAGES
-// =====================
+// ================= ACTIONS =================
 
 // 📋 Copier
 window.copyMsg = (text)=>{
     if(!text) return alert("Rien à copier");
 
     navigator.clipboard.writeText(text)
-    .then(()=> alert("Copié"))
+    .then(()=> alert("✅ Copié"))
     .catch(()=> alert(text));
 };
 
-// ✔️ Marquer comme lu
+// ✔️ Lu
 window.markRead = async(id)=>{
-    await update(ref(db, "messages/" + userPhone + "/" + id), {
-        read: true
-    });
+    try{
+        await update(ref(db, "messages/" + userPhone + "/" + id), {
+            read: true
+        });
+    }catch(e){
+        console.error(e);
+    }
 };
 
 // 🗑️ Supprimer
 window.deleteMsg = async(id)=>{
     if(confirm("Supprimer ce message ?")){
-        await remove(ref(db, "messages/" + userPhone + "/" + id));
+        try{
+            await remove(ref(db, "messages/" + userPhone + "/" + id));
+        }catch(e){
+            console.error(e);
+        }
     }
 };
 
-// =====================
-// LOGOUT
-// =====================
+// ================= LOGOUT =================
 document.getElementById("logout").onclick = ()=>{
     if(confirm("Se déconnecter ?")){
         localStorage.clear();
