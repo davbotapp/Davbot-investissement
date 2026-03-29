@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tâches</title>
+
+<style>
+:root { 
+    --blue:#00d2ff; 
+    --dark:#050a14; 
+    --glass:rgba(255,255,255,0.05);
+}
+
+body{
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+    background: var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
+    background-size: cover;
+    color:white;
+}
+
+.overlay{
+    background:rgba(5,10,20,0.85);
+    min-height:100vh;
+    padding:20px;
+}
+
+h2{
+    text-align:center;
+    color:var(--blue);
+}
+
+.card{
+    background:var(--glass);
+    border:1px solid rgba(0,210,255,0.2);
+    border-radius:20px;
+    padding:20px;
+    margin-top:20px;
+    backdrop-filter: blur(10px);
+    text-align:center;
+}
+
+button{
+    width:100%;
+    padding:14px;
+    background:var(--blue);
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+    margin-top:15px;
+    cursor:pointer;
+}
+
+button:active{
+    transform:scale(0.97);
+}
+
+.info{
+    margin-top:10px;
+    font-size:13px;
+    opacity:0.8;
+}
+
+.back{
+    text-align:center;
+    margin-top:15px;
+}
+.back a{
+    color:white;
+    text-decoration:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay">
+
+<h2>🎯 Tâches journalières</h2>
+
+<!-- G3 -->
+<div class="card">
+    <h3>🪙 Jeton G3</h3>
+
+    <p>⏳ Durée : 3 jours</p>
+    <p>📌 1 tâche / jour</p>
+    <p>🎁 Jackpot : 125 000 points</p>
+
+    <button onclick="startTask('G3')">
+        Commencer
+    </button>
+
+    <div class="info">
+        💰 Prix : 3500 FC
+    </div>
+</div>
+
+<!-- P7 -->
+<div class="card">
+    <h3>🪙 Jeton P7</h3>
+
+    <p>⏳ Durée : 7 jours</p>
+    <p>📌 1 tâche / jour</p>
+    <p>🎁 Jackpot : 200 000 points</p>
+
+    <button onclick="startTask('P7')">
+        Commencer
+    </button>
+
+    <div class="info">
+        💰 Prix : 5000 FC
+    </div>
+</div>
+
+<div class="back">
+    <a href="dashboard.html">← Retour</a>
+</div>
+
+</div>
+
+<script>
+
+// 🚀 LANCER TÂCHE
+function startTask(type){
+
+    localStorage.setItem("taskToken", type);
+
+    if(type === "G3"){
+        const pages = ["1.html","2.html"];
+        location.href = pages[Math.floor(Math.random()*2)];
+    }
+
+    if(type === "P7"){
+        const pages = ["3.html","4.html"];
+        location.href = pages[Math.floor(Math.random()*2)];
+    }
+}
+
+</script>
+
+</body>
+</html>
