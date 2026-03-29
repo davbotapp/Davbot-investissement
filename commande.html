@@ -58,6 +58,11 @@ button{
     border-radius:10px;
     font-weight:bold;
     margin-top:15px;
+    cursor:pointer;
+}
+
+button:active{
+    transform:scale(0.97);
 }
 
 .price{
@@ -72,6 +77,11 @@ button{
     text-align:center;
     margin-top:15px;
 }
+
+.back a{
+    color:white;
+    text-decoration:none;
+}
 </style>
 </head>
 
@@ -79,11 +89,11 @@ button{
 
 <div class="overlay">
 
-<h2>📦 Commander</h2>
+<h2>📦 Commander un service</h2>
 
 <div class="card">
 
-<input type="text" id="serviceName" readonly>
+<input type="text" id="serviceName" placeholder="Service" readonly>
 
 <div id="formZone"></div>
 
