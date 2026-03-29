@@ -1,9 +1,9 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG
+// 🔥 CONFIG FIREBASE
 const firebaseConfig = {
-    apiKey: "AIzaSyA24pBo8mBWiZssPtep--MMBdB7c8_Lu4U",
+    apiKey: "AIza...",
     authDomain: "starlink-investit.firebaseapp.com",
     databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
     projectId: "starlink-investit"
@@ -12,79 +12,96 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// USER
+// 👤 USER CONNECTÉ
 const user = localStorage.getItem("userPhone");
 if(!user) window.location.href = "index.html";
 
+// 📌 ELEMENTS
 const soldeEl = document.getElementById("solde");
+const statusEl = document.getElementById("status");
 
-// 🔄 AFFICHER SOLDE
+// ==========================
+// 🔄 SOLDE EN TEMPS RÉEL
+// ==========================
 onValue(ref(db, "users/" + user), snap=>{
-    if(snap.exists()){
-        const data = snap.val();
-        soldeEl.innerText = (data.balance || 0).toLocaleString();
-    }
+    if(!snap.exists()) return;
+
+    const data = snap.val();
+    soldeEl.innerText = (data.balance || 0).toLocaleString();
 });
 
-// 🚀 ENVOI DEMANDE
-document.getElementById("btn").onclick = async () => {
+// ==========================
+// 🚀 DEMANDE TRANSFERT
+// ==========================
+document.getElementById("btn").onclick = async ()=>{
 
-    const receiver = document.getElementById("receiver").value.trim();
+    const to = document.getElementById("to").value.trim();
     const amount = parseInt(document.getElementById("amount").value);
-    const status = document.getElementById("status");
 
-    if(!receiver || !amount){
-        status.innerText = "❌ Remplir tous les champs";
+    // 🔴 VALIDATIONS
+    if(!to || to.length < 9){
+        statusEl.innerText = "❌ Numéro invalide";
         return;
     }
 
-    if(receiver === user){
-        status.innerText = "❌ Impossible de s'envoyer à soi-même";
+    if(to === user){
+        statusEl.innerText = "❌ Impossible de s'envoyer à soi-même";
         return;
     }
 
-    if(amount < 1000){
-        status.innerText = "❌ Minimum 1000 FC";
+    if(!amount || amount < 500){
+        statusEl.innerText = "❌ Minimum 500 FC";
         return;
     }
 
     try{
-        status.innerText = "⏳ Vérification...";
 
-        // vérifier utilisateur existe
-        const snapReceiver = await get(ref(db, "users/" + receiver));
-        if(!snapReceiver.exists()){
-            status.innerText = "❌ Destinataire introuvable";
-            return;
-        }
-
+        // 🔍 Vérifier utilisateur source
         const snapUser = await get(ref(db, "users/" + user));
-        const dataUser = snapUser.val();
-        const balance = dataUser.balance || 0;
-
-        if(amount > balance){
-            status.innerText = "❌ Solde insuffisant";
+        if(!snapUser.exists()){
+            statusEl.innerText = "❌ Utilisateur introuvable";
             return;
         }
 
-        // 🔥 ENVOI DEMANDE ADMIN
-        await push(ref(db, "demandes_transferts"), {
+        const myData = snapUser.val();
+        const myBalance = myData.balance || 0;
+
+        if(amount > myBalance){
+            statusEl.innerText = "❌ Solde insuffisant";
+            return;
+        }
+
+        // 🔍 Vérifier destinataire
+        const snapTo = await get(ref(db, "users/" + to));
+        if(!snapTo.exists()){
+            statusEl.innerText = "❌ Destinataire introuvable";
+            return;
+        }
+
+        statusEl.innerText = "⏳ Envoi de la demande...";
+
+        // 🔥 ENVOI DEMANDE (ADMIN VA VALIDER)
+        await push(ref(db, "transferts"), {
             from: user,
-            to: receiver,
+            to: to,
             amount: amount,
-            status: "pending",
+            status: "pending", // IMPORTANT
             date: Date.now()
         });
 
-        status.style.color = "lightgreen";
-        status.innerText = "✅ Demande envoyée à l'admin";
+        statusEl.style.color = "lightgreen";
+        statusEl.innerText = "✅ Demande envoyée à l'admin";
+
+        // RESET
+        document.getElementById("amount").value = "";
+        document.getElementById("to").value = "";
 
         setTimeout(()=>{
             window.location.href = "dashboard.html";
         },1500);
 
     }catch(e){
-        status.innerText = "❌ Erreur";
         console.error(e);
+        statusEl.innerText = "❌ Erreur réseau";
     }
 };
