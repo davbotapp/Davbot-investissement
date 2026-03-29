@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin - DAVBOT</title>
+<title>ADMIN PANEL</title>
 
 <style>
-:root { --blue:#00d2ff; --dark:#050a14; }
+:root { --blue:#00d2ff; --dark:#050a14; --green:#4caf50; --red:#f44336; }
 
 body{
     margin:0;
@@ -17,55 +17,29 @@ body{
 
 .header{
     text-align:center;
-    padding:15px;
+    padding:20px;
     border-bottom:1px solid var(--blue);
 }
 
-.tabs{
-    display:flex;
-    overflow:auto;
-    background:#000;
-}
-
-.tab{
-    padding:10px;
-    cursor:pointer;
-    font-size:12px;
-    white-space:nowrap;
-}
-
-.tab.active{
-    background:var(--blue);
-    color:black;
-}
-
-.section{
-    display:none;
-    padding:15px;
-}
-
-.section.active{
-    display:block;
-}
+.container{ padding:20px; }
 
 .card{
     background:#111;
-    padding:10px;
-    margin:10px 0;
+    padding:15px;
     border-radius:10px;
+    margin-top:15px;
 }
 
 button{
-    padding:6px 10px;
-    margin:5px 3px;
+    padding:8px 12px;
     border:none;
-    border-radius:6px;
+    border-radius:8px;
+    margin:5px;
     cursor:pointer;
 }
 
-.ok{background:#4caf50;}
-.no{background:#f44336;}
-.msg{background:var(--blue); color:black;}
+.ok{ background:var(--green); }
+.no{ background:var(--red); }
 
 input, textarea{
     width:100%;
@@ -73,7 +47,7 @@ input, textarea{
     margin:5px 0;
     border-radius:8px;
     border:none;
-    background:#222;
+    background:#000;
     color:white;
 }
 </style>
@@ -82,42 +56,55 @@ input, textarea{
 <body>
 
 <div class="header">
-<h2>⚙️ ADMIN PANEL</h2>
+<h2>⚡ ADMIN PANEL</h2>
 </div>
 
-<div class="tabs">
-<div class="tab active" onclick="showTab('recharges')">Recharge</div>
-<div class="tab" onclick="showTab('retraits')">Retrait</div>
-<div class="tab" onclick="showTab('transferts')">Transfert</div>
-<div class="tab" onclick="showTab('orders')">Commandes</div>
-<div class="tab" onclick="showTab('users')">Users</div>
-<div class="tab" onclick="showTab('msg')">Messages</div>
+<div class="container">
+
+<!-- USERS -->
+<div class="card">
+<h3>👤 Utilisateurs</h3>
+<div id="users"></div>
 </div>
 
-<!-- SECTIONS -->
-<div id="recharges" class="section active"></div>
-<div id="retraits" class="section"></div>
-<div id="transferts" class="section"></div>
-<div id="orders" class="section"></div>
-<div id="users" class="section"></div>
+<!-- RECHARGES -->
+<div class="card">
+<h3>💰 Recharges</h3>
+<div id="recharges"></div>
+</div>
 
-<div id="msg" class="section">
-    <input type="text" id="phone" placeholder="Numéro utilisateur">
-    <textarea id="msgText" placeholder="Message"></textarea>
-    <button class="msg" onclick="sendMsg()">Envoyer</button>
+<!-- RETRAITS -->
+<div class="card">
+<h3>💸 Retraits</h3>
+<div id="retraits"></div>
+</div>
+
+<!-- COMMANDES -->
+<div class="card">
+<h3>📦 Commandes</h3>
+<div id="commandes"></div>
+</div>
+
+<!-- TRANSFERTS -->
+<div class="card">
+<h3>🔁 Transferts</h3>
+<div id="transferts"></div>
+</div>
+
+<!-- MESSAGE -->
+<div class="card">
+<h3>📩 Envoyer message</h3>
+
+<input id="target" placeholder="Numéro utilisateur">
+<textarea id="msg" placeholder="Message"></textarea>
+<input id="file" type="text" placeholder="Lien image/fichier (optionnel)">
+
+<button onclick="sendMsg()">Envoyer</button>
+</div>
+
 </div>
 
 <script type="module" src="admin.js"></script>
-
-<script>
-function showTab(id){
-    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
-    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-
-    document.getElementById(id).classList.add("active");
-    event.target.classList.add("active");
-}
-</script>
 
 </body>
 </html>
