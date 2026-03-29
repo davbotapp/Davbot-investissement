@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tâche 2</title>
+
+<style>
+:root { --blue:#00d2ff; --dark:#050a14; }
+
+body{
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+    background:var(--dark);
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+.card{
+    width:90%;
+    max-width:400px;
+    background:#111;
+    padding:20px;
+    border-radius:15px;
+    text-align:center;
+}
+
+h2{ color:var(--blue); }
+
+button{
+    width:100%;
+    padding:15px;
+    background:var(--blue);
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+    margin-top:15px;
+}
+
+.result{
+    margin-top:15px;
+    font-size:18px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+    <h2>🎯 Tâche 2</h2>
+
+    <p id="info"></p>
+
+    <button id="play">Jouer</button>
+
+    <div class="result" id="result"></div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+getDatabase, ref, get, update
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+// CONFIG
+const firebaseConfig = {
+apiKey:"AIza...",
+authDomain:"starlink-investit.firebaseapp.com",
+databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
+projectId:"starlink-investit"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// USER
+const user = localStorage.getItem("userPhone");
+if(!user) location.href="index.html";
+
+const info = document.getElementById("info");
+const result = document.getElementById("result");
+const btn = document.getElementById("play");
+
+// =====================
+// CONFIG
+// =====================
+const today = new Date().toDateString();
+
+// =====================
+// LOAD USER
+// =====================
+let userData = null;
+
+const snap = await get(ref(db,"users/"+user));
+if(!snap.exists()) return;
+
+userData = snap.val();
+
+// =====================
+// VERIF TOKEN
+// =====================
+const token = userData.token || null;
+
+if(!token){
+    info.innerText = "❌ Aucun jeton actif";
+    btn.disabled = true;
+}
+
+else{
+    const start = token.start;
+    const days = token.days;
+
+    const diffDays = Math.floor((Date.now() - start) / (1000*60*60*24));
+
+    if(diffDays >= days){
+        info.innerText = "⛔ Jeton expiré";
+        btn.disabled = true;
+    }else{
+        info.innerText = "✅ Essai disponible aujourd'hui";
+    }
+}
+
+// =====================
+// JOUER
+// =====================
+btn.onclick = async()=>{
+
+    const lastPlay = userData.task2Date;
+
+    if(lastPlay === today){
+        result.innerText = "❌ Déjà joué aujourd'hui";
+        return;
+    }
+
+    let gain = 0;
+    let rand = Math.random()*100;
+
+    // 🎯 PROBA
+    if(rand < 55){
+        gain = 0;
+    }
+    else if(rand < 80){
+        gain = 5000; // petit
+    }
+    else if(rand < 96){
+        gain = 20000; // moyen
+    }
+    else{
+        gain = 125000; // jackpot
+    }
+
+    // ➕ ajouter points
+    const points = userData.points || 0;
+
+    await update(ref(db,"users/"+user),{
+        points: points + gain,
+        task2Date: today
+    });
+
+    result.innerText = gain === 0
+        ? "❌ Perdu"
+        : "🎉 +" + gain + " points";
+
+    btn.disabled = true;
+};
+
+</script>
+
+</body>
+  </html>
