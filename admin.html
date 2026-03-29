@@ -6,57 +6,116 @@
 <title>ADMIN PANEL</title>
 
 <style>
-:root { --blue:#00d2ff; --dark:#050a14; --green:#4caf50; --red:#f44336; }
+:root { 
+    --blue:#00d2ff; 
+    --dark:#050a14; 
+    --green:#4caf50; 
+    --red:#f44336;
+    --glass:rgba(255,255,255,0.05);
+}
 
 body{
     margin:0;
     font-family:'Segoe UI', sans-serif;
-    background:var(--dark);
+    background: var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
+    background-size: cover;
     color:white;
 }
 
+/* OVERLAY */
+.overlay{
+    background:rgba(5,10,20,0.85);
+    min-height:100vh;
+}
+
+/* HEADER */
 .header{
     text-align:center;
     padding:20px;
     border-bottom:1px solid var(--blue);
 }
 
+/* CONTAINER */
 .container{ padding:20px; }
 
+/* CARD */
 .card{
-    background:#111;
+    background:var(--glass);
+    border:1px solid rgba(0,210,255,0.2);
+    border-radius:15px;
     padding:15px;
-    border-radius:10px;
     margin-top:15px;
+    backdrop-filter: blur(10px);
 }
 
-button{
-    padding:8px 12px;
+/* INPUT */
+input, textarea{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border-radius:10px;
     border:none;
-    border-radius:8px;
-    margin:5px;
+    background:rgba(255,255,255,0.1);
+    color:white;
+}
+
+/* BUTTON */
+button{
+    padding:10px;
+    border:none;
+    border-radius:10px;
     cursor:pointer;
+    font-weight:bold;
 }
 
 .ok{ background:var(--green); }
 .no{ background:var(--red); }
 
-input, textarea{
+.mainBtn{
     width:100%;
-    padding:10px;
-    margin:5px 0;
-    border-radius:8px;
-    border:none;
-    background:#000;
-    color:white;
+    background:var(--blue);
+    margin-top:10px;
+}
+
+.logout{
+    background:var(--red);
+    width:100%;
+    margin-top:10px;
 }
 </style>
 </head>
 
 <body>
 
+<div class="overlay">
+
+<!-- 🔐 LOGIN -->
+<div id="loginBox" style="
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+">
+
+<div class="card" style="max-width:350px;width:90%;">
+<h3 style="text-align:center;">🔐 Admin Login</h3>
+
+<input id="adminPhone" placeholder="Numéro admin">
+<input id="adminPass" type="password" placeholder="Mot de passe">
+
+<button class="mainBtn" onclick="loginAdmin()">Connexion</button>
+
+<p id="error" style="color:red;text-align:center;"></p>
+</div>
+
+</div>
+
+<!-- 🚀 PANEL ADMIN -->
+<div id="adminPanel" style="display:none;">
+
 <div class="header">
 <h2>⚡ ADMIN PANEL</h2>
+<button class="logout" onclick="logoutAdmin()">🚪 Déconnexion</button>
 </div>
 
 <div class="container">
@@ -97,13 +156,18 @@ input, textarea{
 
 <input id="target" placeholder="Numéro utilisateur">
 <textarea id="msg" placeholder="Message"></textarea>
-<input id="file" type="text" placeholder="Lien image/fichier (optionnel)">
+<input id="file" placeholder="Lien image/fichier (optionnel)">
 
-<button onclick="sendMsg()">Envoyer</button>
+<button class="mainBtn" onclick="sendMsg()">Envoyer</button>
 </div>
 
 </div>
 
+</div>
+
+</div>
+
+<!-- JS -->
 <script type="module" src="admin.js"></script>
 
 </body>
