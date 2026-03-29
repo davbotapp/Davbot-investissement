@@ -2,57 +2,86 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<title>Devine P7</title>
+<title>Tâche 3 – Slot Chance</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{background:#050a14;color:white;text-align:center;}
-button{padding:10px;margin:5px;background:#00d2ff;}
+body{
+  margin:0;
+  background:linear-gradient(#050816,#000);
+  font-family:Arial,sans-serif;
+  color:white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.container{
+  background:#0b153f;
+  padding:20px;
+  border-radius:14px;
+  width:90%;
+  max-width:380px;
+  text-align:center;
+}
+
+.slots{
+  display:flex;
+  justify-content:space-between;
+  margin:25px 0;
+}
+
+.slot{
+  width:90px;
+  height:90px;
+  background:#020617;
+  border-radius:12px;
+  font-size:2rem;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+button{
+  background:#ffd166;
+  color:#000;
+  border:none;
+  padding:12px 20px;
+  font-size:1rem;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.result{margin-top:15px;font-size:1.1rem;}
+.success{color:#00ffb3}
+.fail{color:#ff6b6b}
+.note{font-size:.8rem;opacity:.8;margin-top:10px;}
 </style>
 </head>
 
 <body>
 
-<h2>🔢 Devine P7</h2>
-<div id="nums"></div>
-<p id="res"></p>
+<div class="container">
+  <h1>🎰 Slot Chance</h1>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  <div class="slots">
+    <div class="slot" id="s1">❔</div>
+    <div class="slot" id="s2">❔</div>
+    <div class="slot" id="s3">❔</div>
+  </div>
 
-const app = initializeApp({apiKey:"AIza...",databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com"});
-const db = getDatabase(app);
-const user = localStorage.getItem("userPhone");
+  <button id="play">Jouer</button>
 
-let secret = Math.floor(Math.random()*5);
+  <div class="result" id="result"></div>
 
-for(let i=0;i<5;i++){
-let b=document.createElement("button");
-b.innerText=i;
+  <div class="note">
+  Perte 55% • Petit 25% • Moyen 16% • Jackpot 4%
+  </div>
+</div>
 
-b.onclick=async()=>{
-const snap = await get(ref(db,"users/"+user));
-const d = snap.val();
-
-if(!d.token) return alert("Jeton P7 requis");
-
-let gain = (i===secret)?30000:0;
-
-if((d.todayGain||0)>=30000) gain=0;
-
-await update(ref(db,"users/"+user),{
-points:(d.points||0)+gain,
-todayGain:(d.todayGain||0)+gain,
-totalPlayed:(d.totalPlayed||0)+1
-});
-
-document.getElementById("res").innerText =
-gain?"🎉 Jackpot":"❌ Mauvais";
-};
-
-document.getElementById("nums").appendChild(b);
-}
-</script>
+<script type="module" src="3.js"></script>
 
 </body>
 </html>
