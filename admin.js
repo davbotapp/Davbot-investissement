@@ -177,30 +177,39 @@ window.valCmd = async (user,id)=>{
 };
 
 // ❌ REFUSER COMMANDE + REMBOURSEMENT
-window.refCmd = async (user,id)=>{
-    const cmdRef = ref(db,"orders/pending/"+user+"/"+id);
+window.refCmd = async (user, id) => {
+
+    const cmdRef = ref(db, "orders/pending/" + user + "/" + id);
     const snap = await get(cmdRef);
 
     if(!snap.exists()) return;
 
     const data = snap.val();
 
-    // remboursement
-    const userRef = ref(db,"users/"+user);
+    // 🔥 1. REMBOURSEMENT
+    const userRef = ref(db, "users/" + user);
     const userSnap = await get(userRef);
 
     if(userSnap.exists()){
-        const bal = userSnap.val().balance || 0;
+        const currentBalance = userSnap.val().balance || 0;
 
-        await update(userRef,{
-            balance: bal + data.price
+        await update(userRef, {
+            balance: currentBalance + data.price
         });
     }
 
-    await set(ref(db,"orders/cancelled/"+user+"/"+id), data);
-    await remove(cmdRef);
-};
+    // 🔥 2. SAUVEGARDE DANS ANNULÉ
+    await set(ref(db, "orders/cancelled/" + user + "/" + id), {
+        ...data,
+        statut: "cancelled"
+    });
 
+    // 🔥 3. SUPPRESSION DE pending
+    await remove(cmdRef);
+
+    alert("❌ Commande refusée + remboursée");
+};
+   
 // 🔁 VALIDER TRANSFERT
 window.valTrans = async (id,amount,to)=>{
     const userRef = ref(db,"users/"+to);
