@@ -42,8 +42,8 @@ btn.onclick = async ()=>{
     const tid = tidInput.value.trim();
 
     // 🔒 VALIDATION
-    if(!amount || amount < 5000){
-        alert("❌ Minimum 5000 FC");
+    if(!amount || amount < 500){
+        alert("❌ Minimum 500 FC");
         return;
     }
 
