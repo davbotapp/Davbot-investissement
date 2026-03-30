@@ -179,8 +179,8 @@ window.valider = async function(){
             return;
         }
 
-        if(nb < 1000){
-            alert("❌ Minimum 1000");
+        if(nb < 100){
+            alert("❌ Minimum 100");
             loading = false;
             return;
         }
