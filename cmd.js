@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG
+// 🔥 CONFIG
 const firebaseConfig = {
     apiKey: "AIza...",
     authDomain: "starlink-investit.firebaseapp.com",
@@ -12,16 +12,19 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// USER
+// 👤 USER
 const user = localStorage.getItem("userPhone");
 if(!user) window.location.href = "index.html";
 
-// SERVICE
+// 📦 SERVICE
 const service = localStorage.getItem("serviceCommande");
 
 const zone = document.getElementById("formZone");
 const priceDisplay = document.getElementById("price");
 document.getElementById("serviceName").value = service;
+
+// 🔒 ANTI DOUBLE CLIC
+let loading = false;
 
 // ================= FORM =================
 function renderForm(){
@@ -49,12 +52,15 @@ else if(service === "Site Web Pro"){
 
 else if(service === "Hébergement"){
     zone.innerHTML = `
+        <input type="text" id="siteUrl" placeholder="🌐 Lien du site (https://...)" />
+
         <select id="duree">
             <option>7 jours</option>
             <option>15 jours</option>
             <option>30 jours</option>
             <option>Autre</option>
         </select>
+
         <input type="number" id="customDays" placeholder="Nombre de jours">
     `;
 }
@@ -134,8 +140,8 @@ function calcPrice(){
         const nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
         let base = 0;
-        if(type === "Vues") base = 2000;
-        if(type === "Likes") base = 4000;
+        if(type === "Vues") base = 4000;
+        if(type === "Likes") base = 4500;
         if(type === "Followers") base = 12000;
 
         price = (nb / 1000) * base;
@@ -151,56 +157,112 @@ function calcPrice(){
 // ================= VALIDATION =================
 window.valider = async function(){
 
+    if(loading) return;
+    loading = true;
+
     const price = parseInt(priceDisplay.innerText);
 
     if(price <= 0){
         alert("❌ Prix invalide");
+        loading = false;
         return;
     }
 
     // 🔗 CHECK BOOST
     if(service === "Réseaux Sociaux"){
         const link = document.getElementById("link").value.trim();
+        const nb = parseInt(document.getElementById("nombre").value) || 0;
 
-        if(!link || !link.startsWith("http")){
+        if(!link || (!link.includes("http://") && !link.includes("https://"))){
             alert("❌ Lien invalide");
+            loading = false;
+            return;
+        }
+
+        if(nb < 1000){
+            alert("❌ Minimum 1000");
+            loading = false;
             return;
         }
     }
 
-    const snap = await get(ref(db,"users/"+user));
-    if(!snap.exists()) return;
+    // 🌐 CHECK HÉBERGEMENT
+    if(service === "Hébergement"){
+        const url = document.getElementById("siteUrl").value.trim();
 
-    const dataUser = snap.val();
-    const balance = dataUser.balance || 0;
-
-    if(balance < price){
-        alert("❌ Solde insuffisant");
-        return;
+        if(!url || (!url.includes("http://") && !url.includes("https://"))){
+            alert("❌ URL invalide");
+            loading = false;
+            return;
+        }
     }
 
-    // 💰 DÉDUCTION
-    await update(ref(db,"users/"+user),{
-        balance: balance - price
-    });
+    try{
 
-    let data = {
-        service,
-        price,
-        statut:"pending",
-        user,
-        date:Date.now()
-    };
+        const userRef = ref(db,"users/"+user);
+        const snap = await get(userRef);
 
-    document.querySelectorAll("#formZone input, #formZone select, #formZone textarea")
-    .forEach(el=>{
-        data[el.id] = el.value;
-    });
+        if(!snap.exists()){
+            loading = false;
+            return;
+        }
 
-    const id = Date.now();
+        const dataUser = snap.val();
+        const balance = dataUser.balance || 0;
 
-    await set(ref(db,"orders/pending/"+user+"/"+id), data);
+        if(balance < price){
+            alert("❌ Solde insuffisant");
+            loading = false;
+            return;
+        }
 
-    alert("✅ Commande envoyée !");
-    window.location.href = "dashboard.html";
+        if(dataUser.lastOrder && Date.now() - dataUser.lastOrder < 5000){
+            alert("⏳ Attends un peu");
+            loading = false;
+            return;
+        }
+
+        // 💰 UPDATE USER
+        await update(userRef,{
+            balance: balance - price,
+            totalSpent: (dataUser.totalSpent || 0) + price,
+            lastOrder: Date.now()
+        });
+
+        let data = {
+            service,
+            price,
+            statut:"pending",
+            user,
+            date:Date.now()
+        };
+
+        document.querySelectorAll("#formZone input, #formZone select, #formZone textarea")
+        .forEach(el=>{
+            data[el.id] = el.value;
+        });
+
+        const id = Date.now();
+
+        // 📦 SAVE ORDER
+        await set(ref(db,"orders/pending/"+user+"/"+id), data);
+
+        // 🔔 NOTIF ADMIN
+        await set(ref(db,"notifications/admin/"+id),{
+            type:"commande",
+            user,
+            price,
+            service,
+            date:Date.now()
+        });
+
+        alert("✅ Commande envoyée !");
+        window.location.href = "dashboard.html";
+
+    }catch(e){
+        console.error(e);
+        alert("❌ Erreur réseau");
+    }
+
+    loading = false;
 };
