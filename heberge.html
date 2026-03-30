@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes Hébergements</title>
+
+<style>
+:root{--blue:#00d2ff;--dark:#050a14;}
+
+body{
+    margin:0;
+    font-family:'Segoe UI', sans-serif;
+    background:var(--dark);
+    color:white;
+    padding:20px;
+}
+
+h2{
+    text-align:center;
+    color:var(--blue);
+}
+
+.card{
+    background:#111;
+    padding:15px;
+    border-radius:10px;
+    margin-top:15px;
+}
+
+.online{color:#4caf50;}
+.expired{color:#f44336;}
+
+button{
+    margin-top:10px;
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    background:var(--blue);
+    color:white;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🌐 Mes Hébergements</h2>
+
+<div id="list"></div>
+
+<script type="module" src="heberge.js"></script>
+
+</body>
+</html>
