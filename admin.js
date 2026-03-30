@@ -103,6 +103,7 @@ ${r.numero} - ${r.montant} FC<br>
 });
 
 // ================= COMMANDES =================
+// ================= COMMANDES =================
 onValue(ref(db,"orders/pending"), snap=>{
 const box = document.getElementById("commandes");
 box.innerHTML = "";
@@ -112,10 +113,50 @@ if(!snap.exists()) return;
 Object.entries(snap.val()).forEach(([user, cmds])=>{
 Object.entries(cmds).forEach(([id,c])=>{
 
+// 🔍 Détails dynamiques
+let details = "";
+
+// Réseaux sociaux
+if(c.link){
+    details += `🔗 ${c.link}<br>`;
+}
+if(c.platform){
+    details += `📱 ${c.platform}<br>`;
+}
+if(c.type){
+    details += `📊 ${c.type}<br>`;
+}
+if(c.nombre){
+    details += `🔢 ${c.nombre}<br>`;
+}
+
+// Hébergement
+if(c.siteUrl){
+    details += `🌐 ${c.siteUrl}<br>`;
+}
+if(c.duree){
+    details += `⏳ ${c.duree}<br>`;
+}
+
+// Application / IA / site
+if(c.desc){
+    details += `📝 ${c.desc}<br>`;
+}
+if(c.typeApp){
+    details += `📲 ${c.typeApp}<br>`;
+}
+if(c.typeSite){
+    details += `🌍 ${c.typeSite}<br>`;
+}
+
+// 📦 UI
 box.innerHTML += `
 <div class="card">
-${c.user} - ${c.service}<br>
+👤 ${c.user}<br>
+📦 ${c.service}<br>
 💰 ${c.price} FC<br>
+
+${details}
 
 <button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
 <button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
