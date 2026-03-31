@@ -22,6 +22,8 @@ function getDays(duree){
     if(duree.includes("7")) return 7;
     if(duree.includes("15")) return 15;
     if(duree.includes("30")) return 30;
+    if(duree.includes("60")) return 60;
+    
     return 0;
 }
 
