@@ -24,36 +24,23 @@ if(!user){
 }
 
 // ==========================
-// 📦 DATA UTILISATEUR
-// ==========================
-let currentData = {};
-
-// ==========================
-// 🔄 CHARGEMENT USER
+// 👤 USER DATA
 // ==========================
 onValue(ref(db, "users/" + user), (snap)=>{
     if(!snap.exists()) return;
 
     const data = snap.val();
-    currentData = data;
 
     const balance = data.solde_principal || data.balance || 0;
     const points = data.points || 0;
 
-    // UI
     document.getElementById("welcome").innerText = "Bienvenue " + user;
+    document.getElementById("balance").innerText = balance.toLocaleString();
+    document.getElementById("points").innerText = points;
 
-    document.getElementById("balance").innerText =
-        balance.toLocaleString();
-
-    document.getElementById("points").innerText =
-        points;
-
-    // 💱 aperçu conversion
+    // aperçu conversion
     const preview = Math.floor(points / 20) * 50;
-
-    document.getElementById("pointsFC").innerText =
-        preview;
+    document.getElementById("pointsFC").innerText = preview;
 });
 
 // ==========================
@@ -75,11 +62,9 @@ window.convertPoints = async function(){
             return;
         }
 
-        // 💰 calcul
         const packs = Math.floor(points / 20);
         const fc = packs * 50;
 
-        // 🔥 reset points
         await update(ref(db, "users/" + user), {
             points: 0,
             solde_principal: balance + fc
@@ -94,59 +79,80 @@ window.convertPoints = async function(){
 };
 
 // ==========================
-// 📦 COMMANDES UTILISATEUR
+// 📦 COMMANDES (FIX TOTAL)
 // ==========================
-onValue(ref(db, "orders"), (snap)=>{
 
-    const container = document.getElementById("orders");
-    container.innerHTML = "";
+const container = document.getElementById("orders");
 
-    const data = snap.val();
+function renderOrder(cmd, status){
 
-    if(!data){
-        container.innerHTML = "<small>Aucune commande</small>";
-        return;
+    let css = "pending";
+    let label = "EN ATTENTE";
+
+    if(status === "validated"){
+        css = "valid";
+        label = "VALIDÉ";
     }
 
+    if(status === "cancelled"){
+        css = "cancel";
+        label = "REFUSÉ";
+    }
+
+    // 🔍 détails dynamiques
+    let details = "";
+
+    if(cmd.link) details += `🔗 ${cmd.link}<br>`;
+    if(cmd.platform) details += `📱 ${cmd.platform}<br>`;
+    if(cmd.type) details += `📊 ${cmd.type}<br>`;
+    if(cmd.nombre) details += `🔢 ${cmd.nombre}<br>`;
+    if(cmd.siteUrl) details += `🌐 ${cmd.siteUrl}<br>`;
+    if(cmd.duree) details += `⏳ ${cmd.duree}<br>`;
+    if(cmd.desc) details += `📝 ${cmd.desc}<br>`;
+    if(cmd.typeApp) details += `📲 ${cmd.typeApp}<br>`;
+    if(cmd.typeSite) details += `🌍 ${cmd.typeSite}<br>`;
+
+    return `
+        <div class="order ${css}">
+            📦 <b>${cmd.service || "Service"}</b><br>
+            💰 ${cmd.price || 0} FC<br>
+            📅 ${cmd.date ? new Date(cmd.date).toLocaleString() : ""}<br>
+            📌 ${label}<br>
+            ${details}
+        </div>
+    `;
+}
+
+function loadOrders(){
+
+    container.innerHTML = "";
     let hasOrder = false;
 
     const statuts = ["pending","validated","cancelled"];
 
     statuts.forEach(status=>{
 
-        if(!data[status]) return;
-        if(!data[status][user]) return;
+        onValue(ref(db, "orders/" + status + "/" + user), (snap)=>{
 
-        Object.values(data[status][user]).forEach(cmd=>{
+            if(snap.exists()){
 
-            hasOrder = true;
+                const data = snap.val();
 
-            let css = "pending";
-            let label = "EN ATTENTE";
+                Object.values(data).forEach(cmd=>{
+                    hasOrder = true;
+                    container.innerHTML += renderOrder(cmd, status);
+                });
 
-            if(status === "validated"){
-                css = "valid";
-                label = "VALIDÉ";
             }
 
-            if(status === "cancelled"){
-                css = "cancel";
-                label = "REFUSÉ";
+            if(!hasOrder){
+                container.innerHTML = "<small>Aucune commande</small>";
             }
 
-            container.innerHTML += `
-                <div class="order ${css}">
-                    📦 <b>${cmd.service || "Service"}</b><br>
-                    💰 ${cmd.price || 0} FC<br>
-                    📅 ${cmd.date ? new Date(cmd.date).toLocaleString() : ""}<br>
-                    📌 ${label}
-                </div>
-            `;
         });
 
     });
 
-    if(!hasOrder){
-        container.innerHTML = "<small>Aucune commande trouvée</small>";
-    }
-});
+}
+
+loadOrders();
