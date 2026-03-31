@@ -32,18 +32,16 @@ let currentData = {};
 // 🔄 CHARGEMENT USER
 // ==========================
 onValue(ref(db, "users/" + user), (snap)=>{
+    if(!snap.exists()) return;
+
     const data = snap.val();
-
-    if(!data) return;
-
     currentData = data;
 
-    const balance = data.balance || 0;
+    const balance = data.solde_principal || data.balance || 0;
     const points = data.points || 0;
 
     // UI
-    document.getElementById("welcome").innerText =
-        "Bienvenue " + user;
+    document.getElementById("welcome").innerText = "Bienvenue " + user;
 
     document.getElementById("balance").innerText =
         balance.toLocaleString();
@@ -51,10 +49,12 @@ onValue(ref(db, "users/" + user), (snap)=>{
     document.getElementById("points").innerText =
         points;
 
-    document.getElementById("pointsFC").innerText =
-        Math.floor(points / 25);
-});
+    // 💱 aperçu conversion
+    const preview = Math.floor(points / 20) * 50;
 
+    document.getElementById("pointsFC").innerText =
+        preview;
+});
 
 // ==========================
 // 💱 CONVERSION POINTS → FC
@@ -63,40 +63,41 @@ window.convertPoints = async function(){
 
     try{
         const snap = await get(ref(db, "users/" + user));
-
         if(!snap.exists()) return;
 
         const data = snap.val();
 
         let points = data.points || 0;
-        let balance = data.solde_principal || 0;
+        let balance = data.solde_principal || data.balance || 0;
 
-        if(points < 25){
-            alert("❌ Minimum 25 points requis");
+        if(points < 20){
+            alert("❌ Minimum 20 points requis");
             return;
         }
 
-        const fc = Math.floor(points / 25);
-        const reste = points % 25;
+        // 💰 calcul
+        const packs = Math.floor(points / 20);
+        const fc = packs * 50;
 
+        // 🔥 reset points
         await update(ref(db, "users/" + user), {
-            points: reste,
+            points: 0,
             solde_principal: balance + fc
         });
 
-        alert("✅ Conversion réussie : +" + fc + " FC");
+        alert("✅ +" + fc + " FC ajouté");
 
     }catch(e){
-        alert("⚠️ Erreur conversion");
+        alert("⚠️ Erreur");
         console.error(e);
     }
 };
-
 
 // ==========================
 // 📦 COMMANDES UTILISATEUR
 // ==========================
 onValue(ref(db, "orders"), (snap)=>{
+
     const container = document.getElementById("orders");
     container.innerHTML = "";
 
@@ -109,14 +110,11 @@ onValue(ref(db, "orders"), (snap)=>{
 
     let hasOrder = false;
 
-    // Statuts
     const statuts = ["pending","validated","cancelled"];
 
     statuts.forEach(status=>{
 
         if(!data[status]) return;
-
-        // 🔥 IMPORTANT: on filtre par utilisateur direct
         if(!data[status][user]) return;
 
         Object.values(data[status][user]).forEach(cmd=>{
@@ -124,15 +122,24 @@ onValue(ref(db, "orders"), (snap)=>{
             hasOrder = true;
 
             let css = "pending";
-            if(status === "validated") css = "valid";
-            if(status === "cancelled") css = "cancel";
+            let label = "EN ATTENTE";
+
+            if(status === "validated"){
+                css = "valid";
+                label = "VALIDÉ";
+            }
+
+            if(status === "cancelled"){
+                css = "cancel";
+                label = "REFUSÉ";
+            }
 
             container.innerHTML += `
                 <div class="order ${css}">
                     📦 <b>${cmd.service || "Service"}</b><br>
                     💰 ${cmd.price || 0} FC<br>
                     📅 ${cmd.date ? new Date(cmd.date).toLocaleString() : ""}<br>
-                    📌 ${status.toUpperCase()}
+                    📌 ${label}
                 </div>
             `;
         });
