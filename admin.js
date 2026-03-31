@@ -377,21 +377,43 @@ await remove(ref(db,"users/"+phone));
 };
 
 // ================= 📩 MESSAGE =================
+// ================= 📩 MESSAGE =================
 window.sendMsg = async()=>{
 
 const user = document.getElementById("target").value.trim();
 const msg = document.getElementById("msg").value.trim();
-const file = document.getElementById("file").value.trim();
+const fileInput = document.getElementById("uploadFile");
 
 if(!user) return alert("Numéro requis");
 
+// 📤 SI FICHIER
+if(fileInput.files[0]){
+
+const file = fileInput.files[0];
+const reader = new FileReader();
+
+reader.onload = async function(e){
+
 await push(ref(db,"messages/"+user),{
 text: msg || null,
-image: file || null,
-file: file || null,
+image: e.target.result,
+date: Date.now(),
+read:false
+});
+
+alert("✅ Envoyé avec fichier");
+};
+
+reader.readAsDataURL(file);
+
+}else{
+
+await push(ref(db,"messages/"+user),{
+text: msg || null,
 date: Date.now(),
 read:false
 });
 
 alert("✅ Message envoyé");
+}
 };
