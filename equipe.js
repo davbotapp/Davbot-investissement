@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, get, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG
+// 🔥 CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyA24pBo8mBWiZssPtep--MMBdB7c8_Lu4U",
     authDomain: "starlink-investit.firebaseapp.com",
@@ -12,11 +12,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// USER
+// 👤 USER
 const userPhone = localStorage.getItem("userPhone");
 if(!userPhone) window.location.href = "index.html";
 
-// ELEMENTS
+// 📦 ELEMENTS
 const codeEl = document.getElementById("code");
 const lvl1El = document.getElementById("lvl1");
 const lvl2El = document.getElementById("lvl2");
@@ -24,9 +24,11 @@ const lvl3El = document.getElementById("lvl3");
 const totalEl = document.getElementById("total");
 const gainsEl = document.getElementById("gains");
 const pointsEl = document.getElementById("points");
-const tokensList = document.getElementById("tokensList");
 
-// 🔄 USER DATA
+const channelInput = document.getElementById("whatsappChannel");
+const groupInput = document.getElementById("whatsappGroup");
+
+// ================= USER DATA =================
 onValue(ref(db, "users/" + userPhone), snap=>{
     if(!snap.exists()) return;
 
@@ -46,93 +48,100 @@ onValue(ref(db, "users/" + userPhone), snap=>{
     totalEl.innerText = l1 + l2 + l3;
 
     gainsEl.innerText = (data.balance || 0).toLocaleString();
-    pointsEl.innerText = (data.points || 0);
+    pointsEl.innerText = data.points || 0;
+
+    if(data.whatsappChannel) channelInput.value = data.whatsappChannel;
+    if(data.whatsappGroup) groupInput.value = data.whatsappGroup;
 });
 
-// 🔄 JETONS
-onValue(ref(db, "tokens/" + userPhone), snap=>{
-    tokensList.innerHTML = "";
+// ================= SAVE WHATSAPP =================
+channelInput.addEventListener("change", saveLinks);
+groupInput.addEventListener("change", saveLinks);
 
-    if(!snap.exists()){
-        tokensList.innerHTML = "Aucun jeton actif";
-        return;
+async function saveLinks(){
+    try{
+        await update(ref(db, "users/" + userPhone), {
+            whatsappChannel: channelInput.value || null,
+            whatsappGroup: groupInput.value || null
+        });
+    }catch(e){
+        alert("❌ Erreur sauvegarde");
+    }
+}
+
+// ================= PARRAINAGE =================
+export async function handleParrainage(newUserPhone, inviteCode){
+
+    const snap = await get(ref(db, "users"));
+    if(!snap.exists()) return;
+
+    let parrain = null;
+
+    Object.entries(snap.val()).forEach(([phone, u])=>{
+        if(u.inviteCode === inviteCode){
+            parrain = { phone, data: u };
+        }
+    });
+
+    if(!parrain) return;
+
+    let lvl1 = parrain.data.count_lvl1 || 0;
+    let lvl2 = parrain.data.count_lvl2 || 0;
+    let lvl3 = parrain.data.count_lvl3 || 0;
+    let points = parrain.data.points || 0;
+
+    // 🎯 NIVEAUX
+    if(lvl1 < 10){
+        lvl1++;
+        points += 8;
+    }
+    else if(lvl2 < 30){
+        lvl2++;
+        points += 10;
+    }
+    else if(lvl3 < 50){
+        lvl3++;
+        points += 15;
     }
 
-    const data = snap.val();
-
-    Object.values(data).forEach(token=>{
-        const reste = token.expire - Date.now();
-
-        if(reste <= 0) return;
-
-        const jours = Math.floor(reste / (1000*60*60*24));
-
-        tokensList.innerHTML += `
-            <div class="box">
-                🎟️ ${token.type}<br>
-                ⏳ ${jours} jour(s)
-            </div>
-        `;
+    // 💾 UPDATE
+    await update(ref(db, "users/" + parrain.phone), {
+        count_lvl1: lvl1,
+        count_lvl2: lvl2,
+        count_lvl3: lvl3,
+        points: points
     });
-});
 
-// 🔗 LIEN
+    // 🔗 Lier filleul
+    await update(ref(db, "users/" + newUserPhone), {
+        parrain: parrain.phone
+    });
+}
+
+// ================= LIEN =================
 function getLink(code){
     return location.origin + "/index.html?inviteCode=" + code;
 }
 
-// 📋 COPY
+// ================= COPY =================
 document.getElementById("copyBtn").onclick = ()=>{
     const link = getLink(codeEl.innerText);
 
     navigator.clipboard.writeText(link)
-    .then(()=> alert("Lien copié"))
+    .then(()=> alert("✅ Lien copié"))
     .catch(()=> alert(link));
 };
 
-// 📤 WHATSAPP
+// ================= WHATSAPP =================
 document.getElementById("whatsappBtn").onclick = ()=>{
     const link = getLink(codeEl.innerText);
-    const msg = "Rejoins-moi sur DAVBOT 🚀\n" + link;
+
+    const msg = `🚀 Rejoins DAVBOT
+
+💻 Apps - Sites - IA - Jeux
+📈 Boost réseaux
+
+👉 ${link}`;
 
     window.open("https://wa.me/?text=" + encodeURIComponent(msg));
-};
-
-// 💼 ACHAT JETON
-window.buyToken = async function(type, price, days){
-
-    try{
-        const snap = await get(ref(db, "users/" + userPhone));
-        if(!snap.exists()) return;
-
-        const data = snap.val();
-        const balance = data.balance || 0;
-
-        if(balance < price){
-            alert("❌ Solde insuffisant");
-            return;
-        }
-
-        // 💸 Déduction
-        await update(ref(db, "users/" + userPhone), {
-            balance: balance - price
-        });
-
-        // 🎟️ Création
-        const expire = Date.now() + (days * 24 * 60 * 60 * 1000);
-
-        await push(ref(db, "tokens/" + userPhone), {
-            type,
-            price,
-            start: Date.now(),
-            expire,
-            actif: true
-        });
-
-        alert("✅ Jeton activé");
-
-    }catch(e){
-        alert("Erreur");
-        console.error(e);
-    }
 };
