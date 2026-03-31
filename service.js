@@ -1,4 +1,4 @@
-// 🔥 LISTE SERVICES
+// 🔥 LISTE SERVICES (ULTRA PRO)
 const services = [
     {
         nom: "Application",
@@ -16,6 +16,11 @@ const services = [
         icon: "🤖"
     },
     {
+        nom: "Mini Jeux",
+        desc: "Création jeux (slot, quiz, memory...)",
+        icon: "🎮"
+    },
+    {
         nom: "Réseaux Sociaux",
         desc: "Boost followers, likes, vues",
         icon: "📲"
@@ -24,13 +29,19 @@ const services = [
         nom: "Hébergement",
         desc: "Serveur rapide sécurisé",
         icon: "💾"
+    },
+    {
+        nom: "VPN",
+        desc: "Connexion sécurisée & anonyme",
+        icon: "🛡️"
     }
 ];
 
-// 🔥 AFFICHAGE
+// 🔥 CONTAINER
 const container = document.getElementById("services");
 
-services.forEach(s => {
+// 🔥 AFFICHAGE
+services.forEach((s, index) => {
 
     const div = document.createElement("div");
     div.className = "card";
@@ -42,17 +53,25 @@ services.forEach(s => {
             <div class="title">${s.nom}</div>
             <div class="desc">${s.desc}</div>
 
-            <button onclick="commander('${s.nom}')">
+            <button id="btn-${index}">
                 Commander
             </button>
         </div>
     `;
 
     container.appendChild(div);
-});
 
-// 🔥 COMMANDER
-window.commander = function(service){
-    localStorage.setItem("serviceCommande", service);
-    window.location.href = "commande.html";
-};
+    // 🔐 Anti double clic
+    const btn = div.querySelector("button");
+
+    btn.onclick = () => {
+        btn.disabled = true;
+        btn.innerText = "⏳ Chargement...";
+
+        localStorage.setItem("serviceCommande", s.nom);
+
+        setTimeout(()=>{
+            window.location.href = "commande.html";
+        }, 500);
+    };
+});
