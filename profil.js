@@ -1,5 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import {
+getDatabase, ref, onValue, remove, update, push, get
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // ================= CONFIG =================
 const firebaseConfig = {
@@ -21,28 +23,109 @@ if(!userPhone){
 
 // ================= ELEMENTS =================
 const phoneEl = document.getElementById("phone");
-const codeEl = document.getElementById("code");
+const nameEl = document.getElementById("name");
 const avatarEl = document.getElementById("avatar");
+
 const soldeEl = document.getElementById("solde");
 const pointsEl = document.getElementById("points");
 const inboxEl = document.getElementById("inbox");
 
 // ================= USER DATA =================
-onValue(ref(db, "users/" + userPhone), snap=>{
+onValue(ref(db, "users/" + userPhone), async snap=>{
     if(!snap.exists()) return;
 
     const data = snap.val();
 
     phoneEl.innerText = userPhone;
-    codeEl.innerText = "ID: " + (data.inviteCode || "DAV-000");
+    nameEl.innerText = data.name || "Utilisateur";
 
-    avatarEl.innerText = userPhone.substring(0,2);
+    if(data.photo){
+        avatarEl.src = data.photo;
+    }
 
     soldeEl.innerText = (data.balance || 0).toLocaleString();
     pointsEl.innerText = (data.points || 0);
+
+    // ================= 💰 MONÉTISATION =================
+
+    if(!data.lastRevenueTime){
+        await update(ref(db,"users/"+userPhone),{
+            lastRevenueTime: Date.now()
+        });
+    }
+
+    const now = Date.now();
+    const last = data.lastRevenueTime || now;
+
+    // ⏳ 30 jours
+    if(now - last > 30 * 24 * 60 * 60 * 1000){
+
+        const revenus = data.revenus || 0;
+
+        if(revenus > 0){
+
+            // 💰 AJOUT AU SOLDE
+            await update(ref(db,"users/"+userPhone),{
+                balance: (data.balance || 0) + revenus,
+                revenus: 0,
+                lastRevenueTime: now
+            });
+
+            // 📩 MESSAGE UNIQUEMENT
+            await push(ref(db,"messages/"+userPhone),{
+                text: "✅ Revenus ajoutés à votre solde avec succès 💰",
+                date: Date.now(),
+                read:false
+            });
+
+        } else {
+
+            await update(ref(db,"users/"+userPhone),{
+                lastRevenueTime: now
+            });
+
+        }
+    }
+
 });
 
-// ================= INBOX ADMIN =================
+// ================= 💸 CALCUL REVENUS =================
+onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
+
+    if(!snap.exists()) return;
+
+    const userSnap = await get(ref(db,"users/"+userPhone));
+    if(!userSnap.exists()) return;
+
+    const userData = userSnap.val();
+
+    // ❌ NON MONÉTISÉ
+    if(!userData.monetized){
+        await update(ref(db,"users/"+userPhone),{ revenus: 0 });
+        return;
+    }
+
+    let total = 0;
+
+    Object.values(snap.val()).forEach(cmd=>{
+
+        const price = cmd.price || 0;
+
+        // ❌ moins de 1500
+        if(price < 1500) return;
+
+        // ✅ 5%
+        total += price * 0.05;
+
+    });
+
+    await update(ref(db,"users/"+userPhone),{
+        revenus: Math.floor(total)
+    });
+
+});
+
+// ================= 📩 INBOX =================
 onValue(ref(db, "messages/" + userPhone), snap=>{
 
     inboxEl.innerHTML = "";
@@ -52,103 +135,41 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
         return;
     }
 
-    const data = snap.val();
-
-    Object.entries(data).reverse().forEach(([id, msg])=>{
-
-        let html = "";
-
-        if(msg.text){
-            html += `<p>📝 ${msg.text}</p>`;
-        }
-
-        if(msg.image){
-            html += `<img src="${msg.image}" style="width:100%;border-radius:10px;margin-top:5px;">`;
-        }
-
-        if(msg.file){
-            html += `<a href="${msg.file}" target="_blank">📎 Télécharger fichier</a>`;
-        }
-
-        if(msg.commande){
-            html += `
-                <div style="margin-top:5px;">
-                    📦 ${msg.commande.service}<br>
-                    💰 ${msg.commande.price} FC
-                </div>
-            `;
-        }
+    Object.entries(snap.val()).reverse().forEach(([id, msg])=>{
 
         inboxEl.innerHTML += `
-            <div class="message" style="
-                background:#111;
-                padding:12px;
-                border-radius:10px;
-                margin-top:10px;
-                border-left:4px solid ${msg.read ? '#444' : '#00d2ff'};
-                box-shadow:0 0 10px rgba(0,210,255,0.2);
-            ">
-
-                ${!msg.read ? "<b style='color:#00d2ff'>● Nouveau</b>" : ""}
-
-                ${html}
-
-                <small style="display:block;margin-top:5px;opacity:0.7;">
-                    ${new Date(msg.date).toLocaleString()}
-                </small>
-
-                <div style="margin-top:10px; display:flex; gap:5px;">
-
-                    <button onclick="copyMsg('${msg.text || ''}')">
-                        📋
-                    </button>
-
-                    <button onclick="markRead('${id}')">
-                        ✔️
-                    </button>
-
-                    <button onclick="deleteMsg('${id}')" style="background:red;color:white;">
-                        🗑️
-                    </button>
-
-                </div>
-            </div>
+        <div style="
+            background:#111;
+            padding:10px;
+            border-radius:10px;
+            margin-top:10px;
+        ">
+            ${msg.text || ""}
+            <small style="display:block;margin-top:5px;opacity:0.7;">
+                ${new Date(msg.date).toLocaleString()}
+            </small>
+        </div>
         `;
     });
 
 });
 
-// ================= ACTIONS =================
+// ================= ✍️ ENVOYER MESSAGE =================
+document.getElementById("sendBtn").onclick = async ()=>{
 
-// 📋 Copier
-window.copyMsg = (text)=>{
-    if(!text) return alert("Rien à copier");
+    const text = document.getElementById("msgInput").value.trim();
 
-    navigator.clipboard.writeText(text)
-    .then(()=> alert("✅ Copié"))
-    .catch(()=> alert(text));
-};
+    if(!text) return alert("Message vide");
 
-// ✔️ Lu
-window.markRead = async(id)=>{
-    try{
-        await update(ref(db, "messages/" + userPhone + "/" + id), {
-            read: true
-        });
-    }catch(e){
-        console.error(e);
-    }
-};
+    await push(ref(db,"admin_messages"),{
+        user: userPhone,
+        text,
+        date: Date.now()
+    });
 
-// 🗑️ Supprimer
-window.deleteMsg = async(id)=>{
-    if(confirm("Supprimer ce message ?")){
-        try{
-            await remove(ref(db, "messages/" + userPhone + "/" + id));
-        }catch(e){
-            console.error(e);
-        }
-    }
+    document.getElementById("msgInput").value = "";
+
+    alert("✅ Message envoyé");
 };
 
 // ================= LOGOUT =================
