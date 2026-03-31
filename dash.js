@@ -17,7 +17,7 @@ const db = getDatabase(app);
 // ==========================
 // 🔐 SESSION
 // ==========================
-const user = localStorage.getItem("userphone");
+const user = localStorage.getItem("userPhone");
 
 if(!user){
     window.location.href = "index.html";
