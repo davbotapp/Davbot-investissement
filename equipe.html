@@ -22,7 +22,7 @@ h2{
     color:var(--blue);
 }
 
-/* CARD STYLE GLOBAL */
+/* CARD */
 .card{
     background:rgba(255,255,255,0.05);
     border:1px solid rgba(0,210,255,0.2);
@@ -34,10 +34,11 @@ h2{
 
 /* CODE */
 .code{
-    font-size:28px;
+    font-size:26px;
     color:var(--blue);
     font-weight:bold;
     margin:15px 0;
+    text-align:center;
 }
 
 /* GRID */
@@ -65,11 +66,21 @@ button{
     font-weight:bold;
     margin-top:10px;
     cursor:pointer;
-    transition:0.3s;
 }
 
 button:active{
     transform:scale(0.95);
+}
+
+/* INPUT */
+input{
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:none;
+    margin-top:10px;
+    background:#111;
+    color:white;
 }
 </style>
 </head>
@@ -78,53 +89,55 @@ button:active{
 
 <h2>👥 Mon Équipe</h2>
 
-<!-- PARRAINAGE -->
+<!-- 🔗 PARRAINAGE -->
 <div class="card">
-    <p>Votre code</p>
+    <p>Votre code de parrainage</p>
     <div class="code" id="code">...</div>
 
     <button id="copyBtn">📋 Copier lien</button>
     <button id="whatsappBtn">📤 Partager WhatsApp</button>
 </div>
 
-<!-- NIVEAUX -->
+<!-- 📊 NIVEAUX -->
 <div class="grid">
     <div class="box">Niveau 1<br><b id="lvl1">0</b></div>
     <div class="box">Niveau 2<br><b id="lvl2">0</b></div>
     <div class="box">Niveau 3<br><b id="lvl3">0</b></div>
 </div>
 
-<!-- STATS -->
+<!-- 💰 STATS -->
 <div class="card">
     👥 Total : <b id="total">0</b><br>
     💰 Gains : <b id="gains">0</b> FC<br>
     ⭐ Points : <b id="points">0</b>
 </div>
 
-<!-- 🎟️ MES JETONS -->
+<!-- 🔗 LIENS WHATSAPP -->
 <div class="card">
-    <h3>🎟️ Mes Jetons</h3>
-    <div id="tokensList">Aucun jeton actif</div>
-</div>
+    <h3>📲 Communauté</h3>
 
-<!-- 💼 ACHAT -->
-<div class="card">
-    <h3>💼 Acheter un jeton</h3>
+    <input type="text" id="whatsappChannel" placeholder="🔗 Lien chaîne WhatsApp">
+    <button onclick="openLink('whatsappChannel')">Voir la chaîne</button>
 
-    <div class="grid">
-        <div class="box">
-            G3<br>3 jours<br>3500 FC
-            <button onclick="buyToken('G3',3500,3)">Acheter</button>
-        </div>
-
-        <div class="box">
-            P7<br>7 jours<br>5000 FC
-            <button onclick="buyToken('P7',5000,7)">Acheter</button>
-        </div>
-    </div>
+    <input type="text" id="whatsappGroup" placeholder="👥 Lien groupe WhatsApp">
+    <button onclick="openLink('whatsappGroup')">Voir la communauté</button>
 </div>
 
 <script type="module" src="equipe.js"></script>
 
+<script>
+// 🔗 ouvrir lien
+function openLink(id){
+    const link = document.getElementById(id).value;
+
+    if(!link || !link.includes("http")){
+        alert("❌ Lien invalide");
+        return;
+    }
+
+    window.open(link, "_blank");
+}
+</script>
+
 </body>
-    </html>
+</html>
