@@ -24,23 +24,33 @@ if(!user){
 }
 
 // ==========================
-// 👤 USER DATA
+// 📦 DATA UTILISATEUR
+// ==========================
+let currentData = {};
+
+// ==========================
+// 🔄 CHARGEMENT USER
 // ==========================
 onValue(ref(db, "users/" + user), (snap)=>{
-    if(!snap.exists()) return;
-
     const data = snap.val();
+    if(!data) return;
 
-    const balance = data.solde_principal || data.balance || 0;
+    currentData = data;
+
+    const balance = data.balance || 0;
     const points = data.points || 0;
 
-    document.getElementById("welcome").innerText = "Bienvenue " + user;
-    document.getElementById("balance").innerText = balance.toLocaleString();
-    document.getElementById("points").innerText = points;
+    document.getElementById("welcome").innerText =
+        "Bienvenue " + user;
 
-    // aperçu conversion
-    const preview = Math.floor(points / 20) * 50;
-    document.getElementById("pointsFC").innerText = preview;
+    document.getElementById("balance").innerText =
+        balance.toLocaleString();
+
+    document.getElementById("points").innerText =
+        points;
+
+    document.getElementById("pointsFC").innerText =
+        Math.floor(points / 20) * 50;
 });
 
 // ==========================
@@ -55,104 +65,92 @@ window.convertPoints = async function(){
         const data = snap.val();
 
         let points = data.points || 0;
-        let balance = data.solde_principal || data.balance || 0;
+        let balance = data.balance || 0;
 
+        // ✅ Minimum
         if(points < 20){
             alert("❌ Minimum 20 points requis");
             return;
         }
 
-        const packs = Math.floor(points / 20);
-        const fc = packs * 50;
+        // ✅ Conversion: 20 pts = 50 FC
+        const fc = Math.floor(points / 20) * 50;
 
+        // 🔥 RESET TOTAL DES POINTS
         await update(ref(db, "users/" + user), {
             points: 0,
-            solde_principal: balance + fc
+            balance: balance + fc
         });
 
-        alert("✅ +" + fc + " FC ajouté");
+        alert("✅ Conversion réussie : +" + fc + " FC");
 
     }catch(e){
-        alert("⚠️ Erreur");
+        alert("⚠️ Erreur conversion");
         console.error(e);
     }
 };
 
 // ==========================
-// 📦 COMMANDES (FIX TOTAL)
+// 📦 COMMANDES UTILISATEUR (FIX COMPLET)
 // ==========================
+onValue(ref(db, "orders"), (snap)=>{
 
-const container = document.getElementById("orders");
-
-function renderOrder(cmd, status){
-
-    let css = "pending";
-    let label = "EN ATTENTE";
-
-    if(status === "validated"){
-        css = "valid";
-        label = "VALIDÉ";
-    }
-
-    if(status === "cancelled"){
-        css = "cancel";
-        label = "REFUSÉ";
-    }
-
-    // 🔍 détails dynamiques
-    let details = "";
-
-    if(cmd.link) details += `🔗 ${cmd.link}<br>`;
-    if(cmd.platform) details += `📱 ${cmd.platform}<br>`;
-    if(cmd.type) details += `📊 ${cmd.type}<br>`;
-    if(cmd.nombre) details += `🔢 ${cmd.nombre}<br>`;
-    if(cmd.siteUrl) details += `🌐 ${cmd.siteUrl}<br>`;
-    if(cmd.duree) details += `⏳ ${cmd.duree}<br>`;
-    if(cmd.desc) details += `📝 ${cmd.desc}<br>`;
-    if(cmd.typeApp) details += `📲 ${cmd.typeApp}<br>`;
-    if(cmd.typeSite) details += `🌍 ${cmd.typeSite}<br>`;
-
-    return `
-        <div class="order ${css}">
-            📦 <b>${cmd.service || "Service"}</b><br>
-            💰 ${cmd.price || 0} FC<br>
-            📅 ${cmd.date ? new Date(cmd.date).toLocaleString() : ""}<br>
-            📌 ${label}<br>
-            ${details}
-        </div>
-    `;
-}
-
-function loadOrders(){
-
+    const container = document.getElementById("orders");
     container.innerHTML = "";
+
+    const data = snap.val();
+
+    if(!data){
+        container.innerHTML = "<small>Aucune commande</small>";
+        return;
+    }
+
     let hasOrder = false;
 
     const statuts = ["pending","validated","cancelled"];
 
     statuts.forEach(status=>{
 
-        onValue(ref(db, "orders/" + status + "/" + user), (snap)=>{
+        if(!data[status]) return;
 
-            if(snap.exists()){
+        // 🔥 ACCÈS DIRECT USER
+        const userOrders = data[status][user];
+        if(!userOrders) return;
 
-                const data = snap.val();
+        Object.values(userOrders).forEach(cmd=>{
 
-                Object.values(data).forEach(cmd=>{
-                    hasOrder = true;
-                    container.innerHTML += renderOrder(cmd, status);
-                });
+            hasOrder = true;
 
-            }
+            let css = "pending";
+            if(status === "validated") css = "valid";
+            if(status === "cancelled") css = "cancel";
 
-            if(!hasOrder){
-                container.innerHTML = "<small>Aucune commande</small>";
-            }
+            let details = "";
 
+            if(cmd.siteUrl) details += "🌐 " + cmd.siteUrl + "<br>";
+            if(cmd.link) details += "🔗 " + cmd.link + "<br>";
+            if(cmd.platform) details += "📱 " + cmd.platform + "<br>";
+            if(cmd.type) details += "📊 " + cmd.type + "<br>";
+            if(cmd.nombre) details += "🔢 " + cmd.nombre + "<br>";
+            if(cmd.desc) details += "📝 " + cmd.desc + "<br>";
+            if(cmd.nomBot) details += "🤖 " + cmd.nomBot + "<br>";
+            if(cmd.nomApp) details += "📱 " + cmd.nomApp + "<br>";
+            if(cmd.nomSite) details += "🌍 " + cmd.nomSite + "<br>";
+
+            container.innerHTML += `
+                <div class="order ${css}">
+                    📦 <b>${cmd.service || "Service"}</b><br>
+                    💰 ${cmd.price || 0} FC<br>
+                    📅 ${cmd.date ? new Date(cmd.date).toLocaleString() : ""}<br>
+                    📌 ${status.toUpperCase()}<br><br>
+                    ${details}
+                </div>
+            `;
         });
 
     });
 
-}
-
-loadOrders();
+    if(!hasOrder){
+        container.innerHTML = "<small>Aucune commande trouvée</small>";
+    }
+});
