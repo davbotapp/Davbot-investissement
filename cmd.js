@@ -58,10 +58,10 @@ else if(service === "Hébergement"){
             <option>7 jours</option>
             <option>15 jours</option>
             <option>30 jours</option>
-            <option>Autre</option>
+            <option>60 jours</option>
         </select>
 
-        <input type="number" id="customDays" placeholder="Nombre de jours">
+        
     `;
 }
 
@@ -129,6 +129,8 @@ function calcPrice(){
         if(d === "7 jours") price = 3500;
         else if(d === "15 jours") price = 6000;
         else if(d === "30 jours") price = 8000;
+            else if(d === "60 jours") price = 12000;
+            
         else {
             const days = parseInt(document.getElementById("customDays")?.value) || 0;
             price = days * 300;
