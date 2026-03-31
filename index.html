@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Starlink - Accès</title>
+<title>Davbot - Accès</title>
 
 <style>
 :root { --blue: #00d2ff; --dark: #050a14; }
@@ -23,15 +23,19 @@ body {
 
 .card { 
     background: rgba(0, 0, 0, 0.85); padding: 30px; border-radius: 25px; 
-    border: 1px solid var(--blue); width: 85%; max-width: 350px; 
+    border: 1px solid var(--blue); width: 90%; max-width: 380px; 
     backdrop-filter: blur(15px); z-index: 2; position: relative;
     box-shadow: 0 0 30px rgba(0, 210, 255, 0.3);
 }
 
 input { 
-    width: 100%; padding: 14px; margin: 10px 0; border-radius: 10px; 
+    width: 100%; padding: 14px; margin: 8px 0; border-radius: 10px; 
     border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); 
-    color: white; font-size: 16px;
+    color: white; font-size: 15px;
+}
+
+input[type="file"]{
+    padding: 8px;
 }
 
 button { 
@@ -47,20 +51,13 @@ button {
     margin-top: 15px; font-size: 13px; color: #ffeb3b; min-height: 20px; 
 }
 
-/* ⏳ Animation */
-.loader {
-    border: 3px solid rgba(255,255,255,0.1);
-    border-top: 3px solid var(--blue);
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    animation: spin 1s linear infinite;
-    display: inline-block;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.preview{
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    object-fit:cover;
+    margin:10px auto;
+    display:none;
 }
 </style>
 </head>
@@ -71,14 +68,28 @@ button {
 
 <div class="card">
 
-<h1 style="color:var(--blue); letter-spacing:3px;">DAVBOT SERVICE</h1>
+<h2 style="color:var(--blue)">DAVBOT SERVICE</h2>
 
+<!-- 👤 NOM -->
+<input type="text" id="name" placeholder="Nom complet" style="display:none;">
+
+<!-- 📸 PHOTO -->
+<input type="file" id="photo" accept="image/*" style="display:none;">
+<img id="preview" class="preview">
+
+<!-- 📱 TEL -->
 <input type="tel" id="phone" placeholder="Téléphone">
+
+<!-- 🔐 PASS -->
 <input type="password" id="pass" placeholder="Mot de passe">
+
+<!-- 🎁 PARRAIN -->
 <input type="text" id="invite" placeholder="Code parrain" style="display:none;">
 
+<!-- BTN -->
 <button id="btn">SE CONNECTER</button>
 
+<!-- SWITCH -->
 <div class="switch" id="switch">Créer un compte</div>
 
 <div id="statusMsg" class="status"></div>
@@ -86,6 +97,22 @@ button {
 </div>
 
 <script type="module" src="index.js"></script>
+
+<script>
+// 👁️ PREVIEW IMAGE
+document.getElementById("photo").addEventListener("change", function(){
+    const file = this.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e){
+        const img = document.getElementById("preview");
+        img.src = e.target.result;
+        img.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+});
+</script>
 
 </body>
 </html>
