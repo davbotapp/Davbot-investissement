@@ -140,7 +140,7 @@ function calcPrice(){
         const nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
         let base = 0;
-        if(type === "Vues") base = 2000;
+        if(type === "Vues") base = 800;
         if(type === "Likes") base = 4500;
         if(type === "Followers") base = 12000;
 
