@@ -168,13 +168,13 @@ const type = document.getElementById("aiType")?.value;
 
 if(type === "fb_bot") price = 3000;
 if(type === "fb_page") price = 6000;
-if(type === "wa_bot") price = 4000;
-if(type === "web_bot") price = 12000;
+if(type === "wa_bot") price = 5000;
+if(type === "web_bot") price = 10 000;
 }
 
 // 🎮 JEUX
 if(service === "Mini Jeux"){
-price = 10000;
+price = 10 000;
 }
 
 // 🚀 BOOST
@@ -184,7 +184,7 @@ const nb = parseInt(document.getElementById("nombre")?.value)||0;
 
 let p=0;
 
-if(type==="Vues") p=4000;
+if(type==="Vues") p=950;
 if(type==="Likes") p=4500;
 if(type==="Followers") p=12000;
 if(type==="Membre Groupe") p=5000;
@@ -208,9 +208,9 @@ if(d==="60 jours") price=12000;
 if(service === "VPN"){
 const d = document.getElementById("duree")?.value;
 
-if(d==="1 jour") price=500;
-if(d==="7 jours") price=2500;
-if(d==="30 jours") price=7000;
+if(d==="7 jour") price=2500;
+if(d==="15 jours") price=4500;
+if(d==="30 jours") price=8000;
 }
 
 priceDisplay.innerText = Math.floor(price);
