@@ -249,13 +249,39 @@ window.valRetrait = async(id)=>{
 
 // ✅ COMMANDES
 window.valCmd = async(user,id)=>{
+
 const snapRef = ref(db,"orders/pending/"+user+"/"+id);
 const snap = await get(snapRef);
 
+if(!snap.exists()) return;
+
 const data = snap.val();
 
+// ✅ CAS SPÉCIAL : HÉBERGEMENT
+if(data.service === "Hébergement"){
+
+    // 🔥 créer site actif
+    await set(ref(db,"hebergements/"+user+"/"+id),{
+        siteUrl: data.siteUrl || "Non défini",
+        status: "online",
+        duree: data.duree || "N/A",
+        dateStart: Date.now()
+    });
+
+    // 📩 notifier utilisateur
+    await push(ref(db,"messages/"+user),{
+        text: "🌐 Votre site est maintenant EN LIGNE",
+        date: Date.now()
+    });
+}
+
+// ✅ déplacer commande validée
 await set(ref(db,"orders/validated/"+user+"/"+id), data);
+
+// ❌ supprimer pending
 await remove(snapRef);
+
+alert("✅ Commande validée");
 };
 
 window.refCmd = async(user,id,price)=>{
