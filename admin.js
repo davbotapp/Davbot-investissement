@@ -104,6 +104,7 @@ ${r.numero} - ${r.montant} FC<br>
 
 // ================= COMMANDES =================
 // ================= COMMANDES =================
+// ================= COMMANDES =================
 onValue(ref(db,"orders/pending"), snap=>{
 const box = document.getElementById("commandes");
 box.innerHTML = "";
@@ -113,58 +114,95 @@ if(!snap.exists()) return;
 Object.entries(snap.val()).forEach(([user, cmds])=>{
 Object.entries(cmds).forEach(([id,c])=>{
 
-// 🔍 Détails dynamiques
 let details = "";
 
-// Réseaux sociaux
-if(c.link){
-    details += `🔗 ${c.link}<br>`;
-}
-if(c.platform){
-    details += `📱 ${c.platform}<br>`;
-}
-if(c.type){
-    details += `📊 ${c.type}<br>`;
-}
-if(c.nombre){
-    details += `🔢 ${c.nombre}<br>`;
+// 📱 APPLICATION
+if(c.service==="Application"){
+details += `📱 Nom APK : ${c.name || "-"}<br>`;
+details += `🎨 Couleur : ${c.color || "-"}<br>`;
+details += `📝 ${c.desc || "-"}<br>`;
+details += `🖼️ Icône : ${c.icon || "non fourni"}<br>`;
 }
 
-// Hébergement
-if(c.siteUrl){
-    details += `🌐 ${c.siteUrl}<br>`;
-}
-if(c.duree){
-    details += `⏳ ${c.duree}<br>`;
-}
-
-// Application / IA / site
-if(c.desc){
-    details += `📝 ${c.desc}<br>`;
-}
-if(c.typeApp){
-    details += `📲 ${c.typeApp}<br>`;
-}
-if(c.typeSite){
-    details += `🌍 ${c.typeSite}<br>`;
+// 🌐 SITE
+if(c.service==="Site Web Pro"){
+details += `🌐 Nom : ${c.name || "-"}<br>`;
+details += `🎨 Couleur : ${c.color || "-"}<br>`;
+details += `📝 ${c.desc || "-"}<br>`;
 }
 
-// 📦 UI
+// 🤖 IA
+if(c.service==="Intelligence Artificielle"){
+details += `🤖 Type : ${c.aiType || "-"}<br>`;
+details += `📛 Nom : ${c.name || "-"}<br>`;
+details += `📞 Admin : ${c.adminNumber || "non"}<br>`;
+details += `🎨 ${c.color || "-"}<br>`;
+details += `📝 ${c.desc || "-"}<br>`;
+}
+
+// 🎮 MINI JEUX
+if(c.service==="Mini Jeux"){
+details += `🎮 Nom : ${c.name || "-"}<br>`;
+details += `🎨 ${c.color || "-"}<br>`;
+details += `📝 ${c.desc || "-"}<br>`;
+}
+
+// 🚀 BOOST
+if(c.service==="Réseaux Sociaux"){
+details += `📱 Plateforme : ${c.platform || "-"}<br>`;
+details += `📊 Type : ${c.type || "-"}<br>`;
+details += `🔢 Quantité : ${c.nombre || 0}<br>`;
+details += `🔗 Lien : ${c.link || "-"}<br>`;
+}
+
+// 🌍 HÉBERGEMENT
+if(c.service==="Hébergement"){
+details += `🌐 Site : ${c.siteUrl || "-"}<br>`;
+details += `⏳ Durée : ${c.duree || "-"}<br>`;
+}
+
+// 🛡️ VPN
+if(c.service==="VPN"){
+details += `🛡️ Nom : ${c.vpnName || "-"}<br>`;
+details += `📶 Réseau : ${c.reseau || "-"}<br>`;
+details += `⏳ Durée : ${c.duree || "-"}<br>`;
+}
+
+// 🔥 fallback (au cas où champ nouveau)
+Object.keys(c).forEach(k=>{
+if(!["service","price","user","date"].includes(k)){
+if(!details.includes(k)){
+details += `${k} : ${c[k]}<br>`;
+}
+}
+});
+
+// UI
 box.innerHTML += `
 <div class="card">
 👤 ${c.user}<br>
 📦 ${c.service}<br>
 💰 ${c.price} FC<br>
 
+<div style="
+margin-top:8px;
+background:#111;
+padding:10px;
+border-radius:8px;
+font-size:13px;
+line-height:1.5;
+">
 ${details}
+</div>
 
 <button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
 <button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
-</div>`;
-});
-});
-});
+</div>
+`;
 
+});
+});
+});
 // ================= TRANSFERTS =================
 onValue(ref(db,"transferts"), snap=>{
 const box = document.getElementById("transferts");
