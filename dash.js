@@ -24,24 +24,15 @@ if(!user){
 }
 
 // ==========================
-// 📦 DATA UTILISATEUR
-// ==========================
-let currentData = {};
-
-// ==========================
-// 🔄 CHARGEMENT USER
+// 🔄 LOAD USER
 // ==========================
 onValue(ref(db, "users/" + user), (snap)=>{
-    const data = snap.val();
-    if(!data) return;
+    if(!snap.exists()) return;
 
-    currentData = data;
+    const data = snap.val();
 
     const balance = data.balance || 0;
     const points = data.points || 0;
-
-    document.getElementById("welcome").innerText =
-        "Bienvenue " + user;
 
     document.getElementById("balance").innerText =
         balance.toLocaleString();
@@ -50,7 +41,7 @@ onValue(ref(db, "users/" + user), (snap)=>{
         points;
 
     document.getElementById("pointsFC").innerText =
-        Math.floor(points / 20) * 50;
+        Math.floor(points * 2.5);
 });
 
 // ==========================
@@ -60,6 +51,7 @@ window.convertPoints = async function(){
 
     try{
         const snap = await get(ref(db, "users/" + user));
+
         if(!snap.exists()) return;
 
         const data = snap.val();
@@ -67,57 +59,49 @@ window.convertPoints = async function(){
         let points = data.points || 0;
         let balance = data.balance || 0;
 
-        // ✅ Minimum
         if(points < 20){
             alert("❌ Minimum 20 points requis");
             return;
         }
 
-        // ✅ Conversion: 20 pts = 50 FC
-        const fc = Math.floor(points / 20) * 50;
+        // 💰 Conversion
+        const fc = Math.floor(points * 2.5);
 
-        // 🔥 RESET TOTAL DES POINTS
+        // 🔥 UPDATE FIREBASE
         await update(ref(db, "users/" + user), {
-            points: 0,
+            points: 0, // 🔥 RESET COMPLET
             balance: balance + fc
         });
 
         alert("✅ Conversion réussie : +" + fc + " FC");
 
     }catch(e){
-        alert("⚠️ Erreur conversion");
         console.error(e);
+        alert("❌ Erreur conversion");
     }
 };
 
 // ==========================
-// 📦 COMMANDES UTILISATEUR (FIX COMPLET)
+// 📦 COMMANDES
 // ==========================
 onValue(ref(db, "orders"), (snap)=>{
-
     const container = document.getElementById("orders");
     container.innerHTML = "";
 
-    const data = snap.val();
-
-    if(!data){
+    if(!snap.exists()){
         container.innerHTML = "<small>Aucune commande</small>";
         return;
     }
 
+    const data = snap.val();
     let hasOrder = false;
 
-    const statuts = ["pending","validated","cancelled"];
-
-    statuts.forEach(status=>{
+    ["pending","validated","cancelled"].forEach(status=>{
 
         if(!data[status]) return;
+        if(!data[status][user]) return;
 
-        // 🔥 ACCÈS DIRECT USER
-        const userOrders = data[status][user];
-        if(!userOrders) return;
-
-        Object.values(userOrders).forEach(cmd=>{
+        Object.values(data[status][user]).forEach(cmd=>{
 
             hasOrder = true;
 
@@ -125,25 +109,12 @@ onValue(ref(db, "orders"), (snap)=>{
             if(status === "validated") css = "valid";
             if(status === "cancelled") css = "cancel";
 
-            let details = "";
-
-            if(cmd.siteUrl) details += "🌐 " + cmd.siteUrl + "<br>";
-            if(cmd.link) details += "🔗 " + cmd.link + "<br>";
-            if(cmd.platform) details += "📱 " + cmd.platform + "<br>";
-            if(cmd.type) details += "📊 " + cmd.type + "<br>";
-            if(cmd.nombre) details += "🔢 " + cmd.nombre + "<br>";
-            if(cmd.desc) details += "📝 " + cmd.desc + "<br>";
-            if(cmd.nomBot) details += "🤖 " + cmd.nomBot + "<br>";
-            if(cmd.nomApp) details += "📱 " + cmd.nomApp + "<br>";
-            if(cmd.nomSite) details += "🌍 " + cmd.nomSite + "<br>";
-
             container.innerHTML += `
                 <div class="order ${css}">
                     📦 <b>${cmd.service || "Service"}</b><br>
                     💰 ${cmd.price || 0} FC<br>
                     📅 ${cmd.date ? new Date(cmd.date).toLocaleString() : ""}<br>
-                    📌 ${status.toUpperCase()}<br><br>
-                    ${details}
+                    📌 ${status.toUpperCase()}
                 </div>
             `;
         });
