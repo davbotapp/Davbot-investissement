@@ -120,8 +120,8 @@ zone.innerHTML = `
 </select>
 
 <select id="duree">
-<option>1 jour</option>
-<option>7 jours</option>
+<option>7 jour</option>
+<option>15 jours</option>
 <option>30 jours</option>
 </select>
 `;
@@ -154,10 +154,10 @@ const type = document.getElementById("aiType")?.value;
 if(type === "fb_bot") price = 3000;
 if(type === "fb_page") price = 6000;
 if(type === "wa_bot") price = 5000;
-if(type === "web_bot") price = 10000;
+if(type === "web_bot") price = 10 000;
 }
 
-if(service === "Mini Jeux") price = 10000;
+if(service === "Mini Jeux") price = 10 000;
 
 if(service === "Réseaux Sociaux"){
 const type = document.getElementById("type")?.value;
@@ -166,7 +166,7 @@ const nb = parseInt(document.getElementById("nombre")?.value) || 0;
 let p = 0;
 if(type==="Vues") p=950;
 if(type==="Likes") p=4500;
-if(type==="Followers") p=12000;
+if(type==="Followers") p=12 000;
 if(type==="Membre Groupe") p=5000;
 if(type==="Membre Canal") p=6000;
 if(type==="Chaîne Followers") p=6000;
@@ -179,7 +179,7 @@ const d = document.getElementById("duree")?.value;
 if(d==="7 jours") price=3500;
 if(d==="15 jours") price=6000;
 if(d==="30 jours") price=8000;
-if(d==="60 jours") price=12000;
+if(d==="60 jours") price=12 000;
 }
 
 if(service === "VPN"){
