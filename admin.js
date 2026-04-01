@@ -43,23 +43,69 @@ location.reload();
 };
 
 // ================= USERS =================
+// ================= USERS =================
 onValue(ref(db,"users"), snap=>{
-const box = document.getElementById("users");
-box.innerHTML = "";
+    const box = document.getElementById("users");
+    box.innerHTML = "";
 
-if(!snap.exists()) return;
+    if(!snap.exists()){
+        box.innerHTML = "<small>Aucun utilisateur</small>";
+        return;
+    }
 
-Object.entries(snap.val()).forEach(([phone,u])=>{
-box.innerHTML += `
-<div class="card">
-📱 ${phone}<br>
-💰 ${u.balance || 0} FC<br>
+    Object.entries(snap.val()).forEach(([phone,u])=>{
 
-<button class="no" onclick="delUser('${phone}')">Supprimer</button>
-</div>`;
+        const name = u.name || "Non défini";
+        const photo = u.photo || "";
+        const pass = u.password || "Non défini";
+        const balance = u.balance || 0;
+        const points = u.points || 0;
+        const revenue = u.revenue || 0;
+
+        box.innerHTML += `
+        <div class="card">
+
+            <div style="display:flex;align-items:center;gap:10px;">
+
+                ${
+                    photo 
+                    ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;">`
+                    : `<div style="
+                        width:50px;
+                        height:50px;
+                        border-radius:50%;
+                        background:#00d2ff;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        color:black;
+                        font-weight:bold;
+                    ">${name.substring(0,2)}</div>`
+                }
+
+                <div>
+                    <b>${name}</b><br>
+                    📱 ${phone}
+                </div>
+
+            </div>
+
+            <hr style="opacity:0.2;">
+
+            🔐 Mot de passe : <b>${pass}</b><br>
+            💰 Solde : <b>${balance} FC</b><br>
+            ⭐ Points : <b>${points}</b><br>
+            📈 Revenu : <b>${revenue} FC</b><br>
+
+            <button class="no" onclick="delUser('${phone}')">
+                ❌ Supprimer
+            </button>
+
+        </div>
+        `;
+    });
+
 });
-});
-
 // ================= RECHARGES =================
 onValue(ref(db,"demandes_recharges"), snap=>{
 const box = document.getElementById("recharges");
