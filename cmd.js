@@ -28,17 +28,15 @@ let loading = false;
 // ================= FORM =================
 function renderForm(){
 
-// 📱 APPLICATION
 if(service === "Application"){
 zone.innerHTML = `
-<input type="text" id="name" placeholder="📱 Nom de l'APK">
+<input type="text" id="name" placeholder="📱 Nom APK">
 <input type="file" id="icon">
-<input type="text" id="color" placeholder="🎨 Couleur de l'application">
+<input type="text" id="color" placeholder="🎨 Couleur">
 <textarea id="desc" placeholder="📝 Description"></textarea>
 `;
 }
 
-// 🌐 SITE
 else if(service === "Site Web Pro"){
 zone.innerHTML = `
 <input type="text" id="name" placeholder="🌐 Nom du site">
@@ -47,33 +45,30 @@ zone.innerHTML = `
 `;
 }
 
-// 🤖 IA
 else if(service === "Intelligence Artificielle"){
 zone.innerHTML = `
 <select id="aiType">
 <option value="fb_bot">Facebook Bot</option>
 <option value="fb_page">Page Bot Facebook</option>
 <option value="wa_bot">WhatsApp Bot</option>
-<option value="web_bot">Web Site Bot</option>
+<option value="web_bot">Web Bot</option>
 </select>
 
 <input type="text" id="name" placeholder="Nom du bot">
-<input type="text" id="adminNumber" placeholder="📞 Numéro admin (WhatsApp)">
-<input type="text" id="color" placeholder="🎨 Couleur (Web bot)">
-<textarea id="desc" placeholder="📝 Description"></textarea>
-`;
-}
-
-// 🎮 MINI JEUX
-else if(service === "Mini Jeux"){
-zone.innerHTML = `
-<input type="text" id="name" placeholder="🎮 Nom du jeu">
+<input type="text" id="adminNumber" placeholder="📞 Numéro admin">
 <input type="text" id="color" placeholder="🎨 Couleur">
 <textarea id="desc" placeholder="📝 Description"></textarea>
 `;
 }
 
-// 🚀 BOOST
+else if(service === "Mini Jeux"){
+zone.innerHTML = `
+<input type="text" id="name" placeholder="🎮 Nom jeu">
+<input type="text" id="color" placeholder="🎨 Couleur">
+<textarea id="desc" placeholder="📝 Description"></textarea>
+`;
+}
+
 else if(service === "Réseaux Sociaux"){
 zone.innerHTML = `
 <select id="platform">
@@ -99,7 +94,6 @@ zone.innerHTML = `
 `;
 }
 
-// 🌍 HÉBERGEMENT
 else if(service === "Hébergement"){
 zone.innerHTML = `
 <select id="duree">
@@ -113,10 +107,9 @@ zone.innerHTML = `
 `;
 }
 
-// 🛡️ VPN
 else if(service === "VPN"){
 zone.innerHTML = `
-<input type="text" id="vpnName" placeholder="Nom du VPN">
+<input type="text" id="vpnName" placeholder="Nom VPN">
 
 <select id="reseau">
 <option>MTN</option>
@@ -152,38 +145,24 @@ function calcPrice(){
 
 let price = 0;
 
-// 📱 APP
-if(service === "Application"){
-price = 40000;
-}
+if(service === "Application") price = 40000;
+if(service === "Site Web Pro") price = 30000;
 
-// 🌐 SITE
-if(service === "Site Web Pro"){
-price = 30000;
-}
-
-// 🤖 IA
 if(service === "Intelligence Artificielle"){
 const type = document.getElementById("aiType")?.value;
-
 if(type === "fb_bot") price = 3000;
 if(type === "fb_page") price = 6000;
 if(type === "wa_bot") price = 5000;
-if(type === "web_bot") price = 10 000;
+if(type === "web_bot") price = 10000;
 }
 
-// 🎮 JEUX
-if(service === "Mini Jeux"){
-price = 10 000;
-}
+if(service === "Mini Jeux") price = 10000;
 
-// 🚀 BOOST
 if(service === "Réseaux Sociaux"){
 const type = document.getElementById("type")?.value;
-const nb = parseInt(document.getElementById("nombre")?.value)||0;
+const nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
-let p=0;
-
+let p = 0;
 if(type==="Vues") p=950;
 if(type==="Likes") p=4500;
 if(type==="Followers") p=12000;
@@ -191,25 +170,21 @@ if(type==="Membre Groupe") p=5000;
 if(type==="Membre Canal") p=6000;
 if(type==="Chaîne Followers") p=6000;
 
-price = (nb/1000)*p;
+price = (nb/1000) * p;
 }
 
-// 🌍 HÉBERGEMENT
 if(service === "Hébergement"){
 const d = document.getElementById("duree")?.value;
-
 if(d==="7 jours") price=3500;
 if(d==="15 jours") price=6000;
 if(d==="30 jours") price=8000;
 if(d==="60 jours") price=12000;
 }
 
-// 🛡️ VPN
 if(service === "VPN"){
 const d = document.getElementById("duree")?.value;
-
-if(d==="7 jour") price=2500;
-if(d==="15 jours") price=4500;
+if(d==="1 jour") price=1000;
+if(d==="7 jours") price=2500;
 if(d==="30 jours") price=8000;
 }
 
@@ -220,48 +195,14 @@ priceDisplay.innerText = Math.floor(price);
 window.valider = async ()=>{
 
 if(loading) return;
-loading=true;
+loading = true;
 
 const price = parseInt(priceDisplay.innerText);
 
-if(price<=0){
+if(price <= 0){
 alert("❌ Prix invalide");
 loading=false;
 return;
-}
-
-// 🤖 IA
-if(service==="Intelligence Artificielle"){
-const type = document.getElementById("aiType").value;
-const num = document.getElementById("adminNumber").value;
-
-if(type==="wa_bot" && num.length<9){
-alert("❌ Numéro WhatsApp requis");
-loading=false;
-return;
-}
-}
-
-// 🚀 BOOST
-if(service==="Réseaux Sociaux"){
-const link = document.getElementById("link").value;
-
-if(!link.includes("http")){
-alert("❌ Lien invalide");
-loading=false;
-return;
-}
-}
-
-// 🌍 HÉBERGEMENT
-if(service==="Hébergement"){
-const url = document.getElementById("siteUrl").value;
-
-if(!url.includes("http")){
-alert("❌ URL invalide");
-loading=false;
-return;
-}
 }
 
 try{
@@ -283,34 +224,40 @@ loading=false;
 return;
 }
 
-// 💰 UPDATE USER
+// 💰 RETRAIT
 await update(userRef,{
 balance: balance - price,
 lastOrder: Date.now()
 });
 
-// 📦 DATA
+// 📦 DATA COMPLETE
 let data = {
-service,
-price,
-user,
-statut:"pending",
-date:Date.now()
+service: service,
+price: price,
+user: user,
+statut: "pending",
+date: Date.now()
 };
 
-document.querySelectorAll("#formZone input, #formZone select, #formZone textarea")
-.forEach(el=>{
-if(el.type==="file"){
-data[el.id] = el.files[0]?.name || null;
+// 🔥 RÉCUPÉRATION CHAMPS
+const inputs = document.querySelectorAll("#formZone input, #formZone select, #formZone textarea");
+
+inputs.forEach(el=>{
+if(!el.id) return;
+
+if(el.type === "file"){
+data[el.id] = el.files[0] ? el.files[0].name : null;
 }else{
-data[el.id] = el.value;
+data[el.id] = el.value || null;
 }
 });
 
 const id = Date.now();
 
-// 📦 SAVE
+// 🔥 SAVE
 await set(ref(db,"orders/pending/"+user+"/"+id), data);
+
+console.log("COMMANDE:", data);
 
 alert("✅ Commande envoyée !");
 window.location.href = "dashboard.html";
