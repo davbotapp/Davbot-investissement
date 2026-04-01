@@ -331,6 +331,7 @@ window.valRetrait = async(id)=>{
     alert("✅ Retrait validé");
 };
 // 📋 Copier message
+// 📋 Copier message utilisateur
 window.copyUserMsg = (text)=>{
     if(!text) return alert("Vide");
 
@@ -339,7 +340,7 @@ window.copyUserMsg = (text)=>{
     .catch(()=> alert(text));
 };
 
-// 🗑️ Supprimer message
+// 🗑️ Supprimer message utilisateur
 window.deleteUserMsg = async(id)=>{
     if(confirm("Supprimer ce message ?")){
         await remove(ref(db,"support_messages/"+id));
@@ -479,79 +480,47 @@ alert("✅ Message envoyé");
 }
 };
 // ================= 📩 MESSAGES UTILISATEURS =================
+// ================= 📩 MESSAGES UTILISATEURS =================
 onValue(ref(db,"support_messages"), snap=>{
 
-    const box = document.getElementById("userMessages");
-    box.innerHTML = "";
+const box = document.getElementById("userMessages");
 
-    if(!snap.exists()){
-        box.innerHTML = "<small>Aucun message utilisateur</small>";
-        return;
-    }
+box.innerHTML = "";
 
-    Object.entries(snap.val()).reverse().forEach(([id, msg])=>{
+if(!snap.exists()){
+    box.innerHTML = "<p>Aucun message utilisateur</p>";
+    return;
+}
 
-        const name = msg.name || "Utilisateur";
-        const phone = msg.phone || "N/A";
-        const photo = msg.photo || "";
-        const text = msg.text || "";
+Object.entries(snap.val()).reverse().forEach(([id,msg])=>{
 
-        box.innerHTML += `
-        <div class="card">
+box.innerHTML += `
+<div class="card">
 
-            <div style="display:flex;gap:10px;align-items:center;">
+${msg.photo ? `<img src="${msg.photo}" style="width:50px;height:50px;border-radius:50%;">` : ""}
 
-                ${
-                    photo
-                    ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;">`
-                    : `<div style="
-                        width:50px;
-                        height:50px;
-                        border-radius:50%;
-                        background:#00d2ff;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        color:black;
-                        font-weight:bold;
-                    ">${name.substring(0,2)}</div>`
-                }
+👤 ${msg.name || "Utilisateur"}<br>
+📱 ${msg.phone}<br>
 
-                <div>
-                    <b>${name}</b><br>
-                    📱 ${phone}
-                </div>
+📝 ${msg.text}
 
-            </div>
+<br><small>${new Date(msg.date).toLocaleString()}</small>
 
-            <div style="
-                margin-top:10px;
-                background:#111;
-                padding:10px;
-                border-radius:10px;
-                line-height:1.4;
-            ">
-                ${text}
-            </div>
+<div style="margin-top:10px;display:flex;gap:5px;">
 
-            <small style="opacity:0.6;">
-                ${new Date(msg.date).toLocaleString()}
-            </small>
+<button onclick="copyUserMsg('${msg.text || ""}')">
+📋 Copier
+</button>
 
-            <div style="margin-top:10px;display:flex;gap:5px;">
+<button onclick="deleteUserMsg('${id}')"
+style="background:red;color:white;">
+🗑️ Supprimer
+</button>
 
-                <button onclick="copyUserMsg(\`${text}\`)">
-                    📋 Copier
-                </button>
+</div>
 
-                <button onclick="deleteUserMsg('${id}')" style="background:red;color:white;">
-                    🗑️ Supprimer
-                </button>
-
-            </div>
-
-        </div>
-        `;
-    });
+</div>
+`;
+});
 
 });
