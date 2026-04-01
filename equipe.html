@@ -29,7 +29,6 @@ h2{
     border-radius:15px;
     padding:20px;
     margin-top:20px;
-    backdrop-filter: blur(10px);
 }
 
 /* CODE */
@@ -71,17 +70,6 @@ button{
 button:active{
     transform:scale(0.95);
 }
-
-/* INPUT */
-input{
-    width:100%;
-    padding:10px;
-    border-radius:10px;
-    border:none;
-    margin-top:10px;
-    background:#111;
-    color:white;
-}
 </style>
 </head>
 
@@ -112,27 +100,33 @@ input{
     ⭐ Points : <b id="points">0</b>
 </div>
 
-<!-- 🔗 LIENS WHATSAPP -->
+<!-- 🔥 WHATSAPP DIRECT -->
 <div class="card">
     <h3>📲 Communauté</h3>
 
-    <input type="text" id="whatsappChannel" placeholder="🔗 Lien chaîne WhatsApp">
-    <button onclick="openLink('whatsappChannel')">Voir la chaîne</button>
+    <button onclick="openLink('channel')">
+        📢 Rejoindre la chaîne WhatsApp
+    </button>
 
-    <input type="text" id="whatsappGroup" placeholder="👥 Lien groupe WhatsApp">
-    <button onclick="openLink('whatsappGroup')">Voir la communauté</button>
+    <button onclick="openLink('group')">
+        👥 Rejoindre la communauté WhatsApp
+    </button>
 </div>
 
 <script type="module" src="equipe.js"></script>
 
 <script>
-// 🔗 ouvrir lien
-function openLink(id){
-    const link = document.getElementById(id).value;
+// 🔗 ouvrir lien direct
+function openLink(type){
 
-    if(!link || !link.includes("http")){
-        alert("❌ Lien invalide");
-        return;
+    let link = "";
+
+    if(type === "channel"){
+        link = "https://whatsapp.com/channel/0029VbBrUCl6buMF5srz5U2L";
+    }
+
+    if(type === "group"){
+        link = "https://chat.whatsapp.com/KyzoGEXunBA7g2htNDjMPm";
     }
 
     window.open(link, "_blank");
