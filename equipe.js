@@ -28,6 +28,10 @@ const pointsEl = document.getElementById("points");
 const channelInput = document.getElementById("whatsappChannel");
 const groupInput = document.getElementById("whatsappGroup");
 
+// 🔥 LIENS FIXES (IMPORTANT)
+const CHANNEL_LINK = "https://whatsapp.com/channel/0029VbBrUCl6buMF5srz5U2L";
+const GROUP_LINK = "https://chat.whatsapp.com/KyzoGEXunBA7g2htNDjMPm";
+
 // ================= USER DATA =================
 onValue(ref(db, "users/" + userPhone), snap=>{
     if(!snap.exists()) return;
@@ -50,8 +54,9 @@ onValue(ref(db, "users/" + userPhone), snap=>{
     gainsEl.innerText = (data.balance || 0).toLocaleString();
     pointsEl.innerText = data.points || 0;
 
-    if(data.whatsappChannel) channelInput.value = data.whatsappChannel;
-    if(data.whatsappGroup) groupInput.value = data.whatsappGroup;
+    // 🔥 FORCER TES LIENS
+    channelInput.value = CHANNEL_LINK;
+    groupInput.value = GROUP_LINK;
 });
 
 // ================= SAVE WHATSAPP =================
@@ -61,8 +66,8 @@ groupInput.addEventListener("change", saveLinks);
 async function saveLinks(){
     try{
         await update(ref(db, "users/" + userPhone), {
-            whatsappChannel: channelInput.value || null,
-            whatsappGroup: groupInput.value || null
+            whatsappChannel: channelInput.value,
+            whatsappGroup: groupInput.value
         });
     }catch(e){
         alert("❌ Erreur sauvegarde");
@@ -104,7 +109,6 @@ export async function handleParrainage(newUserPhone, inviteCode){
         points += 15;
     }
 
-    // 💾 UPDATE
     await update(ref(db, "users/" + parrain.phone), {
         count_lvl1: lvl1,
         count_lvl2: lvl2,
@@ -112,7 +116,6 @@ export async function handleParrainage(newUserPhone, inviteCode){
         points: points
     });
 
-    // 🔗 Lier filleul
     await update(ref(db, "users/" + newUserPhone), {
         parrain: parrain.phone
     });
@@ -138,10 +141,16 @@ document.getElementById("whatsappBtn").onclick = ()=>{
 
     const msg = `🚀 Rejoins DAVBOT
 
-💻 Apps - Sites - IA - Jeux
-📈 Boost réseaux
+💻 Applications - Sites - IA - Jeux
+📈 Boost réseaux sociaux
 
-👉 ${link}`;
+👉 ${link}
+
+📢 Chaîne officielle :
+${CHANNEL_LINK}
+
+👥 Groupe communauté :
+${GROUP_LINK}`;
 
     window.open("https://wa.me/?text=" + encodeURIComponent(msg));
 };
