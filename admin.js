@@ -11,7 +11,7 @@ databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
 projectId:"starlink-investit"
 };
 
-const app = initializeApp(firebaseConfig);0
+const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // ================= 🔐 AUTH =================
