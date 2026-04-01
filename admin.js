@@ -211,17 +211,45 @@ ${name.substring(0,2)}
 // ================= COMMANDES =================
 // ================= COMMANDES =================
 // ================= COMMANDES =================
-onValue(ref(db,"orders/pending"), snap=>{
-const box = document.getElementById("commandes");
-box.innerHTML = "";
+const userSnap = await get(ref(db,"users/"+user));
+const u = userSnap.val() || {};
 
-if(!snap.exists()) return;
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
 
-Object.entries(snap.val()).forEach(([user, cmds])=>{
-Object.entries(cmds).forEach(([id,c])=>{
+box.innerHTML += `
+<div class="card">
 
-let details = "";
+<div style="display:flex;align-items:center;gap:10px;">
 
+${photo 
+? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;">`
+: `<div style="width:45px;height:45px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+${name.substring(0,2)}
+</div>`
+}
+
+<div>
+<b>${name}</b><br>
+📱 ${user}
+</div>
+
+</div>
+
+<hr>
+
+📦 ${c.service}<br>
+💰 ${c.price} FC
+
+<div style="margin-top:8px;background:#111;padding:10px;border-radius:8px;">
+${details}
+</div>
+
+<button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
+<button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
+
+</div>
+`;
 // 📱 APPLICATION
 if(c.service==="Application"){
 details += `📱 Nom APK : ${c.name || "-"}<br>`;
