@@ -210,23 +210,25 @@ ${name.substring(0,2)}
 
 // ================= COMMANDES =================
 // ================= COMMANDES =================
-// ================= COMMANDES =================
 onValue(ref(db,"orders/pending"), async snap=>{
+
     const box = document.getElementById("commandes");
+    if(!box) return;
+
     box.innerHTML = "";
 
     if(!snap.exists()) return;
 
     for(const [user, cmds] of Object.entries(snap.val())){
 
-        // 🔥 récupérer infos user
+        // 🔥 récupérer infos utilisateur
         const userSnap = await get(ref(db,"users/"+user));
         const u = userSnap.val() || {};
 
         const name = u.name || "Utilisateur";
         const photo = u.photo || "";
 
-        for(const [id,c] of Object.entries(cmds)){
+        for(const [id, c] of Object.entries(cmds)){
 
             let details = "";
 
@@ -253,45 +255,45 @@ onValue(ref(db,"orders/pending"), async snap=>{
 
             // 🚀 BOOST
             if(c.service==="Réseaux Sociaux"){
-                details += `📱 ${c.platform || "-"}<br>`;
-                details += `📊 ${c.type || "-"}<br>`;
-                details += `🔢 ${c.nombre || 0}<br>`;
-                details += `🔗 ${c.link || "-"}<br>`;
+                details += `📱 Plateforme : ${c.platform || "-"}<br>`;
+                details += `📊 Type : ${c.type || "-"}<br>`;
+                details += `🔢 Quantité : ${c.nombre || 0}<br>`;
+                details += `🔗 Lien : ${c.link || "-"}<br>`;
             }
 
             // 🌍 HÉBERGEMENT
             if(c.service==="Hébergement"){
-                details += `🌐 ${c.siteUrl || "-"}<br>`;
-                details += `⏳ ${c.duree || "-"}<br>`;
+                details += `🌐 Site : ${c.siteUrl || "-"}<br>`;
+                details += `⏳ Durée : ${c.duree || "-"}<br>`;
             }
 
             // 🛡️ VPN
             if(c.service==="VPN"){
-                details += `🛡️ ${c.vpnName || "-"}<br>`;
-                details += `📶 ${c.reseau || "-"}<br>`;
-                details += `⏳ ${c.duree || "-"}<br>`;
+                details += `🛡️ Nom : ${c.vpnName || "-"}<br>`;
+                details += `📶 Réseau : ${c.reseau || "-"}<br>`;
             }
 
-            // UI
+            // 🔥 fallback
+            Object.keys(c).forEach(k=>{
+                if(!["service","price","user","date"].includes(k)){
+                    if(!details.includes(k)){
+                        details += `${k} : ${c[k]}<br>`;
+                    }
+                }
+            });
+
+            // ✅ UI
             box.innerHTML += `
             <div class="card">
 
                 <div style="display:flex;align-items:center;gap:10px;">
 
                     ${
-                        photo
+                        photo 
                         ? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;">`
-                        : `<div style="
-                            width:45px;
-                            height:45px;
-                            border-radius:50%;
-                            background:#00d2ff;
-                            display:flex;
-                            align-items:center;
-                            justify-content:center;
-                            color:black;
-                            font-weight:bold;
-                        ">${name.substring(0,2)}</div>`
+                        : `<div style="width:45px;height:45px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;">
+                            ${name.substring(0,2)}
+                        </div>`
                     }
 
                     <div>
@@ -306,7 +308,7 @@ onValue(ref(db,"orders/pending"), async snap=>{
                 📦 ${c.service}<br>
                 💰 ${c.price} FC
 
-                <div style="margin-top:8px;background:#111;padding:10px;border-radius:8px;">
+                <div style="margin-top:10px;background:#111;padding:10px;border-radius:8px;">
                     ${details}
                 </div>
 
@@ -317,8 +319,8 @@ onValue(ref(db,"orders/pending"), async snap=>{
             `;
         }
     }
-});
 
+});
 // ================= ACTIONS =================
 
 // ✅ RECHARGE
