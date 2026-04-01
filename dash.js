@@ -1,9 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// ==========================
-// 🔥 CONFIG FIREBASE
-// ==========================
+// 🔥 CONFIG
 const firebaseConfig = {
     apiKey: "AIza...",
     authDomain: "starlink-investit.firebaseapp.com",
@@ -14,18 +12,14 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ==========================
-// 🔐 SESSION
-// ==========================
+// 🔐 USER
 const user = localStorage.getItem("userPhone");
 
 if(!user){
     window.location.href = "index.html";
 }
 
-// ==========================
-// 🔄 LOAD USER
-// ==========================
+// ================= USER DATA =================
 onValue(ref(db, "users/" + user), (snap)=>{
     if(!snap.exists()) return;
 
@@ -34,76 +28,52 @@ onValue(ref(db, "users/" + user), (snap)=>{
     const balance = data.balance || 0;
     const points = data.points || 0;
 
-    document.getElementById("balance").innerText =
-        balance.toLocaleString();
-
-    document.getElementById("points").innerText =
-        points;
-
-    document.getElementById("pointsFC").innerText =
-        Math.floor(points * 2.5);
+    document.getElementById("balance").innerText = balance.toLocaleString();
+    document.getElementById("points").innerText = points;
+    document.getElementById("pointsFC").innerText = Math.floor(points * 2.5);
 });
 
-// ==========================
-// 💱 CONVERSION POINTS → FC
-// ==========================
-window.convertPoints = async function(){
+// ================= CONVERSION =================
+async function convertPoints(){
 
-    try{
-        const snap = await get(ref(db, "users/" + user));
+    const snap = await get(ref(db, "users/" + user));
+    if(!snap.exists()) return;
 
-        if(!snap.exists()) return;
+    const data = snap.val();
 
-        const data = snap.val();
+    let points = data.points || 0;
+    let balance = data.balance || 0;
 
-        let points = data.points || 0;
-        let balance = data.balance || 0;
-
-        if(points < 20){
-            alert("❌ Minimum 20 points requis");
-            return;
-        }
-
-        // 💰 Conversion
-        const fc = Math.floor(points * 2.5);
-
-        // 🔥 UPDATE FIREBASE
-        await update(ref(db, "users/" + user), {
-            points: 0, // 🔥 RESET COMPLET
-            balance: balance + fc
-        });
-
-        alert("✅ Conversion réussie : +" + fc + " FC");
-
-    }catch(e){
-        console.error(e);
-        alert("❌ Erreur conversion");
-    }
-};
-
-// ==========================
-// 📦 COMMANDES
-// ==========================
-onValue(ref(db, "orders"), (snap)=>{
-    const container = document.getElementById("orders");
-    container.innerHTML = "";
-
-    if(!snap.exists()){
-        container.innerHTML = "<small>Aucune commande</small>";
+    if(points < 20){
+        alert("❌ Minimum 20 points requis");
         return;
     }
 
-    const data = snap.val();
-    let hasOrder = false;
+    const fc = Math.floor(points * 2.5);
 
-    ["pending","validated","cancelled"].forEach(status=>{
+    await update(ref(db, "users/" + user), {
+        points: 0,
+        balance: balance + fc
+    });
 
-        if(!data[status]) return;
-        if(!data[status][user]) return;
+    alert("✅ +" + fc + " FC ajouté");
+}
 
-        Object.values(data[status][user]).forEach(cmd=>{
+// 🔥 LIAISON BOUTON
+document.getElementById("convertBtn").onclick = convertPoints;
 
-            hasOrder = true;
+// ================= COMMANDES =================
+const container = document.getElementById("orders");
+container.innerHTML = "";
+
+// 🔁 fonction
+function loadOrders(path, status){
+
+    onValue(ref(db, path + "/" + user), (snap)=>{
+
+        if(!snap.exists()) return;
+
+        Object.values(snap.val()).forEach(cmd=>{
 
             let css = "pending";
             if(status === "validated") css = "valid";
@@ -120,8 +90,9 @@ onValue(ref(db, "orders"), (snap)=>{
         });
 
     });
+}
 
-    if(!hasOrder){
-        container.innerHTML = "<small>Aucune commande trouvée</small>";
-    }
-});
+// 🔥 LOAD
+loadOrders("orders/pending", "pending");
+loadOrders("orders/validated", "validated");
+loadOrders("orders/cancelled", "cancelled");
