@@ -116,11 +116,12 @@ zone.innerHTML = `
 <option>Airtel</option>
 <option>Orange</option>
 <option>Vodacom</option>
+<option>africell</option>
 </select>
 
 <select id="duree">
-<option>1 jour</option>
-<option>7 jours</option>
+<option>7 jour</option>
+<option>15 jours</option>
 <option>30 jours</option>
 </select>
 `;
@@ -183,8 +184,8 @@ if(d==="60 jours") price=12000;
 
 if(service === "VPN"){
 const d = document.getElementById("duree")?.value;
-if(d==="1 jour") price=1000;
-if(d==="7 jours") price=2500;
+if(d==="7 jour") price=2500;
+if(d==="15 jours") price=5000;
 if(d==="30 jours") price=8000;
 }
 
