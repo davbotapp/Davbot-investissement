@@ -330,6 +330,21 @@ window.valRetrait = async(id)=>{
 
     alert("✅ Retrait validé");
 };
+// 📋 Copier message
+window.copyUserMsg = (text)=>{
+    if(!text) return alert("Vide");
+
+    navigator.clipboard.writeText(text)
+    .then(()=> alert("✅ Copié"))
+    .catch(()=> alert(text));
+};
+
+// 🗑️ Supprimer message
+window.deleteUserMsg = async(id)=>{
+    if(confirm("Supprimer ce message ?")){
+        await remove(ref(db,"support_messages/"+id));
+    }
+};
 
 // ✅ COMMANDES
 window.valCmd = async(user,id)=>{
@@ -463,3 +478,80 @@ read:false
 alert("✅ Message envoyé");
 }
 };
+// ================= 📩 MESSAGES UTILISATEURS =================
+onValue(ref(db,"support_messages"), snap=>{
+
+    const box = document.getElementById("userMessages");
+    box.innerHTML = "";
+
+    if(!snap.exists()){
+        box.innerHTML = "<small>Aucun message utilisateur</small>";
+        return;
+    }
+
+    Object.entries(snap.val()).reverse().forEach(([id, msg])=>{
+
+        const name = msg.name || "Utilisateur";
+        const phone = msg.phone || "N/A";
+        const photo = msg.photo || "";
+        const text = msg.text || "";
+
+        box.innerHTML += `
+        <div class="card">
+
+            <div style="display:flex;gap:10px;align-items:center;">
+
+                ${
+                    photo
+                    ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;">`
+                    : `<div style="
+                        width:50px;
+                        height:50px;
+                        border-radius:50%;
+                        background:#00d2ff;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        color:black;
+                        font-weight:bold;
+                    ">${name.substring(0,2)}</div>`
+                }
+
+                <div>
+                    <b>${name}</b><br>
+                    📱 ${phone}
+                </div>
+
+            </div>
+
+            <div style="
+                margin-top:10px;
+                background:#111;
+                padding:10px;
+                border-radius:10px;
+                line-height:1.4;
+            ">
+                ${text}
+            </div>
+
+            <small style="opacity:0.6;">
+                ${new Date(msg.date).toLocaleString()}
+            </small>
+
+            <div style="margin-top:10px;display:flex;gap:5px;">
+
+                <button onclick="copyUserMsg(\`${text}\`)">
+                    📋 Copier
+                </button>
+
+                <button onclick="deleteUserMsg('${id}')" style="background:red;color:white;">
+                    🗑️ Supprimer
+                </button>
+
+            </div>
+
+        </div>
+        `;
+    });
+
+});
