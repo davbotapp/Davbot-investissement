@@ -108,21 +108,26 @@ onValue(ref(db, "orders"), async (snap)=>{
 document.getElementById("convertBtn").onclick = convertPoints;
 
 // ================= COMMANDES =================
+// ================= COMMANDES =================
 const container = document.getElementById("orders");
-container.innerHTML = "";
 
-// 🔁 fonction
-function loadOrders(path, status){
+onValue(ref(db, "orders"), (snap)=>{
+    
+    container.innerHTML = "";
 
-    onValue(ref(db, path + "/" + user), (snap)=>{
+    if(!snap.exists()){
+        container.innerHTML = "<small>Aucune commande</small>";
+        return;
+    }
 
-        if(!snap.exists()) return;
+    const data = snap.val();
 
-        Object.values(snap.val()).forEach(cmd=>{
+    // 🔥 fonction affichage
+    function show(status, css){
+        if(!data[status]) return;
+        if(!data[status][user]) return;
 
-            let css = "pending";
-            if(status === "validated") css = "valid";
-            if(status === "cancelled") css = "cancel";
+        Object.values(data[status][user]).forEach(cmd=>{
 
             container.innerHTML += `
                 <div class="order ${css}">
@@ -133,9 +138,13 @@ function loadOrders(path, status){
                 </div>
             `;
         });
+    }
 
-    });
-}
+    // ✅ ORDRE FORCÉ
+    show("pending", "pending");     // 1er
+    show("validated", "valid");     // 2ème
+    show("cancelled", "cancel");    // 3ème
+});
 
 // 🔥 LOAD
 loadOrders("orders/pending", "pending");
