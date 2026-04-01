@@ -211,152 +211,112 @@ ${name.substring(0,2)}
 // ================= COMMANDES =================
 // ================= COMMANDES =================
 // ================= COMMANDES =================
-const userSnap = await get(ref(db,"users/"+user));
-const u = userSnap.val() || {};
+onValue(ref(db,"orders/pending"), async snap=>{
+    const box = document.getElementById("commandes");
+    box.innerHTML = "";
 
-const name = u.name || "Utilisateur";
-const photo = u.photo || "";
+    if(!snap.exists()) return;
 
-box.innerHTML += `
-<div class="card">
+    for(const [user, cmds] of Object.entries(snap.val())){
 
-<div style="display:flex;align-items:center;gap:10px;">
+        // 🔥 récupérer infos user
+        const userSnap = await get(ref(db,"users/"+user));
+        const u = userSnap.val() || {};
 
-${photo 
-? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;">`
-: `<div style="width:45px;height:45px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
-${name.substring(0,2)}
-</div>`
-}
+        const name = u.name || "Utilisateur";
+        const photo = u.photo || "";
 
-<div>
-<b>${name}</b><br>
-📱 ${user}
-</div>
+        for(const [id,c] of Object.entries(cmds)){
 
-</div>
+            let details = "";
 
-<hr>
+            // 📱 APPLICATION
+            if(c.service==="Application"){
+                details += `📱 Nom APK : ${c.name || "-"}<br>`;
+                details += `🎨 Couleur : ${c.color || "-"}<br>`;
+                details += `📝 ${c.desc || "-"}<br>`;
+            }
 
-📦 ${c.service}<br>
-💰 ${c.price} FC
+            // 🌐 SITE
+            if(c.service==="Site Web Pro"){
+                details += `🌐 Nom : ${c.name || "-"}<br>`;
+                details += `🎨 Couleur : ${c.color || "-"}<br>`;
+                details += `📝 ${c.desc || "-"}<br>`;
+            }
 
-<div style="margin-top:8px;background:#111;padding:10px;border-radius:8px;">
-${details}
-</div>
+            // 🤖 IA
+            if(c.service==="Intelligence Artificielle"){
+                details += `🤖 Type : ${c.aiType || "-"}<br>`;
+                details += `📛 Nom : ${c.name || "-"}<br>`;
+                details += `📞 Admin : ${c.adminNumber || "-"}<br>`;
+            }
 
-<button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
-<button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
+            // 🚀 BOOST
+            if(c.service==="Réseaux Sociaux"){
+                details += `📱 ${c.platform || "-"}<br>`;
+                details += `📊 ${c.type || "-"}<br>`;
+                details += `🔢 ${c.nombre || 0}<br>`;
+                details += `🔗 ${c.link || "-"}<br>`;
+            }
 
-</div>
-`;
-// 📱 APPLICATION
-if(c.service==="Application"){
-details += `📱 Nom APK : ${c.name || "-"}<br>`;
-details += `🎨 Couleur : ${c.color || "-"}<br>`;
-details += `📝 ${c.desc || "-"}<br>`;
-details += `🖼️ Icône : ${c.icon || "non fourni"}<br>`;
-}
+            // 🌍 HÉBERGEMENT
+            if(c.service==="Hébergement"){
+                details += `🌐 ${c.siteUrl || "-"}<br>`;
+                details += `⏳ ${c.duree || "-"}<br>`;
+            }
 
-// 🌐 SITE
-if(c.service==="Site Web Pro"){
-details += `🌐 Nom : ${c.name || "-"}<br>`;
-details += `🎨 Couleur : ${c.color || "-"}<br>`;
-details += `📝 ${c.desc || "-"}<br>`;
-}
+            // 🛡️ VPN
+            if(c.service==="VPN"){
+                details += `🛡️ ${c.vpnName || "-"}<br>`;
+                details += `📶 ${c.reseau || "-"}<br>`;
+                details += `⏳ ${c.duree || "-"}<br>`;
+            }
 
-// 🤖 IA
-if(c.service==="Intelligence Artificielle"){
-details += `🤖 Type : ${c.aiType || "-"}<br>`;
-details += `📛 Nom : ${c.name || "-"}<br>`;
-details += `📞 Admin : ${c.adminNumber || "non"}<br>`;
-details += `🎨 ${c.color || "-"}<br>`;
-details += `📝 ${c.desc || "-"}<br>`;
-}
+            // UI
+            box.innerHTML += `
+            <div class="card">
 
-// 🎮 MINI JEUX
-if(c.service==="Mini Jeux"){
-details += `🎮 Nom : ${c.name || "-"}<br>`;
-details += `🎨 ${c.color || "-"}<br>`;
-details += `📝 ${c.desc || "-"}<br>`;
-}
+                <div style="display:flex;align-items:center;gap:10px;">
 
-// 🚀 BOOST
-if(c.service==="Réseaux Sociaux"){
-details += `📱 Plateforme : ${c.platform || "-"}<br>`;
-details += `📊 Type : ${c.type || "-"}<br>`;
-details += `🔢 Quantité : ${c.nombre || 0}<br>`;
-details += `🔗 Lien : ${c.link || "-"}<br>`;
-}
+                    ${
+                        photo
+                        ? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;">`
+                        : `<div style="
+                            width:45px;
+                            height:45px;
+                            border-radius:50%;
+                            background:#00d2ff;
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            color:black;
+                            font-weight:bold;
+                        ">${name.substring(0,2)}</div>`
+                    }
 
-// 🌍 HÉBERGEMENT
-if(c.service==="Hébergement"){
-details += `🌐 Site : ${c.siteUrl || "-"}<br>`;
-details += `⏳ Durée : ${c.duree || "-"}<br>`;
-}
+                    <div>
+                        <b>${name}</b><br>
+                        📱 ${user}
+                    </div>
 
-// 🛡️ VPN
-if(c.service==="VPN"){
-details += `🛡️ Nom : ${c.vpnName || "-"}<br>`;
-details += `📶 Réseau : ${c.reseau || "-"}<br>`;
-details += `⏳ Durée : ${c.duree || "-"}<br>`;
-}
+                </div>
 
-// 🔥 fallback (au cas où champ nouveau)
-Object.keys(c).forEach(k=>{
-if(!["service","price","user","date"].includes(k)){
-if(!details.includes(k)){
-details += `${k} : ${c[k]}<br>`;
-}
-}
-});
+                <hr>
 
-// UI
-box.innerHTML += `
-<div class="card">
-👤 ${c.user}<br>
-📦 ${c.service}<br>
-💰 ${c.price} FC<br>
+                📦 ${c.service}<br>
+                💰 ${c.price} FC
 
-<div style="
-margin-top:8px;
-background:#111;
-padding:10px;
-border-radius:8px;
-font-size:13px;
-line-height:1.5;
-">
-${details}
-</div>
+                <div style="margin-top:8px;background:#111;padding:10px;border-radius:8px;">
+                    ${details}
+                </div>
 
-<button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
-<button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
-</div>
-`;
+                <button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
+                <button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
 
-});
-});
-});
-// ================= TRANSFERTS =================
-onValue(ref(db,"transferts"), snap=>{
-const box = document.getElementById("transferts");
-box.innerHTML = "";
-
-if(!snap.exists()) return;
-
-Object.entries(snap.val()).forEach(([id,t])=>{
-
-if(t.status !== "pending") return;
-
-box.innerHTML += `
-<div class="card">
-${t.from} → ${t.to}<br>
-💰 ${t.amount} FC<br>
-
-<button class="ok" onclick="valTrans('${id}','${t.from}','${t.to}',${t.amount})">Valider</button>
-<button class="no" onclick="deleteItem('transferts','${id}')">Refuser</button>
-</div>`;
-});
+            </div>
+            `;
+        }
+    }
 });
 
 // ================= ACTIONS =================
