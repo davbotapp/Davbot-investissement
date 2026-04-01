@@ -11,7 +11,7 @@ databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
 projectId:"starlink-investit"
 };
 
-const app = initializeApp(firebaseConfig);0
+const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // ================= 🔐 AUTH =================
@@ -197,87 +197,51 @@ if(!snap.exists()){
     return;
 }
 
-// 🔁 boucle utilisateurs
 for(const [user, cmds] of Object.entries(snap.val())){
 
-    // 🔁 boucle commandes
     for(const [id, c] of Object.entries(cmds)){
 
-        // 🔥 USER INFO
         const userSnap = await get(ref(db,"users/"+user));
         const u = userSnap.val() || {};
 
         const name = u.name || "Utilisateur";
         const photo = u.photo || "";
 
-        // 📦 DETAILS
         let details = "";
 
-        // 📱 APPLICATION
         if(c.service === "Application"){
             details += `📱 Nom APK : ${c.name || "-"}<br>`;
-            details += `🎨 Couleur : ${c.color || "-"}<br>`;
-            details += `📝 ${c.desc || "-"}<br>`;
-            details += `🖼️ Icône : ${c.icon || "non fourni"}<br>`;
         }
 
-        // 🌐 SITE
         if(c.service === "Site Web Pro"){
             details += `🌐 Nom : ${c.name || "-"}<br>`;
-            details += `🎨 Couleur : ${c.color || "-"}<br>`;
-            details += `📝 ${c.desc || "-"}<br>`;
         }
 
-        // 🤖 IA
         if(c.service === "Intelligence Artificielle"){
             details += `🤖 Type : ${c.aiType || "-"}<br>`;
-            details += `📛 Nom : ${c.name || "-"}<br>`;
-            details += `📞 Admin : ${c.adminNumber || "non"}<br>`;
         }
 
-        // 🎮 MINI JEUX
-        if(c.service === "Mini Jeux"){
-            details += `🎮 Nom : ${c.name || "-"}<br>`;
-            details += `🎨 ${c.color || "-"}<br>`;
+        // 🔥 MESSAGE AUTO (EN COURS)
+        if(!c.notified){
+            await push(ref(db,"messages/"+user),{
+                text: `⏳ Votre commande "${c.service}" est en cours de traitement.`,
+                date: Date.now()
+            });
+
+            await update(ref(db,"orders/pending/"+user+"/"+id),{
+                notified:true,
+                createdAt: Date.now()
+            });
         }
 
-        // 🚀 BOOST
-        if(c.service === "Réseaux Sociaux"){
-            details += `📱 Plateforme : ${c.platform || "-"}<br>`;
-            details += `📊 Type : ${c.type || "-"}<br>`;
-            details += `🔢 Quantité : ${c.nombre || 0}<br>`;
-            details += `🔗 Lien : ${c.link || "-"}<br>`;
-        }
-
-        // 🌍 HÉBERGEMENT
-        if(c.service === "Hébergement"){
-            details += `🌐 Site : ${c.siteUrl || "-"}<br>`;
-            details += `⏳ Durée : ${c.duree || "-"}<br>`;
-        }
-
-        // 🛡️ VPN
-        if(c.service === "VPN"){
-            details += `🛡️ Nom : ${c.vpnName || "-"}<br>`;
-            details += `📶 Réseau : ${c.reseau || "-"}<br>`;
-        }
-
-        // 🔥 fallback
-        Object.keys(c).forEach(k=>{
-            if(!["service","price","user","date"].includes(k)){
-                details += `${k} : ${c[k]}<br>`;
-            }
-        });
-
-        // 🔥 UI
         box.innerHTML += `
         <div class="card">
 
             <div style="display:flex;align-items:center;gap:10px;">
-
                 ${
                     photo
                     ? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;">`
-                    : `<div style="width:45px;height:45px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+                    : `<div style="width:45px;height:45px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;">
                         ${name.substring(0,2)}
                     </div>`
                 }
@@ -286,17 +250,14 @@ for(const [user, cmds] of Object.entries(snap.val())){
                     <b>${name}</b><br>
                     📱 ${user}
                 </div>
-
             </div>
 
             <hr>
 
-            📦 <b>${c.service}</b><br>
+            📦 ${c.service}<br>
             💰 ${c.price} FC
 
-            <div style="margin-top:8px;background:#111;padding:10px;border-radius:8px;font-size:13px;">
-                ${details || "Aucun détail"}
-            </div>
+            <div class="details">${details}</div>
 
             <button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
             <button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
