@@ -11,7 +11,7 @@ databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
 projectId:"starlink-investit"
 };
 
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);0
 const db = getDatabase(app);
 
 // ================= 🔐 AUTH =================
@@ -107,6 +107,8 @@ onValue(ref(db,"users"), snap=>{
 
 });
 // ================= RECHARGES =================
+// ================= RECHARGES =================
+
 onValue(ref(db,"demandes_recharges"), async snap=>{
 const box = document.getElementById("recharges");
 box.innerHTML = "";
@@ -156,24 +158,54 @@ ${name.substring(0,2)}
 });
 
 // ================= RETRAITS =================
-onValue(ref(db,"demandes_retraits"), snap=>{
+// ================= RETRAITS =================
+
+onValue(ref(db,"demandes_retraits"), async snap=>{
 const box = document.getElementById("retraits");
 box.innerHTML = "";
 
 if(!snap.exists()) return;
 
-Object.entries(snap.val()).forEach(([id,r])=>{
+for(const [id,r] of Object.entries(snap.val())){
 
-if(r.statut === "validé") return;
+if(r.statut === "validé") continue;
+
+// 🔥 récupérer user
+const userSnap = await get(ref(db,"users/"+r.user));
+const u = userSnap.val() || {};
+
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
 
 box.innerHTML += `
 <div class="card">
-${r.numero} - ${r.montant} FC<br>
+
+<div style="display:flex;align-items:center;gap:10px;">
+
+${photo 
+? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;">`
+: `<div style="width:45px;height:45px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+${name.substring(0,2)}
+</div>`
+}
+
+<div>
+<b>${name}</b><br>
+📱 ${r.user}
+</div>
+
+</div>
+
+<hr>
+
+💸 ${r.montant} FC
 
 <button class="ok" onclick="valRetrait('${id}')">Valider</button>
 <button class="no" onclick="deleteItem('demandes_retraits','${id}')">Refuser</button>
-</div>`;
-});
+
+</div>
+`;
+}
 });
 
 // ================= COMMANDES =================
