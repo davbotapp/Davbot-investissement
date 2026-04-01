@@ -59,6 +59,51 @@ async function convertPoints(){
     alert("✅ +" + fc + " FC ajouté");
 }
 
+// ==========================
+// 📊 TABLEAU DE BORD
+// ==========================
+onValue(ref(db, "orders"), async (snap)=>{
+    if(!snap.exists()) return;
+
+    let totalGain = 0;
+    let totalDepense = 0;
+
+    const data = snap.val();
+
+    ["validated","cancelled"].forEach(status=>{
+
+        if(!data[status]) return;
+        if(!data[status][user]) return;
+
+        Object.values(data[status][user]).forEach(cmd=>{
+
+            const price = cmd.price || 0;
+
+            if(status === "validated"){
+                totalDepense += price;
+            }
+
+            if(status === "cancelled"){
+                totalGain += price; // remboursement
+            }
+        });
+
+    });
+
+    // 🔥 afficher
+    document.getElementById("totalGain").innerText =
+        totalGain.toLocaleString();
+
+    document.getElementById("totalDepense").innerText =
+        totalDepense.toLocaleString();
+
+    // 📊 évolution = balance actuel - dépense
+    const userSnap = await get(ref(db,"users/"+user));
+    const balance = userSnap.val().balance || 0;
+
+    document.getElementById("evolution").innerText =
+        (balance - totalDepense).toLocaleString();
+});
 // 🔥 LIAISON BOUTON
 document.getElementById("convertBtn").onclick = convertPoints;
 
