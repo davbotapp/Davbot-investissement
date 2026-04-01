@@ -42,14 +42,18 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
     phoneEl.innerText = userPhone;
     nameEl.innerText = data.name || "Utilisateur";
 
+    // ✅ PHOTO OU LETTRE
     if(data.photo){
-        avatarEl.src = data.photo;
+        avatarEl.innerHTML = `<img src="${data.photo}" style="width:100%;height:100%;border-radius:50%;">`;
+    } else {
+        avatarEl.innerText = userPhone.substring(0,2);
     }
 
     soldeEl.innerText = (data.balance || 0).toLocaleString();
     pointsEl.innerText = (data.points || 0);
 
     // ================= 💰 MONÉTISATION =================
+
     if(!data.lastRevenueTime){
         await update(ref(db,"users/"+userPhone),{
             lastRevenueTime: Date.now()
@@ -60,6 +64,7 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
     const now = Date.now();
     const last = data.lastRevenueTime;
 
+    // ⏳ 30 jours
     if(now - last > 30 * 24 * 60 * 60 * 1000){
 
         const revenus = data.revenus || 0;
@@ -97,6 +102,7 @@ onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
 
     const userData = userSnap.val();
 
+    // ❌ PAS MONÉTISÉ
     if(!userData.monetized){
         await update(ref(db,"users/"+userPhone),{ revenus: 0 });
         return;
@@ -107,6 +113,7 @@ onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
     Object.values(snap.val()).forEach(cmd=>{
         const price = cmd.price || 0;
 
+        // ✅ MIN 1500 FC
         if(price >= 1500){
             total += price * 0.05;
         }
@@ -117,7 +124,7 @@ onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
     });
 });
 
-// ================= 📩 INBOX =================
+// ================= 📩 INBOX ADMIN =================
 onValue(ref(db, "messages/" + userPhone), snap=>{
 
     inboxEl.innerHTML = "";
@@ -132,20 +139,20 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
         inboxEl.innerHTML += `
         <div style="
             background:#111;
-            padding:10px;
+            padding:12px;
             border-radius:10px;
             margin-top:10px;
             border-left:3px solid ${msg.read ? "#444" : "#00d2ff"};
         ">
-            ${msg.text || ""}
+            <b>${msg.text || ""}</b>
 
             <small style="display:block;margin-top:5px;opacity:0.7;">
                 ${new Date(msg.date).toLocaleString()}
             </small>
 
-            <div style="margin-top:5px;display:flex;gap:5px;">
-                <button onclick="copyMsg('${msg.text || ""}')">📋</button>
-                <button onclick="deleteMsg('${id}')">🗑️</button>
+            <div style="margin-top:8px;display:flex;gap:5px;">
+                <button onclick="copyMsg('${msg.text || ""}')">📋 Copier</button>
+                <button onclick="deleteMsg('${id}')">🗑️ Supprimer</button>
             </div>
         </div>
         `;
@@ -157,7 +164,7 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
 
 // 📋 Copier
 window.copyMsg = (text)=>{
-    if(!text) return alert("Vide");
+    if(!text) return alert("Message vide");
 
     navigator.clipboard.writeText(text)
     .then(()=> alert("✅ Copié"))
@@ -166,12 +173,12 @@ window.copyMsg = (text)=>{
 
 // 🗑️ Supprimer
 window.deleteMsg = async(id)=>{
-    if(confirm("Supprimer ?")){
+    if(confirm("Supprimer ce message ?")){
         await remove(ref(db,"messages/"+userPhone+"/"+id));
     }
 };
 
-// ================= ✍️ CONTACT ADMIN =================
+// ================= ✉️ ENVOYER AU SUPPORT =================
 document.getElementById("sendBtn").onclick = async ()=>{
 
     const text = document.getElementById("msgInput").value.trim();
@@ -182,7 +189,7 @@ document.getElementById("sendBtn").onclick = async ()=>{
         name: currentUser.name || "Utilisateur",
         phone: userPhone,
         photo: currentUser.photo || "",
-        text,
+        text: text,
         date: Date.now()
     });
 
