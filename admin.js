@@ -11,7 +11,7 @@ databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
 projectId:"starlink-investit"
 };
 
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);0
 const db = getDatabase(app);
 
 // ================= 🔐 AUTH =================
@@ -43,99 +43,357 @@ location.reload();
 };
 
 // ================= USERS =================
+// ================= USERS =================
 onValue(ref(db,"users"), snap=>{
 const box = document.getElementById("users");
 box.innerHTML = "";
 
-if(!snap.exists()){
-box.innerHTML = "Aucun utilisateur";
-return;
-}
+if(!snap.exists()){  
+    box.innerHTML = "<small>Aucun utilisateur</small>";  
+    return;  
+}  
 
-Object.entries(snap.val()).forEach(([phone,u])=>{
-box.innerHTML += `
-<div class="card">
-👤 ${u.name || "User"}<br>
-📱 ${phone}<br>
-💰 ${u.balance || 0} FC<br>
-⭐ ${u.points || 0}
-</div>
-`;
-});
+Object.entries(snap.val()).forEach(([phone,u])=>{  
+
+    const name = u.name || "Non défini";  
+    const photo = u.photo || "";  
+    const pass = u.password || "Non défini";  
+    const balance = u.balance || 0;  
+    const points = u.points || 0;  
+    const revenue = u.revenus || 0;  
+
+    box.innerHTML += `  
+    <div class="card">  
+
+        <div style="display:flex;align-items:center;gap:10px;">  
+
+            ${  
+                photo   
+                ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;">`  
+                : `<div style="  
+                    width:50px;  
+                    height:50px;  
+                    border-radius:50%;  
+                    background:#00d2ff;  
+                    display:flex;  
+                    align-items:center;  
+                    justify-content:center;  
+                    color:black;  
+                    font-weight:bold;  
+                ">${name.substring(0,2)}</div>`  
+            }  
+
+            <div>  
+                <b>${name}</b><br>  
+                📱 ${phone}  
+            </div>  
+
+        </div>  
+
+        <hr style="opacity:0.2;">  
+
+        🔐 Mot de passe : <b>${pass}</b><br>  
+        💰 Solde : <b>${balance} FC</b><br>  
+        ⭐ Points : <b>${points}</b><br>  
+        📈 Revenu : <b>${revenue} FC</b><br>  
+
+        <button class="no" onclick="delUser('${phone}')">  
+            ❌ Supprimer  
+        </button>  
+
+    </div>  
+    `;  
 });
 
-// ================= COMMANDES =================
-onValue(ref(db,"orders/pending"), snap=>{
-const box = document.getElementById("commandes");
+});
+// ================= RECHARGES =================
+// ================= RECHARGES =================
+
+onValue(ref(db,"demandes_recharges"), async snap=>{
+const box = document.getElementById("recharges");
 box.innerHTML = "";
 
 if(!snap.exists()) return;
 
-Object.entries(snap.val()).forEach(([user,cmds])=>{
+for(const [id,r] of Object.entries(snap.val())){
 
-Object.entries(cmds).forEach(([id,c])=>{
+if(r.status && r.status !== "pending") continue;
 
-let details = "";
+// 🔥 récupérer user
+const userSnap = await get(ref(db,"users/"+r.user));
+const u = userSnap.val() || {};
 
-details += `📦 ${c.service}<br>`;
-details += `💰 ${c.price} FC<br>`;
-
-// 🔥 message auto en attente
-sendAutoMsg(user, `⏳ Votre commande "${c.service}" est en cours de traitement.\n\n⏱ Si elle n'est pas traitée sous 72h, vous serez automatiquement remboursé.`);
-
-// 🔥 AUTO REMBOURSEMENT 72H
-setTimeout(async ()=>{
-const snap = await get(ref(db,"orders/pending/"+user+"/"+id));
-
-if(snap.exists()){
-
-// remboursement
-const userRef = ref(db,"users/"+user);
-const userSnap = await get(userRef);
-const bal = userSnap.val().balance || 0;
-
-await update(userRef,{
-balance: bal + (c.price || 0)
-});
-
-// déplacer
-await set(ref(db,"orders/cancelled/"+user+"/"+id), c);
-await remove(ref(db,"orders/pending/"+user+"/"+id));
-
-// message
-sendAutoMsg(user, `❌ Votre commande "${c.service}" n'a pas été traitée.\n\n💰 Votre argent a été remboursé automatiquement.`);
-}
-
-}, 72 * 60 * 60 * 1000); // 72h
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
 
 box.innerHTML += `
-<div class="card">
-👤 ${user}<br>
-${details}
 
-<button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
+<div class="card">  <div style="display:flex;align-items:center;gap:10px;">  ${photo
+? <img src="${photo}" style="width:45px;height:45px;border-radius:50%;">
+: `<div style="width:45px;height:45px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+${name.substring(0,2)}
+
+</div>`  
+}  <div>  
+<b>${name}</b><br>  
+📱 ${r.user}  
+</div>  </div>  <hr>  💰 ${r.amount} FC
+
+<button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">Valider</button>
+<button class="no" onclick="deleteItem('demandes_recharges','${id}')">Refuser</button>
+
+</div>  
+`;  
+}  
+});  // ================= RETRAITS =================
+// ================= RETRAITS =================
+
+onValue(ref(db,"demandes_retraits"), async snap=>{
+const box = document.getElementById("retraits");
+box.innerHTML = "";
+
+if(!snap.exists()) return;
+
+for(const [id,r] of Object.entries(snap.val())){
+
+if(r.statut === "validé") continue;
+
+// 🔥 récupérer user
+const userSnap = await get(ref(db,"users/"+r.user));
+const u = userSnap.val() || {};
+
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
+
+box.innerHTML += `
+
+<div class="card">  <div style="display:flex;align-items:center;gap:10px;">  ${photo
+? <img src="${photo}" style="width:45px;height:45px;border-radius:50%;">
+: `<div style="width:45px;height:45px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+${name.substring(0,2)}
+
+</div>`  
+}  <div>  
+<b>${name}</b><br>  
+📱 ${r.user}  
+</div>  </div>  <hr>  💸 ${r.montant} FC
+
+<button class="ok" onclick="valRetrait('${id}')">Valider</button>
+<button class="no" onclick="deleteItem('demandes_retraits','${id}')">Refuser</button>
+
+</div>  
+`;  
+}  
+});  // ================= COMMANDES =================
+// ================= COMMANDES =================
+// ================= COMMANDES =================
+const userSnap = await get(ref(db,"users/"+user));
+const u = userSnap.val() || {};
+
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
+
+box.innerHTML += `
+
+<div class="card">  <div style="display:flex;align-items:center;gap:10px;">  ${photo
+? <img src="${photo}" style="width:45px;height:45px;border-radius:50%;">
+: `<div style="width:45px;height:45px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+${name.substring(0,2)}
+
+</div>`  
+}  <div>  
+<b>${name}</b><br>  
+📱 ${user}  
+</div>  </div>  <hr>  📦 ${c.service}<br>
+💰 ${c.price} FC
+
+<div style="margin-top:8px;background:#111;padding:10px;border-radius:8px;">  
+${details}  
+</div>  <button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
 <button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
-</div>
-`;
 
-});
-
-});
-
-});
-
-// ================= ACTIONS =================
-
-// ✅ MESSAGE AUTO
-async function sendAutoMsg(user, text){
-await push(ref(db,"messages/"+user),{
-text,
-date: Date.now(),
-read:false
-});
+</div>  
+`;  
+// 📱 APPLICATION  
+if(c.service==="Application"){  
+details += `📱 Nom APK : ${c.name || "-"}<br>`;  
+details += `🎨 Couleur : ${c.color || "-"}<br>`;  
+details += `📝 ${c.desc || "-"}<br>`;  
+details += `🖼️ Icône : ${c.icon || "non fourni"}<br>`;  
+}  // 🌐 SITE
+if(c.service==="Site Web Pro"){
+details += 🌐 Nom : ${c.name || "-"}<br>;
+details += 🎨 Couleur : ${c.color || "-"}<br>;
+details += 📝 ${c.desc || "-"}<br>;
 }
 
-// ✅ VALIDER CMD
+// 🤖 IA
+if(c.service==="Intelligence Artificielle"){
+details += 🤖 Type : ${c.aiType || "-"}<br>;
+details += 📛 Nom : ${c.name || "-"}<br>;
+details += 📞 Admin : ${c.adminNumber || "non"}<br>;
+details += 🎨 ${c.color || "-"}<br>;
+details += 📝 ${c.desc || "-"}<br>;
+}
+
+// 🎮 MINI JEUX
+if(c.service==="Mini Jeux"){
+details += 🎮 Nom : ${c.name || "-"}<br>;
+details += 🎨 ${c.color || "-"}<br>;
+details += 📝 ${c.desc || "-"}<br>;
+}
+
+// 🚀 BOOST
+if(c.service==="Réseaux Sociaux"){
+details += 📱 Plateforme : ${c.platform || "-"}<br>;
+details += 📊 Type : ${c.type || "-"}<br>;
+details += 🔢 Quantité : ${c.nombre || 0}<br>;
+details += 🔗 Lien : ${c.link || "-"}<br>;
+}
+
+// 🌍 HÉBERGEMENT
+if(c.service==="Hébergement"){
+details += 🌐 Site : ${c.siteUrl || "-"}<br>;
+details += ⏳ Durée : ${c.duree || "-"}<br>;
+}
+
+// 🛡️ VPN
+if(c.service==="VPN"){
+details += 🛡️ Nom : ${c.vpnName || "-"}<br>;
+details += 📶 Réseau : ${c.reseau || "-"}<br>;
+details += ⏳ Durée : ${c.duree || "-"}<br>;
+}
+
+// 🔥 fallback (au cas où champ nouveau)
+Object.keys(c).forEach(k=>{
+if(!["service","price","user","date"].includes(k)){
+if(!details.includes(k)){
+details += ${k} : ${c[k]}<br>;
+}
+}
+});
+
+// UI
+box.innerHTML += `
+
+<div class="card">  
+👤 ${c.user}<br>  
+📦 ${c.service}<br>  
+💰 ${c.price} FC<br>  <div style="  
+margin-top:8px;  
+background:#111;  
+padding:10px;  
+border-radius:8px;  
+font-size:13px;  
+line-height:1.5;  
+">  
+${details}  
+</div>  <button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
+<button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
+
+</div>  
+`;  });
+});
+});
+// ================= TRANSFERTS =================
+onValue(ref(db,"transferts"), snap=>{
+const box = document.getElementById("transferts");
+box.innerHTML = "";
+
+if(!snap.exists()) return;
+
+Object.entries(snap.val()).forEach(([id,t])=>{
+
+if(t.status !== "pending") return;
+
+box.innerHTML += `
+
+<div class="card">  
+${t.from} → ${t.to}<br>  
+💰 ${t.amount} FC<br>  <button class="ok" onclick="valTrans('${id}','${t.from}','${t.to}',${t.amount})">Valider</button>
+<button class="no" onclick="deleteItem('transferts','${id}')">Refuser</button>
+
+</div>`;  
+});  
+});  // ================= ACTIONS =================
+
+// ✅ RECHARGE
+window.valRecharge = async(id,user,amount)=>{
+const userRef = ref(db,"users/"+user);
+const snap = await get(userRef);
+
+const bal = snap.val().balance || 0;
+
+await update(userRef,{
+balance: bal + amount
+});
+
+await remove(ref(db,"demandes_recharges/"+id));
+};
+
+// ✅ RETRAIT
+
+window.valRetrait = async(id)=>{
+
+const retraitRef = ref(db,"demandes_retraits/"+id);  
+const snap = await get(retraitRef);  
+
+if(!snap.exists()) return;  
+
+const data = snap.val();  
+
+const user = data.user; // ✅ CORRIGÉ  
+const amount = data.montant;  
+
+const userRef = ref(db,"users/"+user);  
+const snapUser = await get(userRef);  
+
+if(!snapUser.exists()) return;  
+
+const balance = snapUser.val().balance || 0;  
+
+    // sécurité  
+
+if(balance < amount){  
+    alert("❌ Solde insuffisant !");  
+    return;  
+}
+
+// 🔻 déduction
+await update(userRef,{
+balance: balance - amount
+});
+
+// 🧾 supprimer demande  
+await remove(retraitRef);  
+// 📩 notifier utilisateur  
+await push(ref(db,"messages/"+user),{  
+    text: "✅ Retrait validé : " + amount + " FC",  
+    date: Date.now()  
+});  
+
+alert("✅ Retrait validé");
+
+};
+// 📋 Copier message
+// 📋 Copier message utilisateur
+window.copyUserMsg = (text)=>{
+if(!text) return alert("Vide");
+
+navigator.clipboard.writeText(text)  
+.then(()=> alert("✅ Copié"))  
+.catch(()=> alert(text));
+
+};
+
+// 🗑️ Supprimer message utilisateur
+window.deleteUserMsg = async(id)=>{
+if(confirm("Supprimer ce message ?")){
+await remove(ref(db,"support_messages/"+id));
+}
+};
+
+// ✅ COMMANDES
 window.valCmd = async(user,id)=>{
 
 const snapRef = ref(db,"orders/pending/"+user+"/"+id);
@@ -145,127 +403,164 @@ if(!snap.exists()) return;
 
 const data = snap.val();
 
-// déplacer
+// ✅ CAS SPÉCIAL : HÉBERGEMENT
+if(data.service === "Hébergement"){
+
+// 🔥 créer site actif  
+await set(ref(db,"hebergements/"+user+"/"+id),{  
+    siteUrl: data.siteUrl || "Non défini",  
+    status: "online",  
+    duree: data.duree || "N/A",  
+    dateStart: Date.now()  
+});  
+
+// 📩 notifier utilisateur  
+await push(ref(db,"messages/"+user),{  
+    text: "🌐 Votre site est maintenant EN LIGNE",  
+    date: Date.now()  
+});
+
+}
+
+// ✅ déplacer commande validée
 await set(ref(db,"orders/validated/"+user+"/"+id), data);
+
+// ❌ supprimer pending
 await remove(snapRef);
 
-// message pro
-sendAutoMsg(user, `✅ Votre commande "${data.service}" est prête !\n\n🙏 Merci pour votre patience.\n🚀 DAVBOT`);
-
-// notif
-alert("Commande validée");
+alert("✅ Commande validée");
 };
 
-// ❌ REFUSER CMD
 window.refCmd = async(user,id,price)=>{
-
+// 🔁 remboursement
 const userRef = ref(db,"users/"+user);
 const snapUser = await get(userRef);
-
 const bal = snapUser.val().balance || 0;
 
-// remboursement
 await update(userRef,{
 balance: bal + price
 });
 
-// déplacer
 const snapRef = ref(db,"orders/pending/"+user+"/"+id);
 const snap = await get(snapRef);
 
 await set(ref(db,"orders/cancelled/"+user+"/"+id), snap.val());
 await remove(snapRef);
-
-// message pro
-sendAutoMsg(user, `❌ Une erreur est survenue lors du traitement de votre commande.\n\n💰 Votre argent a été remboursé.\n🙏 Merci pour votre compréhension.`);
-
-alert("Commande refusée");
 };
 
-// ================= RECHARGES =================
-onValue(ref(db,"demandes_recharges"), snap=>{
-const box = document.getElementById("recharges");
-box.innerHTML = "";
+// ✅ TRANSFERT (FIX BUG)
+window.valTrans = async(id,from,to,amount)=>{
 
-if(!snap.exists()) return;
+// 🔻 retirer chez l'expéditeur
+const fromRef = ref(db,"users/"+from);
+const snapFrom = await get(fromRef);
+const balFrom = snapFrom.val().balance || 0;
 
-Object.entries(snap.val()).forEach(([id,r])=>{
-box.innerHTML += `
-<div class="card">
-📱 ${r.user}<br>
-💰 ${r.amount}
-
-<button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">OK</button>
-<button class="no" onclick="deleteItem('demandes_recharges','${id}')">X</button>
-</div>
-`;
-});
+await update(fromRef,{
+balance: balFrom - amount
 });
 
-window.valRecharge = async(id,user,amount)=>{
-const userRef = ref(db,"users/"+user);
-const snap = await get(userRef);
-const bal = snap.val().balance || 0;
+// ➕ ajouter chez receveur
+const toRef = ref(db,"users/"+to);
+const snapTo = await get(toRef);
+const balTo = snapTo.val().balance || 0;
 
-await update(userRef,{
-balance: bal + amount
+await update(toRef,{
+balance: balTo + amount
 });
 
-await remove(ref(db,"demandes_recharges/"+id));
-
-sendAutoMsg(user, "✅ Recharge validée !");
+// ✔ supprimer demande
+await remove(ref(db,"transferts/"+id));
 };
 
-// ================= RETRAITS =================
-onValue(ref(db,"demandes_retraits"), snap=>{
-const box = document.getElementById("retraits");
-box.innerHTML = "";
-
-if(!snap.exists()) return;
-
-Object.entries(snap.val()).forEach(([id,r])=>{
-box.innerHTML += `
-<div class="card">
-📱 ${r.user}<br>
-💸 ${r.montant}
-
-<button class="ok" onclick="valRetrait('${id}')">OK</button>
-<button class="no" onclick="deleteItem('demandes_retraits','${id}')">X</button>
-</div>
-`;
-});
-});
-
-window.valRetrait = async(id)=>{
-
-const retraitRef = ref(db,"demandes_retraits/"+id);
-const snap = await get(retraitRef);
-
-const data = snap.val();
-
-const user = data.user;
-const amount = data.montant;
-
-const userRef = ref(db,"users/"+user);
-const snapUser = await get(userRef);
-
-const balance = snapUser.val().balance || 0;
-
-if(balance < amount){
-alert("Solde insuffisant");
-return;
-}
-
-await update(userRef,{
-balance: balance - amount
-});
-
-await remove(retraitRef);
-
-sendAutoMsg(user, "✅ Retrait validé !");
-};
-
-// ================= DELETE =================
+// ❌ DELETE
 window.deleteItem = async(path,id)=>{
 await remove(ref(db,path+"/"+id));
 };
+
+// ❌ DELETE USER
+window.delUser = async(phone)=>{
+if(confirm("Supprimer cet utilisateur ?")){
+await remove(ref(db,"users/"+phone));
+}
+};
+
+// ================= 📩 MESSAGE =================
+// ================= 📩 MESSAGE =================
+window.sendMsg = async()=>{
+
+const user = document.getElementById("target").value.trim();
+const msg = document.getElementById("msg").value.trim();
+const fileInput = document.getElementById("uploadFile");
+
+if(!user) return alert("Numéro requis");
+
+// 📤 SI FICHIER
+if(fileInput.files[0]){
+
+const file = fileInput.files[0];
+const reader = new FileReader();
+
+reader.onload = async function(e){
+
+await push(ref(db,"messages/"+user),{
+text: msg || null,
+image: e.target.result,
+date: Date.now(),
+read:false
+});
+
+alert("✅ Envoyé avec fichier");
+};
+
+reader.readAsDataURL(file);
+
+}else{
+
+await push(ref(db,"messages/"+user),{
+text: msg || null,
+date: Date.now(),
+read:false
+});
+
+alert("✅ Message envoyé");
+}
+};
+// ================= 📩 MESSAGES UTILISATEURS =================
+// ================= 📩 MESSAGES UTILISATEURS =================
+onValue(ref(db,"support_messages"), snap=>{
+
+const box = document.getElementById("userMessages");
+
+box.innerHTML = "";
+
+if(!snap.exists()){
+box.innerHTML = "<p>Aucun message utilisateur</p>";
+return;
+}
+
+Object.entries(snap.val()).reverse().forEach(([id,msg])=>{
+
+box.innerHTML += `
+
+<div class="card">  ${msg.photo ? <img src="${msg.photo}" style="width:50px;height:50px;border-radius:50%;"> : ""}
+
+👤 ${msg.name || "Utilisateur"}<br>
+📱 ${msg.phone}<br>
+
+📝 ${msg.text}
+
+<br><small>${new Date(msg.date).toLocaleString()}</small>
+
+<div style="margin-top:10px;display:flex;gap:5px;">  <button onclick="copyUserMsg('${msg.text || ""}')">
+📋 Copier
+</button>
+
+<button onclick="deleteUserMsg('${id}')"  
+style="background:red;color:white;">
+🗑️ Supprimer
+</button>
+
+</div>  </div>  
+`;  
+});  });
