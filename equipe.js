@@ -25,10 +25,7 @@ const totalEl = document.getElementById("total");
 const gainsEl = document.getElementById("gains");
 const pointsEl = document.getElementById("points");
 
-const channelInput = document.getElementById("whatsappChannel");
-const groupInput = document.getElementById("whatsappGroup");
-
-// 🔥 LIENS FIXES (IMPORTANT)
+// 🔥 LIENS FIXES
 const CHANNEL_LINK = "https://whatsapp.com/channel/0029VbBrUCl6buMF5srz5U2L";
 const GROUP_LINK = "https://chat.whatsapp.com/KyzoGEXunBA7g2htNDjMPm";
 
@@ -53,26 +50,62 @@ onValue(ref(db, "users/" + userPhone), snap=>{
 
     gainsEl.innerText = (data.balance || 0).toLocaleString();
     pointsEl.innerText = data.points || 0;
-
-    // 🔥 FORCER TES LIENS
-    channelInput.value = CHANNEL_LINK;
-    groupInput.value = GROUP_LINK;
 });
 
-// ================= SAVE WHATSAPP =================
-channelInput.addEventListener("change", saveLinks);
-groupInput.addEventListener("change", saveLinks);
-
-async function saveLinks(){
-    try{
-        await update(ref(db, "users/" + userPhone), {
-            whatsappChannel: channelInput.value,
-            whatsappGroup: groupInput.value
-        });
-    }catch(e){
-        alert("❌ Erreur sauvegarde");
-    }
+// ================= LIEN =================
+function getLink(code){
+    return location.origin + "/index.html?inviteCode=" + code;
 }
+
+// ================= COPY (ULTRA FIX) =================
+document.getElementById("copyBtn").onclick = async ()=>{
+
+    const link = getLink(codeEl.innerText);
+
+    try{
+        await navigator.clipboard.writeText(link);
+        alert("✅ Lien copié !");
+    }catch(e){
+
+        // 🔥 fallback Android
+        const textarea = document.createElement("textarea");
+        textarea.value = link;
+        document.body.appendChild(textarea);
+
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+
+        try{
+            document.execCommand("copy");
+            alert("✅ Lien copié !");
+        }catch(err){
+            alert("📋 Copie manuelle :\n" + link);
+        }
+
+        document.body.removeChild(textarea);
+    }
+};
+
+// ================= WHATSAPP =================
+document.getElementById("whatsappBtn").onclick = ()=>{
+
+    const link = getLink(codeEl.innerText);
+
+    const msg = `🚀 Rejoins DAVBOT
+
+💻 Applications - Sites - IA - Jeux
+📈 Boost réseaux sociaux
+
+👉 ${link}
+
+📢 Chaîne officielle :
+${CHANNEL_LINK}
+
+👥 Groupe communauté :
+${GROUP_LINK}`;
+
+    window.open("https://wa.me/?text=" + encodeURIComponent(msg));
+};
 
 // ================= PARRAINAGE =================
 export async function handleParrainage(newUserPhone, inviteCode){
@@ -120,37 +153,3 @@ export async function handleParrainage(newUserPhone, inviteCode){
         parrain: parrain.phone
     });
 }
-
-// ================= LIEN =================
-function getLink(code){
-    return location.origin + "/index.html?inviteCode=" + code;
-}
-
-// ================= COPY =================
-document.getElementById("copyBtn").onclick = ()=>{
-    const link = getLink(codeEl.innerText);
-
-    navigator.clipboard.writeText(link)
-    .then(()=> alert("✅ Lien copié"))
-    .catch(()=> alert(link));
-};
-
-// ================= WHATSAPP =================
-document.getElementById("whatsappBtn").onclick = ()=>{
-    const link = getLink(codeEl.innerText);
-
-    const msg = `🚀 Rejoins DAVBOT
-
-💻 Applications - Sites - IA - Jeux
-📈 Boost réseaux sociaux
-
-👉 ${link}
-
-📢 Chaîne officielle :
-${CHANNEL_LINK}
-
-👥 Groupe communauté :
-${GROUP_LINK}`;
-
-    window.open("https://wa.me/?text=" + encodeURIComponent(msg));
-};
