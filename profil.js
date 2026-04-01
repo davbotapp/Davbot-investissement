@@ -31,10 +31,13 @@ const pointsEl = document.getElementById("points");
 const inboxEl = document.getElementById("inbox");
 
 // ================= USER DATA =================
+let currentUser = {};
+
 onValue(ref(db, "users/" + userPhone), async snap=>{
     if(!snap.exists()) return;
 
     const data = snap.val();
+    currentUser = data;
 
     phoneEl.innerText = userPhone;
     nameEl.innerText = data.name || "Utilisateur";
@@ -47,33 +50,30 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
     pointsEl.innerText = (data.points || 0);
 
     // ================= 💰 MONÉTISATION =================
-
     if(!data.lastRevenueTime){
         await update(ref(db,"users/"+userPhone),{
             lastRevenueTime: Date.now()
         });
+        return;
     }
 
     const now = Date.now();
-    const last = data.lastRevenueTime || now;
+    const last = data.lastRevenueTime;
 
-    // ⏳ 30 jours
     if(now - last > 30 * 24 * 60 * 60 * 1000){
 
         const revenus = data.revenus || 0;
 
         if(revenus > 0){
 
-            // 💰 AJOUT AU SOLDE
             await update(ref(db,"users/"+userPhone),{
                 balance: (data.balance || 0) + revenus,
                 revenus: 0,
                 lastRevenueTime: now
             });
 
-            // 📩 MESSAGE UNIQUEMENT
             await push(ref(db,"messages/"+userPhone),{
-                text: "✅ Revenus ajoutés à votre solde avec succès 💰",
+                text: "💰 Revenus mensuels ajoutés avec succès",
                 date: Date.now(),
                 read:false
             });
@@ -83,10 +83,8 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
             await update(ref(db,"users/"+userPhone),{
                 lastRevenueTime: now
             });
-
         }
     }
-
 });
 
 // ================= 💸 CALCUL REVENUS =================
@@ -99,7 +97,6 @@ onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
 
     const userData = userSnap.val();
 
-    // ❌ NON MONÉTISÉ
     if(!userData.monetized){
         await update(ref(db,"users/"+userPhone),{ revenus: 0 });
         return;
@@ -108,21 +105,16 @@ onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
     let total = 0;
 
     Object.values(snap.val()).forEach(cmd=>{
-
         const price = cmd.price || 0;
 
-        // ❌ moins de 1500
-        if(price < 1500) return;
-
-        // ✅ 5%
-        total += price * 0.05;
-
+        if(price >= 1500){
+            total += price * 0.05;
+        }
     });
 
     await update(ref(db,"users/"+userPhone),{
         revenus: Math.floor(total)
     });
-
 });
 
 // ================= 📩 INBOX =================
@@ -143,33 +135,60 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
             padding:10px;
             border-radius:10px;
             margin-top:10px;
+            border-left:3px solid ${msg.read ? "#444" : "#00d2ff"};
         ">
             ${msg.text || ""}
+
             <small style="display:block;margin-top:5px;opacity:0.7;">
                 ${new Date(msg.date).toLocaleString()}
             </small>
+
+            <div style="margin-top:5px;display:flex;gap:5px;">
+                <button onclick="copyMsg('${msg.text || ""}')">📋</button>
+                <button onclick="deleteMsg('${id}')">🗑️</button>
+            </div>
         </div>
         `;
     });
 
 });
 
-// ================= ✍️ ENVOYER MESSAGE =================
+// ================= ACTIONS =================
+
+// 📋 Copier
+window.copyMsg = (text)=>{
+    if(!text) return alert("Vide");
+
+    navigator.clipboard.writeText(text)
+    .then(()=> alert("✅ Copié"))
+    .catch(()=> alert(text));
+};
+
+// 🗑️ Supprimer
+window.deleteMsg = async(id)=>{
+    if(confirm("Supprimer ?")){
+        await remove(ref(db,"messages/"+userPhone+"/"+id));
+    }
+};
+
+// ================= ✍️ CONTACT ADMIN =================
 document.getElementById("sendBtn").onclick = async ()=>{
 
     const text = document.getElementById("msgInput").value.trim();
 
     if(!text) return alert("Message vide");
 
-    await push(ref(db,"admin_messages"),{
-        user: userPhone,
+    await push(ref(db,"support_messages"),{
+        name: currentUser.name || "Utilisateur",
+        phone: userPhone,
+        photo: currentUser.photo || "",
         text,
         date: Date.now()
     });
 
     document.getElementById("msgInput").value = "";
 
-    alert("✅ Message envoyé");
+    alert("✅ Message envoyé à l'admin");
 };
 
 // ================= LOGOUT =================
