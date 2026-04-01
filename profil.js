@@ -30,10 +30,12 @@ const soldeEl = document.getElementById("solde");
 const pointsEl = document.getElementById("points");
 const inboxEl = document.getElementById("inbox");
 
-// ================= USER DATA =================
+// ================= USER =================
 let currentUser = {};
 
+// ================= USER DATA =================
 onValue(ref(db, "users/" + userPhone), async snap=>{
+
     if(!snap.exists()) return;
 
     const data = snap.val();
@@ -42,15 +44,17 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
     phoneEl.innerText = userPhone;
     nameEl.innerText = data.name || "Utilisateur";
 
-    // ✅ PHOTO OU LETTRE
-    if(data.photo){
-        avatarEl.innerHTML = `<img src="${data.photo}" style="width:100%;height:100%;border-radius:50%;">`;
-    } else {
-        avatarEl.innerText = userPhone.substring(0,2);
+    // ✅ PHOTO CORRIGÉE
+    const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+    if(avatarEl.tagName === "IMG"){
+        avatarEl.src = data.photo && data.photo.trim()
+            ? data.photo
+            : defaultAvatar;
     }
 
     soldeEl.innerText = (data.balance || 0).toLocaleString();
-    pointsEl.innerText = (data.points || 0);
+    pointsEl.innerText = data.points || 0;
 
     // ================= 💰 MONÉTISATION =================
 
@@ -90,6 +94,7 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
             });
         }
     }
+
 });
 
 // ================= 💸 CALCUL REVENUS =================
@@ -102,7 +107,6 @@ onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
 
     const userData = userSnap.val();
 
-    // ❌ PAS MONÉTISÉ
     if(!userData.monetized){
         await update(ref(db,"users/"+userPhone),{ revenus: 0 });
         return;
@@ -113,7 +117,6 @@ onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
     Object.values(snap.val()).forEach(cmd=>{
         const price = cmd.price || 0;
 
-        // ✅ MIN 1500 FC
         if(price >= 1500){
             total += price * 0.05;
         }
@@ -122,9 +125,10 @@ onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
     await update(ref(db,"users/"+userPhone),{
         revenus: Math.floor(total)
     });
+
 });
 
-// ================= 📩 INBOX ADMIN =================
+// ================= 📩 INBOX =================
 onValue(ref(db, "messages/" + userPhone), snap=>{
 
     inboxEl.innerHTML = "";
@@ -144,7 +148,10 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
             margin-top:10px;
             border-left:3px solid ${msg.read ? "#444" : "#00d2ff"};
         ">
-            <b>${msg.text || ""}</b>
+
+            ${msg.text ? `<b>${msg.text}</b>` : ""}
+
+            ${msg.image ? `<img src="${msg.image}" style="width:100%;margin-top:5px;border-radius:8px;">` : ""}
 
             <small style="display:block;margin-top:5px;opacity:0.7;">
                 ${new Date(msg.date).toLocaleString()}
@@ -154,6 +161,7 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
                 <button onclick="copyMsg('${msg.text || ""}')">📋 Copier</button>
                 <button onclick="deleteMsg('${id}')">🗑️ Supprimer</button>
             </div>
+
         </div>
         `;
     });
@@ -164,7 +172,7 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
 
 // 📋 Copier
 window.copyMsg = (text)=>{
-    if(!text) return alert("Message vide");
+    if(!text) return alert("Vide");
 
     navigator.clipboard.writeText(text)
     .then(()=> alert("✅ Copié"))
@@ -189,7 +197,7 @@ document.getElementById("sendBtn").onclick = async ()=>{
         name: currentUser.name || "Utilisateur",
         phone: userPhone,
         photo: currentUser.photo || "",
-        text: text,
+        text,
         date: Date.now()
     });
 
