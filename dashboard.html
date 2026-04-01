@@ -22,7 +22,6 @@ body{
     padding:20px;
 }
 
-/* CARD STYLE GLOBAL */
 .card{
     background: rgba(0,0,0,0.85);
     border:1px solid var(--blue);
@@ -36,16 +35,13 @@ body{
 h2{
     text-align:center;
     color:var(--blue);
-    letter-spacing:2px;
 }
 
-/* FLEX */
 .flex{
     display:flex;
     justify-content:space-between;
 }
 
-/* BUTTON */
 .btn{
     width:100%;
     padding:14px;
@@ -57,7 +53,6 @@ h2{
     cursor:pointer;
 }
 
-/* COMMANDES */
 .order{
     background:rgba(255,255,255,0.05);
     padding:12px;
@@ -70,7 +65,20 @@ h2{
 .valid{border-left:5px solid var(--green);}
 .cancel{border-left:5px solid var(--red);}
 
-/* NAVBAR */
+/* 🔥 EVOLUTION BAR */
+.progress{
+    height:10px;
+    background:#222;
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:10px;
+}
+.progress div{
+    height:100%;
+    background:var(--blue);
+    width:0%;
+}
+
 .navbar{
     position:fixed;
     bottom:0;
@@ -96,7 +104,7 @@ h2{
 
 <h2 id="welcome">Bienvenue...</h2>
 
-<!-- SOLDE -->
+<!-- 💰 SOLDE -->
 <div class="card flex">
     <div>
         💰 Solde FC<br>
@@ -104,15 +112,35 @@ h2{
     </div>
 </div>
 
-<!-- POINTS -->
+<!-- 🎯 POINTS -->
 <div class="card">
     🎯 Points fidélité : <b id="points">0</b><br>
     💱 = <b id="pointsFC">0</b> FC
+
     <button class="btn" id="convertBtn">Convertir en FC</button>
 </div>
 
-<!-- COMMANDES -->
+<!-- 📈 ÉVOLUTION -->
+<div class="card">
+    📈 Évolution du compte
+
+    <div style="margin-top:10px;">
+        Commandes validées : <b id="validCount">0</b><br>
+        Commandes en attente : <b id="pendingCount">0</b><br>
+    </div>
+
+    <div class="progress">
+        <div id="progressBar"></div>
+    </div>
+</div>
+
+<!-- 📦 COMMANDES -->
 <h3 style="margin-top:20px;">📦 Mes commandes</h3>
+
+<div class="card" style="background:#111;border:1px solid orange;">
+⚠️ Si votre commande n’a pas été effectuée, remboursement de votre argent.
+</div>
+
 <div id="orders"></div>
 
 </div>
