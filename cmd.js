@@ -116,6 +116,7 @@ zone.innerHTML = `
 <option>Airtel</option>
 <option>Orange</option>
 <option>Vodacom</option>
+<option>africell</option>
 </select>
 
 <select id="duree">
@@ -145,8 +146,8 @@ function calcPrice(){
 
 let price = 0;
 
-if(service === "Application") price = 40000;
-if(service === "Site Web Pro") price = 30000;
+if(service === "Application") price = 45 000;
+if(service === "Site Web Pro") price = 30 000;
 
 if(service === "Intelligence Artificielle"){
 const type = document.getElementById("aiType")?.value;
@@ -183,8 +184,8 @@ if(d==="60 jours") price=12000;
 
 if(service === "VPN"){
 const d = document.getElementById("duree")?.value;
-if(d==="1 jour") price=1000;
-if(d==="7 jours") price=2500;
+if(d==="7 jour") price=2500;
+if(d==="15 jours") price=5000;
 if(d==="30 jours") price=8000;
 }
 
