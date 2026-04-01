@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> Davbot - Dashboard</title>
+<title>Davbot - Dashboard</title>
 
 <style>
 :root { --blue:#00d2ff; --dark:#050a14; --green:#4caf50; --red:#f44336; }
@@ -29,12 +29,6 @@ body{
     padding:20px;
     margin-top:15px;
     backdrop-filter: blur(15px);
-    box-shadow:0 0 15px rgba(0,210,255,0.2);
-}
-
-h2{
-    text-align:center;
-    color:var(--blue);
 }
 
 .flex{
@@ -65,20 +59,6 @@ h2{
 .valid{border-left:5px solid var(--green);}
 .cancel{border-left:5px solid var(--red);}
 
-/* 🔥 EVOLUTION BAR */
-.progress{
-    height:10px;
-    background:#222;
-    border-radius:10px;
-    overflow:hidden;
-    margin-top:10px;
-}
-.progress div{
-    height:100%;
-    background:var(--blue);
-    width:0%;
-}
-
 .navbar{
     position:fixed;
     bottom:0;
@@ -87,8 +67,8 @@ h2{
     display:flex;
     justify-content:space-around;
     padding:12px;
-    border-top:1px solid var(--blue);
 }
+
 .navbar a{
     color:white;
     text-decoration:none;
@@ -102,9 +82,9 @@ h2{
 
 <div class="overlay">
 
-<h2 id="welcome">Bienvenue...</h2>
+<h2>Bienvenue 👋</h2>
 
-<!-- 💰 SOLDE -->
+<!-- SOLDE -->
 <div class="card flex">
     <div>
         💰 Solde FC<br>
@@ -112,35 +92,20 @@ h2{
     </div>
 </div>
 
-<!-- 🎯 POINTS -->
+<!-- POINTS -->
 <div class="card">
-    🎯 Points fidélité : <b id="points">0</b><br>
+    🎯 Points : <b id="points">0</b><br>
     💱 = <b id="pointsFC">0</b> FC
-
     <button class="btn" id="convertBtn">Convertir en FC</button>
 </div>
 
-<!-- 📈 ÉVOLUTION -->
-<div class="card">
-    📈 Évolution du compte
+<!-- MESSAGE -->
+<p style="text-align:center;color:#ff9800;margin-top:10px;">
+⚠️ Si la commande n'est pas effectuée, remboursement automatique de votre argent
+</p>
 
-    <div style="margin-top:10px;">
-        Commandes validées : <b id="validCount">0</b><br>
-        Commandes en attente : <b id="pendingCount">0</b><br>
-    </div>
-
-    <div class="progress">
-        <div id="progressBar"></div>
-    </div>
-</div>
-
-<!-- 📦 COMMANDES -->
-<h3 style="margin-top:20px;">📦 Mes commandes</h3>
-
-<div class="card" style="background:#111;border:1px solid orange;">
-⚠️ Si votre commande n’a pas été effectuée, remboursement de votre argent.
-</div>
-
+<!-- COMMANDES -->
+<h3>📦 Mes commandes</h3>
 <div id="orders"></div>
 
 </div>
