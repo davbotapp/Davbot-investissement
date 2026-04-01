@@ -145,7 +145,7 @@ function calcPrice(){
 
 let price = 0;
 
-if(service === "Application") price = 45 000;
+if(service === "Application") price = 45000;
 if(service === "Site Web Pro") price = 30000;
 
 if(service === "Intelligence Artificielle"){
