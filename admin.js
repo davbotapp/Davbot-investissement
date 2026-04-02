@@ -162,6 +162,7 @@ ${name.substring(0,2)}
 <hr>
 
 💰 ${r.amount} FC
+🆔 ${id}
 
 <div style="margin-top:10px;display:flex;gap:5px;">
 <button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">Valider</button>
@@ -236,7 +237,7 @@ ${name.substring(0,2)}
 💸 ${r.montant} FC
 
 <div class="details">
-🆔 ID: ${id}<br>
+🆔 ID: ${numero}<br>
 📅 ${r.date ? new Date(r.date).toLocaleString() : ""}
 </div>
 
