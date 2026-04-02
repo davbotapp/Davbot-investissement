@@ -444,7 +444,7 @@ balance: bal + amount
 
 // 📩 notifier utilisateur
 await push(ref(db,"messages/"+user),{
-text: "💰 Recharge validée : " + amount + " FC",
+text: "✅ Recharge approuvée avec succès\n💰 Montant : " + amount + " FC",
 date: Date.now()
 });
 
@@ -487,7 +487,7 @@ await remove(retraitRef);
 
 // 📩 notifier utilisateur  
 await push(ref(db,"messages/"+user),{  
-text: "✅ Retrait validé : " + amount + " FC",  
+text: "✅ Retrait effectué avec succès\n💸 Montant : " + amount + " FC",  
 date: Date.now()  
 });  
 
@@ -526,7 +526,6 @@ const data = snap.val();
 // ✅ CAS SPÉCIAL : HÉBERGEMENT
 if(data.service === "Hébergement"){
 
-// 🔥 créer site actif  
 await set(ref(db,"hebergements/"+user+"/"+id),{  
 siteUrl: data.siteUrl || "Non défini",  
 status: "online",  
@@ -534,9 +533,8 @@ duree: data.duree || "N/A",
 dateStart: Date.now()  
 });  
 
-// 📩 notifier utilisateur  
 await push(ref(db,"messages/"+user),{  
-text: "🌐 Votre site est maintenant EN LIGNE",  
+text: "🌐 Hébergement activé avec succès\n🌍 Site : " + (data.siteUrl || "-"),  
 date: Date.now()  
 });
 
@@ -544,7 +542,9 @@ date: Date.now()
 
 // 📩 notifier commande validée
 await push(ref(db,"messages/"+user),{
-text: "✅ Commande validée : " + (data.service || ""),
+text: "✅✅✅ COMMANDE PRÊTE\n\n📦 Service : " + (data.service || "") +
+"\n👤 Nom : " + (data.name || "Non défini") +
+"\n💰 Prix : " + (data.price || 0) + " FC",
 date: Date.now()
 });
 
@@ -575,19 +575,23 @@ balance: bal + price
 
 const snapRef = ref(db,"orders/pending/"+user+"/"+id);
 const snap = await get(snapRef);
+const data = snap.val() || {};
 
 // 📩 notifier refus
 await push(ref(db,"messages/"+user),{
-text: "❌ Commande refusée + remboursement : " + price + " FC",
+text: "❌❌❌ COMMANDE REFUSÉE\n\n📦 Service : " + (data.service || "") +
+"\n👤 Nom : " + (data.name || "Non défini") +
+"\n💰 Remboursé : " + price + " FC",
 date: Date.now()
 });
 
-await set(ref(db,"orders/cancelled/"+user+"/"+id), snap.val());
+await set(ref(db,"orders/cancelled/"+user+"/"+id), data);
 await remove(snapRef);
 };
 
 
-// ✅ TRANSFERT (FIX BUG + SÉCURITÉ)
+
+// ✅ TRANSFERT (FIX BUG + SÉCURITÉ + MESSAGE PRO)
 window.valTrans = async(id,from,to,amount)=>{
 
 const fromRef = ref(db,"users/"+from);
@@ -602,6 +606,16 @@ const balFrom = snapFrom.val().balance || 0;
 const balTo = snapTo.val().balance || 0;
 
 // 🔒 sécurité
+if(from === to){
+alert("❌ Impossible de transférer à soi-même");
+return;
+}
+
+if(amount <= 0){
+alert("❌ Montant invalide");
+return;
+}
+
 if(balFrom < amount){
 alert("❌ Solde insuffisant");
 return;
@@ -617,14 +631,14 @@ await update(toRef,{
 balance: balTo + amount
 });
 
-// 📩 notifications
+// 📩 notifications PRO
 await push(ref(db,"messages/"+from),{
-text: "💸 Transfert envoyé : " + amount + " FC",
+text: "✅ Transfert effectué avec succès\n💸 Montant : " + amount + " FC\n👤 Vers : " + to,
 date: Date.now()
 });
 
 await push(ref(db,"messages/"+to),{
-text: "💰 Transfert reçu : " + amount + " FC",
+text: "💰 Vous avez reçu un transfert\n💸 Montant : " + amount + " FC\n👤 De : " + from,
 date: Date.now()
 });
 
@@ -633,18 +647,7 @@ await remove(ref(db,"transferts/"+id));
 };
 
 
-// ❌ DELETE
-window.deleteItem = async(path,id)=>{
-await remove(ref(db,path+"/"+id));
-};
 
-
-// ❌ DELETE USER
-window.delUser = async(phone)=>{
-if(confirm("Supprimer cet utilisateur ?")){
-await remove(ref(db,"users/"+phone));
-}
-};
 // ================= 📩 MESSAGE =================
 // ================= 📩 MESSAGE =================
 window.sendMsg = async()=>{
@@ -654,6 +657,12 @@ const msg = document.getElementById("msg").value.trim();
 const fileInput = document.getElementById("uploadFile");
 
 if(!user) return alert("Numéro requis");
+
+// 📩 message en cours (optionnel)
+await push(ref(db,"messages/"+user),{
+text: "🔂 Message en cours d'envoi...",
+date: Date.now()
+});
 
 // 📤 SI FICHIER
 if(fileInput.files[0]){
