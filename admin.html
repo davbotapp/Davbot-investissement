@@ -14,6 +14,7 @@
     --glass:rgba(255,255,255,0.05);
 }
 
+/* BODY */
 body{
     margin:0;
     font-family:'Segoe UI', sans-serif;
@@ -45,7 +46,7 @@ body{
     margin:auto;
 }
 
-/* GRID RESPONSIVE */
+/* GRID */
 .grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
@@ -58,11 +59,12 @@ body{
     border:1px solid rgba(0,210,255,0.2);
     border-radius:15px;
     padding:12px;
+    backdrop-filter: blur(10px);
 }
 
-/* LIST SCROLL */
+/* LIST */
 .list{
-    max-height:250px;
+    max-height:300px;
     overflow:auto;
 }
 
@@ -84,6 +86,11 @@ button{
     border-radius:8px;
     cursor:pointer;
     font-weight:bold;
+    transition:0.3s;
+}
+
+button:hover{
+    opacity:0.8;
 }
 
 .ok{ background:var(--green); }
@@ -110,12 +117,21 @@ button{
     border-radius:8px;
 }
 
-/* LOGIN FIX */
+/* LOGIN */
 #loginBox{
     display:flex;
     justify-content:center;
     align-items:center;
     height:100vh;
+}
+
+/* SCROLL STYLE */
+::-webkit-scrollbar{
+    width:5px;
+}
+::-webkit-scrollbar-thumb{
+    background:var(--blue);
+    border-radius:10px;
 }
 </style>
 </head>
@@ -127,7 +143,7 @@ button{
 <!-- 🔐 LOGIN -->
 <div id="loginBox">
     <div class="card" style="max-width:350px;width:90%;">
-        <h3>🔐 Admin</h3>
+        <h3>🔐 Connexion Admin</h3>
         <input id="adminPhone" placeholder="Numéro">
         <input id="adminPass" type="password" placeholder="Mot de passe">
         <button class="mainBtn" onclick="loginAdmin()">Connexion</button>
@@ -177,7 +193,7 @@ button{
                 <div id="transferts" class="list"></div>
             </div>
 
-            <!-- 📩 MESSAGE -->
+            <!-- 📩 ENVOYER MESSAGE -->
             <div class="card">
                 <h3>📩 Envoyer message</h3>
 
@@ -202,6 +218,7 @@ button{
 
 </div>
 
+<!-- SCRIPT -->
 <script type="module" src="admin.js"></script>
 
 </body>
