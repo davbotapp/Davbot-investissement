@@ -104,40 +104,73 @@ ${getAvatar(photo,name)}
 });
 
 // ================= RECHARGES =================
+// ================= RECHARGES =================
+
 onValue(ref(db,"demandes_recharges"), async snap=>{
 const box = document.getElementById("recharges");
+if(!box) return;
+
 box.innerHTML = "";
 
-if(!snap.exists()) return;
+if(!snap.exists()){
+box.innerHTML = "<small>Aucune recharge</small>";
+return;
+}
 
 for(const [id,r] of Object.entries(snap.val())){
 
 if(r.status && r.status !== "pending") continue;
 
+// 🔥 récupérer user
 const userSnap = await get(ref(db,"users/"+r.user));
 const u = userSnap.val() || {};
 
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
+const phone = r.user || "Non défini";
 
 box.innerHTML += `
+
 <div class="card">
 
 <div style="display:flex;align-items:center;gap:10px;">
-${getAvatar(photo,name)}
+
+${
+photo
+? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;">`
+: `<div style="
+width:45px;
+height:45px;
+border-radius:50%;
+background:#00d2ff;
+display:flex;
+align-items:center;
+justify-content:center;
+color:black;
+font-weight:bold;">
+${name.substring(0,2)}
+</div>`
+}
+
 <div>
 <b>${name}</b><br>
-📱 ${r.user}
+📱 ${phone}
 </div>
+
 </div>
 
 <hr>
+
 💰 ${r.amount} FC
 
+<div style="margin-top:10px;display:flex;gap:5px;">
 <button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">Valider</button>
 <button class="no" onclick="deleteItem('demandes_recharges','${id}')">Refuser</button>
+</div>
 
-</div>`;
+</div>
+
+`;
 }
 });
 
