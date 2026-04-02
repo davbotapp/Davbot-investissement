@@ -186,86 +186,118 @@ ${name.substring(0,2)}
 }  
 });  // ================= COMMANDES =================
 // ================= COMMANDES =================
-// ================= 📦 COMMANDES =================
-onValue(ref(db,"orders/pending"), async (snap)=>{
+// ================= COMMANDES =================
+// ================= COMMANDES =================
+onValue(ref(db,"orders/pending"), async snap=>{
 
-const box = document.getElementById("commandes");
-box.innerHTML = "";
+    const box = document.getElementById("commandes");
+    if(!box) return;
 
-if(!snap.exists()){
-    box.innerHTML = "<small>Aucune commande</small>";
-    return;
-}
+    box.innerHTML = "";
 
-for(const [user, cmds] of Object.entries(snap.val())){
+    if(!snap.exists()) return;
 
-    for(const [id, c] of Object.entries(cmds)){
+    for(const [user, cmds] of Object.entries(snap.val())){
 
+        // 🔥 récupérer infos utilisateur
         const userSnap = await get(ref(db,"users/"+user));
         const u = userSnap.val() || {};
 
         const name = u.name || "Utilisateur";
         const photo = u.photo || "";
 
-        let details = "";
+        for(const [id, c] of Object.entries(cmds)){
 
-        if(c.service === "Application"){
-            details += `📱 Nom APK : ${c.name || "-"}<br>`;
-        }
+            let details = "";
 
-        if(c.service === "Site Web Pro"){
-            details += `🌐 Nom : ${c.name || "-"}<br>`;
-        }
+            // 📱 APPLICATION
+            if(c.service==="Application"){
+                details += `📱 Nom APK : ${c.name || "-"}<br>`;
+                details += `🎨 Couleur : ${c.color || "-"}<br>`;
+                details += `📝 ${c.desc || "-"}<br>`;
+            }
 
-        if(c.service === "Intelligence Artificielle"){
-            details += `🤖 Type : ${c.aiType || "-"}<br>`;
-        }
+            // 🌐 SITE
+            if(c.service==="Site Web Pro"){
+                details += `🌐 Nom : ${c.name || "-"}<br>`;
+                details += `🎨 Couleur : ${c.color || "-"}<br>`;
+                details += `📝 ${c.desc || "-"}<br>`;
+            }
 
-        // 🔥 MESSAGE AUTO (EN COURS)
-        if(!c.notified){
-            await push(ref(db,"messages/"+user),{
-                text: `⏳ Votre commande "${c.service}" est en cours de traitement.`,
-                date: Date.now()
-            });
+            // 🤖 IA
+            if(c.service==="Intelligence Artificielle"){
+                details += `🤖 Type : ${c.aiType || "-"}<br>`;
+                details += `📛 Nom : ${c.name || "-"}<br>`;
+                details += `📞 Admin : ${c.adminNumber || "-"}<br>`;
+            }
 
-            await update(ref(db,"orders/pending/"+user+"/"+id),{
-                notified:true,
-                createdAt: Date.now()
-            });
-        }
+            // 🚀 BOOST
+            if(c.service==="Réseaux Sociaux"){
+                details += `📱 Plateforme : ${c.platform || "-"}<br>`;
+                details += `📊 Type : ${c.type || "-"}<br>`;
+                details += `🔢 Quantité : ${c.nombre || 0}<br>`;
+                details += `🔗 Lien : ${c.link || "-"}<br>`;
+            }
 
-        box.innerHTML += `
-        <div class="card">
+            // 🌍 HÉBERGEMENT
+            if(c.service==="Hébergement"){
+                details += `🌐 Site : ${c.siteUrl || "-"}<br>`;
+                details += `⏳ Durée : ${c.duree || "-"}<br>`;
+            }
 
-            <div style="display:flex;align-items:center;gap:10px;">
-                ${
-                    photo
-                    ? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;">`
-                    : `<div style="width:45px;height:45px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;">
-                        ${name.substring(0,2)}
-                    </div>`
+            // 🛡️ VPN
+            if(c.service==="VPN"){
+                details += `🛡️ Nom : ${c.vpnName || "-"}<br>`;
+                details += `📶 Réseau : ${c.reseau || "-"}<br>`;
+            }
+
+            // 🔥 fallback
+            Object.keys(c).forEach(k=>{
+                if(!["service","price","user","date"].includes(k)){
+                    if(!details.includes(k)){
+                        details += `${k} : ${c[k]}<br>`;
+                    }
                 }
+            });
 
-                <div>
-                    <b>${name}</b><br>
-                    📱 ${user}
+            // ✅ UI
+            box.innerHTML += `
+            <div class="card">
+
+                <div style="display:flex;align-items:center;gap:10px;">
+
+                    ${
+                        photo 
+                        ? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;">`
+                        : `<div style="width:45px;height:45px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;">
+                            ${name.substring(0,2)}
+                        </div>`
+                    }
+
+                    <div>
+                        <b>${name}</b><br>
+                        📱 ${user}
+                    </div>
+
                 </div>
+
+                <hr>
+
+                📦 ${c.service}<br>
+                💰 ${c.price} FC
+
+                <div style="margin-top:10px;background:#111;padding:10px;border-radius:8px;">
+                    ${details}
+                </div>
+
+                <button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
+                <button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
+
             </div>
-
-            <hr>
-
-            📦 ${c.service}<br>
-            💰 ${c.price} FC
-
-            <div class="details">${details}</div>
-
-            <button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
-            <button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
-
-        </div>
-        `;
+            `;
+        }
     }
-}
+
 });
 // ================= TRANSFERTS =================
 onValue(ref(db,"transferts"), snap=>{
@@ -368,26 +400,13 @@ await remove(ref(db,"support_messages/"+id));
 // ✅ COMMANDES
 window.valCmd = async(user,id)=>{
 
-const refCmdDb = ref(db,"orders/pending/"+user+"/"+id);
-const snap = await get(refCmdDb);
+const snapRef = ref(db,"orders/pending/"+user+"/"+id);
+const snap = await get(snapRef);
 
 if(!snap.exists()) return;
 
 const data = snap.val();
 
-// message PRO
-await push(ref(db,"messages/"+user),{
-text: `✅ Votre commande "${data.service}" est prête.
-Merci pour votre patience 🙏`,
-date: Date.now()
-});
-
-// déplacer
-await set(ref(db,"orders/validated/"+user+"/"+id), data);
-await remove(refCmdDb);
-
-alert("✅ Commande validée");
-};
 // ✅ CAS SPÉCIAL : HÉBERGEMENT
 if(data.service === "Hébergement"){
 
@@ -549,5 +568,3 @@ style="background:red;color:white;">
 </div>  </div>  
 `;  
 });  });
-
-
