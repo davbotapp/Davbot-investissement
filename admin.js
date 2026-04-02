@@ -288,69 +288,218 @@ ${getAvatar(toUser.photo,toUser.name)}
 
 // ================= ACTIONS =================
 
+// ✅ RECHARGE
 window.valRecharge = async(id,user,amount)=>{
-const snap = await get(ref(db,"users/"+user));
-await update(ref(db,"users/"+user),{
-balance:(snap.val().balance||0)+amount
+
+const userRef = ref(db,"users/"+user);
+const snap = await get(userRef);
+
+if(!snap.exists()) return;
+
+const bal = snap.val().balance || 0;
+
+await update(userRef,{
+balance: bal + amount
 });
+
+// 📩 notifier utilisateur
+await push(ref(db,"messages/"+user),{
+text: "💰 Recharge validée : " + amount + " FC",
+date: Date.now()
+});
+
 await remove(ref(db,"demandes_recharges/"+id));
 };
 
+// ✅ RETRAIT
 window.valRetrait = async(id)=>{
-const snap = await get(ref(db,"demandes_retraits/"+id));
-const data = snap.val();
-const user = data.user;
-const amount = data.montant;
 
-const snapUser = await get(ref(db,"users/"+user));
-const balance = snapUser.val().balance || 0;
+const retraitRef = ref(db,"demandes_retraits/"+id);  
+const snap = await get(retraitRef);  
 
-if(balance < amount) return alert("❌ Solde insuffisant");
+if(!snap.exists()) return;  
 
-await update(ref(db,"users/"+user),{balance:balance-amount});
-await remove(ref(db,"demandes_retraits/"+id));
+const data = snap.val();  
 
-await push(ref(db,"messages/"+user),{
-text:"✅ Retrait validé : "+amount+" FC",
-date:Date.now()
+const user = data.user;  
+const amount = data.montant;  
+
+const userRef = ref(db,"users/"+user);  
+const snapUser = await get(userRef);  
+
+if(!snapUser.exists()) return;  
+
+const balance = snapUser.val().balance || 0;  
+
+// 🔒 sécurité  
+if(balance < amount){  
+alert("❌ Solde insuffisant !");  
+return;  
+}
+
+// 🔻 déduction
+await update(userRef,{
+balance: balance - amount
 });
+
+// 🧾 supprimer demande  
+await remove(retraitRef);  
+
+// 📩 notifier utilisateur  
+await push(ref(db,"messages/"+user),{  
+text: "✅ Retrait validé : " + amount + " FC",  
+date: Date.now()  
+});  
+
+alert("✅ Retrait validé");
 };
 
+
+// 📋 Copier message utilisateur
+window.copyUserMsg = (text)=>{
+if(!text) return alert("Vide");
+
+navigator.clipboard.writeText(text)  
+.then(()=> alert("✅ Copié"))  
+.catch(()=> alert(text));
+};
+
+
+// 🗑️ Supprimer message utilisateur
+window.deleteUserMsg = async(id)=>{
+if(confirm("Supprimer ce message ?")){
+await remove(ref(db,"support_messages/"+id));
+}
+};
+
+
+// ✅ COMMANDES
 window.valCmd = async(user,id)=>{
-const snap = await get(ref(db,"orders/pending/"+user+"/"+id));
+
+const snapRef = ref(db,"orders/pending/"+user+"/"+id);
+const snap = await get(snapRef);
+
+if(!snap.exists()) return;
+
 const data = snap.val();
 
-await set(ref(db,"orders/validated/"+user+"/"+id),data);
-await remove(ref(db,"orders/pending/"+user+"/"+id));
+// ✅ CAS SPÉCIAL : HÉBERGEMENT
+if(data.service === "Hébergement"){
+
+// 🔥 créer site actif  
+await set(ref(db,"hebergements/"+user+"/"+id),{  
+siteUrl: data.siteUrl || "Non défini",  
+status: "online",  
+duree: data.duree || "N/A",  
+dateStart: Date.now()  
+});  
+
+// 📩 notifier utilisateur  
+await push(ref(db,"messages/"+user),{  
+text: "🌐 Votre site est maintenant EN LIGNE",  
+date: Date.now()  
+});
+
+}
+
+// 📩 notifier commande validée
+await push(ref(db,"messages/"+user),{
+text: "✅ Commande validée : " + (data.service || ""),
+date: Date.now()
+});
+
+// ✅ déplacer commande validée
+await set(ref(db,"orders/validated/"+user+"/"+id), data);
+
+// ❌ supprimer pending
+await remove(snapRef);
+
+alert("✅ Commande validée");
 };
 
+
+// ❌ REFUSER COMMANDE
 window.refCmd = async(user,id,price)=>{
-const snapUser = await get(ref(db,"users/"+user));
-await update(ref(db,"users/"+user),{
-balance:(snapUser.val().balance||0)+price
+
+const userRef = ref(db,"users/"+user);
+const snapUser = await get(userRef);
+
+if(!snapUser.exists()) return;
+
+const bal = snapUser.val().balance || 0;
+
+// 🔁 remboursement
+await update(userRef,{
+balance: bal + price
 });
-await remove(ref(db,"orders/pending/"+user+"/"+id));
+
+const snapRef = ref(db,"orders/pending/"+user+"/"+id);
+const snap = await get(snapRef);
+
+// 📩 notifier refus
+await push(ref(db,"messages/"+user),{
+text: "❌ Commande refusée + remboursement : " + price + " FC",
+date: Date.now()
+});
+
+await set(ref(db,"orders/cancelled/"+user+"/"+id), snap.val());
+await remove(snapRef);
 };
 
+
+// ✅ TRANSFERT (FIX BUG + SÉCURITÉ)
 window.valTrans = async(id,from,to,amount)=>{
-const fromSnap = await get(ref(db,"users/"+from));
-const toSnap = await get(ref(db,"users/"+to));
 
-await update(ref(db,"users/"+from),{
-balance:(fromSnap.val().balance||0)-amount
+const fromRef = ref(db,"users/"+from);
+const toRef = ref(db,"users/"+to);
+
+const snapFrom = await get(fromRef);
+const snapTo = await get(toRef);
+
+if(!snapFrom.exists() || !snapTo.exists()) return;
+
+const balFrom = snapFrom.val().balance || 0;
+const balTo = snapTo.val().balance || 0;
+
+// 🔒 sécurité
+if(balFrom < amount){
+alert("❌ Solde insuffisant");
+return;
+}
+
+// 🔻 retirer
+await update(fromRef,{
+balance: balFrom - amount
 });
 
-await update(ref(db,"users/"+to),{
-balance:(toSnap.val().balance||0)+amount
+// ➕ ajouter
+await update(toRef,{
+balance: balTo + amount
 });
 
+// 📩 notifications
+await push(ref(db,"messages/"+from),{
+text: "💸 Transfert envoyé : " + amount + " FC",
+date: Date.now()
+});
+
+await push(ref(db,"messages/"+to),{
+text: "💰 Transfert reçu : " + amount + " FC",
+date: Date.now()
+});
+
+// ✔ supprimer demande
 await remove(ref(db,"transferts/"+id));
 };
 
+
+// ❌ DELETE
 window.deleteItem = async(path,id)=>{
 await remove(ref(db,path+"/"+id));
 };
 
+
+// ❌ DELETE USER
 window.delUser = async(phone)=>{
 if(confirm("Supprimer cet utilisateur ?")){
 await remove(ref(db,"users/"+phone));
