@@ -162,7 +162,6 @@ ${name.substring(0,2)}
 <hr>
 
 💰 ${r.amount} FC
-🆔 ${id}
 
 <div style="margin-top:10px;display:flex;gap:5px;">
 <button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">Valider</button>
@@ -175,79 +174,7 @@ ${name.substring(0,2)}
 }
 });
 
-// ================= RETRAITS =================
 
-onValue(ref(db,"demandes_retraits"), async snap=>{
-const box = document.getElementById("retraits");
-if(!box) return;
-
-box.innerHTML = "";
-
-if(!snap.exists()){
-box.innerHTML = "<small>Aucune demande</small>";
-return;
-}
-
-for(const [id,r] of Object.entries(snap.val())){
-
-if(r.statut === "validé") continue;
-
-// 🔥 récupérer user
-const userSnap = await get(ref(db,"users/"+r.user));
-const u = userSnap.val() || {};
-
-// ✅ données sécurisées
-const name = u.name || "Utilisateur";
-const photo = u.photo || "";
-const phone = r.user || "Inconnu";
-
-box.innerHTML += `
-
-<div class="card">
-
-<div style="display:flex;align-items:center;gap:10px;">
-
-${
-photo
-? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;object-fit:cover;">`
-: `<div style="
-width:45px;
-height:45px;
-border-radius:50%;
-background:#00d2ff;
-display:flex;
-align-items:center;
-justify-content:center;
-color:black;
-font-weight:bold;
-">
-${name.substring(0,2)}
-</div>`
-}
-
-<div>
-<b>${name}</b><br>
-📱 ${phone}
-</div>
-
-</div>
-
-<hr>
-
-💸 ${r.montant} FC
-
-<div class="details">
-🆔 ID: ${numero}<br>
-📅 ${r.date ? new Date(r.date).toLocaleString() : ""}
-</div>
-
-<button class="ok" onclick="valRetrait('${id}')">Valider</button>
-<button class="no" onclick="deleteItem('demandes_retraits','${id}')">Refuser</button>
-
-</div>
-`;  
-}  
-});
 // ================= COMMANDES =================
 onValue(ref(db,"orders/pending"), async snap=>{
 
@@ -452,48 +379,9 @@ date: Date.now()
 await remove(ref(db,"demandes_recharges/"+id));
 };
 
-// ✅ RETRAIT
-window.valRetrait = async(id)=>{
-
-const retraitRef = ref(db,"demandes_retraits/"+id);  
-const snap = await get(retraitRef);  
-
-if(!snap.exists()) return;  
-
-const data = snap.val();  
-
-const user = data.user;  
-const amount = data.montant;  
-
-const userRef = ref(db,"users/"+user);  
-const snapUser = await get(userRef);  
-
-if(!snapUser.exists()) return;  
-
-const balance = snapUser.val().balance || 0;  
-
-// 🔒 sécurité  
-if(balance < amount){  
-alert("❌ Solde insuffisant !");  
-return;  
-}
-
-// 🔻 déduction
-await update(userRef,{
-balance: balance - amount
-});
-
-// 🧾 supprimer demande  
-await remove(retraitRef);  
 
 // 📩 notifier utilisateur  
-await push(ref(db,"messages/"+user),{  
-text: "✅ Retrait effectué avec succès\n💸 Montant : " + amount + " FC",  
-date: Date.now()  
-});  
 
-alert("✅ Retrait validé");
-};
 
 
 // 📋 Copier message utilisateur
