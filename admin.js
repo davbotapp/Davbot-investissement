@@ -368,13 +368,26 @@ await remove(ref(db,"support_messages/"+id));
 // ✅ COMMANDES
 window.valCmd = async(user,id)=>{
 
-const snapRef = ref(db,"orders/pending/"+user+"/"+id);
-const snap = await get(snapRef);
+const refCmdDb = ref(db,"orders/pending/"+user+"/"+id);
+const snap = await get(refCmdDb);
 
 if(!snap.exists()) return;
 
 const data = snap.val();
 
+// message PRO
+await push(ref(db,"messages/"+user),{
+text: `✅ Votre commande "${data.service}" est prête.
+Merci pour votre patience 🙏`,
+date: Date.now()
+});
+
+// déplacer
+await set(ref(db,"orders/validated/"+user+"/"+id), data);
+await remove(refCmdDb);
+
+alert("✅ Commande validée");
+};
 // ✅ CAS SPÉCIAL : HÉBERGEMENT
 if(data.service === "Hébergement"){
 
@@ -536,3 +549,5 @@ style="background:red;color:white;">
 </div>  </div>  
 `;  
 });  });
+
+
