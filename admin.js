@@ -142,100 +142,207 @@ ${getAvatar(photo,name)}
 });
 
 // ================= RETRAITS =================
+
 onValue(ref(db,"demandes_retraits"), async snap=>{
 const box = document.getElementById("retraits");
-box.innerHTML = "";
-
-if(!snap.exists()) return;
-
-for(const [id,r] of Object.entries(snap.val())){
-
-if(r.statut === "validé") continue;
-
-const userSnap = await get(ref(db,"users/"+r.user));
-const u = userSnap.val() || {};
-
-const name = u.name || "Utilisateur";
-const photo = u.photo || "";
-
-box.innerHTML += `
-<div class="card">
-
-<div style="display:flex;align-items:center;gap:10px;">
-${getAvatar(photo,name)}
-<div>
-<b>${name}</b><br>
-📱 ${r.user}
-</div>
-</div>
-
-<hr>
-💸 ${r.montant} FC
-
-<button class="ok" onclick="valRetrait('${id}')">Valider</button>
-<button class="no" onclick="deleteItem('demandes_retraits','${id}')">Refuser</button>
-
-</div>`;
-}
-});
-
-// ================= COMMANDES =================
-onValue(ref(db,"orders/pending"), async snap=>{
-
-const box = document.getElementById("commandes");
 if(!box) return;
 
 box.innerHTML = "";
 
 if(!snap.exists()){
-box.innerHTML = "<small>Aucune commande</small>";
+box.innerHTML = "<small>Aucune demande</small>";
 return;
 }
 
-for(const [user, cmds] of Object.entries(snap.val())){
+for(const [id,r] of Object.entries(snap.val())){
 
-const userSnap = await get(ref(db,"users/"+user));
+if(r.statut === "validé") continue;
+
+// 🔥 récupérer user
+const userSnap = await get(ref(db,"users/"+r.user));
 const u = userSnap.val() || {};
 
+// ✅ données sécurisées
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
-
-for(const [id, c] of Object.entries(cmds)){
-
-let details = "";
-
-Object.keys(c).forEach(k=>{
-if(!["service","price","user","date"].includes(k)){
-details += `${k} : ${c[k]}<br>`;
-}
-});
+const phone = r.user || "Inconnu";
 
 box.innerHTML += `
+
 <div class="card">
 
 <div style="display:flex;align-items:center;gap:10px;">
-${getAvatar(photo,name)}
+
+${
+photo
+? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:45px;
+height:45px;
+border-radius:50%;
+background:#00d2ff;
+display:flex;
+align-items:center;
+justify-content:center;
+color:black;
+font-weight:bold;
+">
+${name.substring(0,2)}
+</div>`
+}
+
 <div>
 <b>${name}</b><br>
-📱 ${user}
+📱 ${phone}
 </div>
+
 </div>
 
 <hr>
 
-📦 ${c.service}<br>
-💰 ${c.price} FC
+💸 ${r.montant} FC
 
-<div style="margin-top:10px;background:#111;padding:10px;border-radius:8px;">
-${details}
+<div class="details">
+🆔 ID: ${id}<br>
+📅 ${r.date ? new Date(r.date).toLocaleString() : ""}
 </div>
 
-<button class="ok" onclick="valCmd('${user}','${id}')">Valider</button>
-<button class="no" onclick="refCmd('${user}','${id}',${c.price})">Refuser</button>
+<button class="ok" onclick="valRetrait('${id}')">Valider</button>
+<button class="no" onclick="deleteItem('demandes_retraits','${id}')">Refuser</button>
 
-</div>`;
-}
-}
+</div>
+`;  
+}  
+});
+// ================= COMMANDES =================
+onValue(ref(db,"orders/pending"), async snap=>{
+
+    const box = document.getElementById("commandes");
+    if(!box) return;
+
+    box.innerHTML = "";
+
+    if(!snap.exists()){
+        box.innerHTML = "<small>Aucune commande</small>";
+        return;
+    }
+
+    for(const [user, cmds] of Object.entries(snap.val())){
+
+        // 🔥 récupérer infos utilisateur
+        const userSnap = await get(ref(db,"users/"+user));
+        const u = userSnap.val() || {};
+
+        const name = u.name || "Utilisateur";
+        const photo = u.photo || "";
+        const phone = user || "N/A";
+
+        for(const [id, c] of Object.entries(cmds)){
+
+            let details = "";
+
+            // 📱 APPLICATION
+            if(c.service==="Application"){
+                details += `📱 Nom APK : ${c.name || "-"}<br>`;
+                details += `🎨 Couleur : ${c.color || "-"}<br>`;
+                details += `📝 Description : ${c.desc || "-"}<br>`;
+            }
+
+            // 🌐 SITE
+            if(c.service==="Site Web Pro"){
+                details += `🌐 Nom : ${c.name || "-"}<br>`;
+                details += `🎨 Couleur : ${c.color || "-"}<br>`;
+                details += `📝 Description : ${c.desc || "-"}<br>`;
+            }
+
+            // 🤖 IA
+            if(c.service==="Intelligence Artificielle"){
+                details += `🤖 Type : ${c.aiType || "-"}<br>`;
+                details += `📛 Nom : ${c.name || "-"}<br>`;
+                details += `📞 Admin : ${c.adminNumber || "-"}<br>`;
+            }
+
+            // 🚀 BOOST
+            if(c.service==="Réseaux Sociaux"){
+                details += `📱 Plateforme : ${c.platform || "-"}<br>`;
+                details += `📊 Type : ${c.type || "-"}<br>`;
+                details += `🔢 Quantité : ${c.nombre || 0}<br>`;
+                details += `🔗 Lien : ${c.link || "-"}<br>`;
+            }
+
+            // 🌍 HÉBERGEMENT
+            if(c.service==="Hébergement"){
+                details += `🌐 Site : ${c.siteUrl || "-"}<br>`;
+                details += `⏳ Durée : ${c.duree || "-"}<br>`;
+            }
+
+            // 🛡️ VPN
+            if(c.service==="VPN"){
+                details += `🛡️ Nom : ${c.vpnName || "-"}<br>`;
+                details += `📶 Réseau : ${c.reseau || "-"}<br>`;
+            }
+
+            // 🔥 fallback (affiche tout ce qui manque)
+            Object.keys(c).forEach(k=>{
+                if(!["service","price","user","date"].includes(k)){
+                    if(!details.includes(k)){
+                        details += `${k} : ${c[k]}<br>`;
+                    }
+                }
+            });
+
+            // 🧠 PHOTO TOUJOURS (fallback)
+            const avatar = photo
+                ? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;object-fit:cover;">`
+                : `<div style="
+                        width:45px;
+                        height:45px;
+                        border-radius:50%;
+                        background:#00d2ff;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        color:black;
+                        font-weight:bold;
+                    ">
+                        ${name.substring(0,2)}
+                   </div>`;
+
+            // ✅ UI
+            box.innerHTML += `
+            <div class="card">
+
+                <div style="display:flex;align-items:center;gap:10px;">
+                    ${avatar}
+
+                    <div>
+                        <b>${name}</b><br>
+                        📱 ${phone}
+                    </div>
+                </div>
+
+                <hr>
+
+                📦 <b>${c.service || "Service inconnu"}</b><br>
+                💰 <b>${c.price || 0} FC</b><br>
+
+                <div class="details">
+                    ${details || "Aucun détail"}
+                </div>
+
+                <button class="ok" onclick="valCmd('${user}','${id}')">
+                    ✅ Valider
+                </button>
+
+                <button class="no" onclick="refCmd('${user}','${id}',${c.price || 0})">
+                    ❌ Refuser
+                </button>
+
+            </div>
+            `;
+        }
+    }
+
 });
 
 // ================= TRANSFERTS =================
