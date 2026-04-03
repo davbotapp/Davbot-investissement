@@ -28,43 +28,7 @@ let loading = false;
 // ================= FORM =================
 function renderForm(){
 
-if(service === "Application"){
-zone.innerHTML = `
-<input type="text" id="name" placeholder="📱 Nom APK">
-<input type="file" id="icon">
-<input type="text" id="color" placeholder="🎨 Couleur">
-<textarea id="desc" placeholder="📝 Description"></textarea>`;
-}
-
-else if(service === "Site Web Pro"){
-zone.innerHTML = `
-<input type="text" id="name" placeholder="🌐 Nom du site">
-<input type="text" id="color" placeholder="🎨 Couleur">
-<textarea id="desc" placeholder="📝 Description"></textarea>`;
-}
-
-else if(service === "Intelligence Artificielle"){
-zone.innerHTML = `
-<select id="aiType">
-<option value="fb_bot">Facebook Bot</option>
-<option value="fb_page">Page Bot Facebook</option>
-<option value="wa_bot">WhatsApp Bot</option>
-<option value="web_bot">Web Bot</option>
-</select>
-<input type="text" id="name" placeholder="Nom du bot">
-<input type="text" id="adminNumber" placeholder="📞 Numéro admin">
-<input type="text" id="color" placeholder="🎨 Couleur">
-<textarea id="desc" placeholder="📝 Description"></textarea>`;
-}
-
-else if(service === "Mini Jeux"){
-zone.innerHTML = `
-<input type="text" id="name" placeholder="🎮 Nom jeu">
-<input type="text" id="color" placeholder="🎨 Couleur">
-<textarea id="desc" placeholder="📝 Description"></textarea>`;
-}
-
-else if(service === "Réseaux Sociaux"){
+if(service === "Réseaux Sociaux"){
 zone.innerHTML = `
 <select id="platform">
 <option>Facebook</option>
@@ -79,41 +43,10 @@ zone.innerHTML = `
 <option>Vues</option>
 <option>Likes</option>
 <option>Followers</option>
-<option>Membre Groupe</option>
-<option>Membre Canal</option>
-<option>Chaîne Followers</option>
 </select>
 
-<input type="number" id="nombre" placeholder="Quantité">
+<input type="number" id="nombre" placeholder="Quantité (min 100)">
 <input type="text" id="link" placeholder="🔗 Lien">`;
-}
-
-else if(service === "Hébergement"){
-zone.innerHTML = `
-<select id="duree">
-<option>7 jours</option>
-<option>15 jours</option>
-<option>30 jours</option>
-<option>60 jours</option>
-</select>
-<input type="text" id="siteUrl" placeholder="🌐 Lien du site">`;
-}
-
-else if(service === "VPN"){
-zone.innerHTML = `
-<input type="text" id="vpnName" placeholder="Nom VPN">
-<select id="reseau">
-<option>MTN</option>
-<option>Airtel</option>
-<option>Orange</option>
-<option>Vodacom</option>
-<option>Africell</option>
-</select>
-<select id="duree">
-<option>7 jour</option>
-<option>15 jours</option>
-<option>30 jours</option>
-</select>`;
 }
 
 attachEvents();
@@ -124,7 +57,7 @@ renderForm();
 
 // ================= EVENTS =================
 function attachEvents(){
-document.querySelectorAll("#formZone input, #formZone select, #formZone textarea")
+document.querySelectorAll("#formZone input, #formZone select")
 .forEach(el=>{
 el.addEventListener("input", calcPrice);
 });
@@ -135,21 +68,6 @@ function calcPrice(){
 
 let price = 0;
 
-// ================= FIXES =================
-if(service === "Application") price = 45000;
-if(service === "Site Web Pro") price = 30000;
-
-if(service === "Intelligence Artificielle"){
-const type = document.getElementById("aiType")?.value;
-if(type === "fb_bot") price = 3000;
-if(type === "fb_page") price = 6000;
-if(type === "wa_bot") price = 5000;
-if(type === "web_bot") price = 10000;
-}
-
-if(service === "Mini Jeux") price = 10000;
-
-// ================= RÉSEAUX SOCIAUX =================
 if(service === "Réseaux Sociaux"){
 
 const type = document.getElementById("type")?.value;
@@ -180,44 +98,45 @@ p1000 = 12000;
 p10000 = 80000;
 }
 
-// 🔢 interpolation (très important)
-let ratio = (nb - 1000) / (10000 - 1000);
+// ================= CALCUL PRO =================
 
-if(ratio < 0) ratio = 0;
-if(ratio > 1) ratio = 1;
+// 🔹 cas 1 : petit volume
+if(nb <= 1000){
+price = (nb / 1000) * p1000;
+}
 
-// 💰 prix évolutif
-let pricePer1000 = p1000 + (p10000 - p1000) * ratio;
+// 🔹 cas 2 : moyen volume
+else if(nb <= 10000){
 
-// 💰 total
-let total = (nb / 1000) * pricePer1000;
+let part1 = p1000;
 
-// 🔥 réduction légère intelligente
-if(nb >= 5000) total *= 0.95;
-if(nb >= 10000) total *= 0.90;
+let reste = nb - 1000;
+
+// prix moyen progressif
+let prixMilieu = (p1000 + p10000) / 2;
+
+let part2 = (reste / 1000) * prixMilieu;
+
+price = part1 + part2;
+}
+
+// 🔹 cas 3 : gros volume (réduction)
+else{
+
+let base = (nb / 1000) * p10000;
+
+let discount = 0.1 + (nb / 100000); // 10% → 20%
+if(discount > 0.2) discount = 0.2;
+
+price = base * (1 - discount);
+}
 
 // 🔒 sécurité
-price = Math.max(100, Math.floor(total));
+price = Math.max(100, Math.floor(price));
 }
 
-// ================= AUTRES =================
-if(service === "Hébergement"){
-const d = document.getElementById("duree")?.value;
-if(d==="7 jours") price=3500;
-if(d==="15 jours") price=6000;
-if(d==="30 jours") price=8000;
-if(d==="60 jours") price=12000;
+priceDisplay.innerText = price;
 }
-
-if(service === "VPN"){
-const d = document.getElementById("duree")?.value;
-if(d==="7 jour") price=2500;
-if(d==="15 jours") price=5000;
-if(d==="30 jours") price=8000;
-}
-
-priceDisplay.innerText = Math.floor(price);
-   }
 
 // ================= VALIDATION =================
 window.valider = async ()=>{
@@ -268,16 +187,11 @@ date: Date.now()
 };
 
 // 🔥 champs dynamiques
-const inputs = document.querySelectorAll("#formZone input, #formZone select, #formZone textarea");
+const inputs = document.querySelectorAll("#formZone input, #formZone select");
 
 inputs.forEach(el=>{
 if(!el.id) return;
-
-if(el.type === "file"){
-data[el.id] = el.files[0] ? el.files[0].name : null;
-}else{
 data[el.id] = el.value || null;
-}
 });
 
 const id = Date.now();
