@@ -153,32 +153,53 @@ if(service === "Mini Jeux") price = 10000;
 if(service === "Réseaux Sociaux"){
 
 const type = document.getElementById("type")?.value;
-const nb = parseInt(document.getElementById("nombre")?.value) || 0;
+let nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
-if(nb <= 0){
+// 🔒 MINIMUM
+if(nb < 100){
+alert("❌ Minimum 100");
 priceDisplay.innerText = 0;
 return;
 }
 
-// 💰 prix base
-let pricePer1000 = 0;
+// 🔥 TES PRIX RÉELS
+let p1000 = 0;
+let p10000 = 0;
 
-if(type==="Vues") pricePer1000 = 1500;
-if(type==="Likes") pricePer1000 = 4500;
-if(type==="Followers") pricePer1000 = 12000;
-if(type==="Membre Groupe") pricePer1000 = 5000;
-if(type==="Membre Canal") pricePer1000 = 6000;
-if(type==="Chaîne Followers") pricePer1000 = 6000;
+if(type==="Vues"){
+p1000 = 1500;
+p10000 = 8000;
+}
 
-// 🔢 calcul
+if(type==="Likes"){
+p1000 = 4500;
+p10000 = 25000;
+}
+
+if(type==="Followers"){
+p1000 = 12000;
+p10000 = 80000;
+}
+
+// 🔢 interpolation intelligente
+let ratio = (nb - 1000) / (10000 - 1000);
+
+// clamp
+if(ratio < 0) ratio = 0;
+if(ratio > 1) ratio = 1;
+
+// 💰 prix pour 1000 évolutif
+let pricePer1000 = p1000 + (p10000 - p1000) * ratio;
+
+// 💰 calcul final
 let total = (nb / 1000) * pricePer1000;
 
-// 🔥 réduction progressive SANS BUG
-let discount = nb / 50000;
-if(discount > 0.25) discount = 0.25;
+// 🔥 réduction BONUS légère
+if(nb >= 5000) total *= 0.95;
+if(nb >= 10000) total *= 0.90;
 
-// 💰 prix final sécurisé
-price = Math.max(100, Math.floor(total * (1 - discount)));
+// 🔒 sécurité
+price = Math.max(100, Math.floor(total));
 }
 
 if(service === "Hébergement"){
