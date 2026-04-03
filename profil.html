@@ -1,11 +1,8 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!DOCTYPE html><html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Profil - Davbot</title>
-
-<style>
+<title>Profil - Davbot</title><style>
 :root { --blue:#00d2ff; --dark:#050a14; }
 
 body{
@@ -26,6 +23,20 @@ body{
     text-align:center;
     padding:30px;
     border-bottom:1px solid var(--blue);
+    position:relative;
+}
+
+/* BADGE */
+.badge{
+    position:absolute;
+    top:20px;
+    right:20px;
+    background:#00ff88;
+    color:black;
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:12px;
+    display:none;
 }
 
 /* PHOTO */
@@ -75,17 +86,20 @@ body{
     cursor:pointer;
 }
 
-.locked{
-    background:#555;
-}
+.locked{ background:#555; }
+.active{ background:#00ff88; color:black; }
+.wait{ background:#ff9800; }
 
-.active{
-    background:#00ff88;
+/* MESSAGE */
+.msg-btn{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#00d2ff;
     color:black;
-}
-
-.unlock{
-    background:#ff9800;
+    font-weight:bold;
+    margin-top:10px;
 }
 
 /* LOGOUT */
@@ -123,76 +137,41 @@ body{
     opacity:1;
     color:var(--blue);
 }
-</style>
-</head>
+</style></head><body><div class="overlay"><!-- HEADER --><div class="header">
+    <div id="badge" class="badge">✔ MONÉTISÉ</div><img id="avatar" class="avatar" src="">
+<h3 id="name">Nom</h3>
+<p id="phone">Numéro</p>
 
-<body>
-
-<div class="overlay">
-
-<!-- HEADER -->
-<div class="header">
-    <img id="avatar" class="avatar" src="">
-    <h3 id="name">Nom</h3>
-    <p id="phone">Numéro</p>
-</div>
-
-<!-- 💰 STATS -->
-<div class="card">
+</div><!-- 💰 STATS --><div class="card">
     💰 Solde : <b id="solde">0</b> FC<br><br>
     💸 Revenus : <b id="revenus">0</b> FC<br><br>
     ⭐ Points : <b id="points">0</b>
-</div>
+</div><!-- 💰 MONÉTISATION --><div class="card monet">
+    <h3>💰 Monétisation</h3><button id="monetBtn" class="locked">🔒 Demande non envoyée</button>
+<small id="monetInfo"></small>
 
-<!-- 💰 MONÉTISATION -->
-<div class="card monet">
-    <h3>💰 Monétisation</h3>
+<button id="askMonet" class="msg-btn">📩 Demander activation</button>
 
-    <button id="monetBtn" class="locked">🔒 Bloqué (30 jours)</button>
-    <small id="monetInfo"></small>
-</div>
-
-<!-- MENU -->
-<div class="menu">
+</div><!-- MENU --><div class="menu">
     <a href="recharge.html">📥 Recharger</a>
-    <a href="retrait.html">📤 Retirer</a>
     <a href="transf.html">🔂 Transfert</a>
     <a href="dashboard.html">📊 Dashboard</a>
     <a href="equipe.html">👥 Équipe</a>
-</div>
+</div><!-- 📩 INBOX --><div class="card">
+    <h3>📩 Messages Admin</h3><div id="inbox"></div>
 
-<!-- 📩 INBOX -->
-<div class="card">
-    <h3>📩 Messages Admin</h3>
+<!-- ✍️ RÉPONDRE -->
+<textarea id="msgInput" placeholder="📨 Écrire à l'admin..."
+style="width:100%;padding:10px;border-radius:10px;border:none;background:#111;color:white;"></textarea>
 
-    <div id="inbox"></div>
+<button id="sendBtn" class="msg-btn">📤 Envoyer message</button>
 
-    <!-- ✍️ RÉPONDRE -->
-    <div style="margin-top:15px;">
-        <textarea id="msgInput" placeholder="Écrire à l'admin..." 
-        style="width:100%;padding:10px;border-radius:10px;border:none;background:#111;color:white;"></textarea>
+</div><!-- LOGOUT --><a href="#" id="logout" class="logout-btn">🚪 Déconnexion</a>
 
-        <button id="sendBtn" 
-        style="margin-top:10px;width:100%;padding:12px;border:none;border-radius:10px;background:#00d2ff;color:black;font-weight:bold;">
-        Envoyer
-        </button>
-    </div>
-</div>
-
-<!-- LOGOUT -->
-<a href="#" id="logout" class="logout-btn">🚪 Déconnexion</a>
-
-</div>
-<p>•</p>
-    <p>•</p>
-<!-- NAVBAR -->
-<div class="navbar">
+</div><p>•</p>
+<p>•</p><!-- NAVBAR --><div class="navbar">
     <a href="dashboard.html">📊<br>Dash</a>
     <a href="service.html">🛒<br>Shop</a>
     <a href="profil.html" class="active">👤<br>Profil</a>
-</div>
-
-<script type="module" src="profil.js"></script>
-
-</body>
+</div><script type="module" src="profil.js"></script></body>
 </html>
