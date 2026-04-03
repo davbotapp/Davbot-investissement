@@ -14,7 +14,6 @@
     --glass:rgba(255,255,255,0.05);
 }
 
-/* BODY */
 body{
     margin:0;
     font-family:'Segoe UI', sans-serif;
@@ -22,13 +21,11 @@ body{
     color:white;
 }
 
-/* OVERLAY */
 .overlay{
     background:rgba(5,10,20,0.95);
     min-height:100vh;
 }
 
-/* HEADER */
 .header{
     text-align:center;
     padding:15px;
@@ -39,21 +36,18 @@ body{
     z-index:10;
 }
 
-/* CONTAINER */
 .container{
     padding:10px;
     max-width:1200px;
     margin:auto;
 }
 
-/* GRID */
 .grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
     gap:10px;
 }
 
-/* CARD */
 .card{
     background:var(--glass);
     border:1px solid rgba(0,210,255,0.2);
@@ -62,13 +56,11 @@ body{
     backdrop-filter: blur(10px);
 }
 
-/* LIST */
 .list{
     max-height:300px;
     overflow:auto;
 }
 
-/* INPUT */
 input, textarea{
     width:100%;
     padding:10px;
@@ -79,7 +71,6 @@ input, textarea{
     color:white;
 }
 
-/* BUTTON */
 button{
     padding:8px;
     border:none;
@@ -108,7 +99,6 @@ button:hover{
     margin-top:10px;
 }
 
-/* DETAILS */
 .details{
     margin-top:8px;
     font-size:13px;
@@ -117,7 +107,6 @@ button:hover{
     border-radius:8px;
 }
 
-/* LOGIN */
 #loginBox{
     display:flex;
     justify-content:center;
@@ -125,7 +114,6 @@ button:hover{
     height:100vh;
 }
 
-/* SCROLL STYLE */
 ::-webkit-scrollbar{
     width:5px;
 }
@@ -181,16 +169,18 @@ button:hover{
                 <div id="recharges" class="list"></div>
             </div>
 
-            <!-- RETRAITS -->
-            <div class="card">
-                <h3>💸 Retraits</h3>
-                <div id="retraits" class="list"></div>
-            </div>
+            <!-- ❌ RETRAITS SUPPRIMÉ -->
 
             <!-- TRANSFERTS -->
             <div class="card">
                 <h3>🔁 Transferts</h3>
                 <div id="transferts" class="list"></div>
+            </div>
+
+            <!-- 🆕 MONÉTISATION -->
+            <div class="card">
+                <h3>💰 Demandes Monétisation</h3>
+                <div id="monetisations" class="list"></div>
             </div>
 
             <!-- 📩 ENVOYER MESSAGE -->
@@ -218,7 +208,6 @@ button:hover{
 
 </div>
 
-<!-- SCRIPT -->
 <script type="module" src="admin.js"></script>
 
 </body>
