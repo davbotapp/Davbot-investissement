@@ -3,10 +3,10 @@ import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/fire
 
 // 🔥 CONFIG
 const firebaseConfig = {
-    apiKey: "AIza...",
-    authDomain: "starlink-investit.firebaseapp.com",
-    databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
-    projectId: "starlink-investit"
+apiKey: "AIza...",
+authDomain: "starlink-investit.firebaseapp.com",
+databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
+projectId: "starlink-investit"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -33,16 +33,14 @@ zone.innerHTML = `
 <input type="text" id="name" placeholder="📱 Nom APK">
 <input type="file" id="icon">
 <input type="text" id="color" placeholder="🎨 Couleur">
-<textarea id="desc" placeholder="📝 Description"></textarea>
-`;
+<textarea id="desc" placeholder="📝 Description"></textarea>`;
 }
 
 else if(service === "Site Web Pro"){
 zone.innerHTML = `
 <input type="text" id="name" placeholder="🌐 Nom du site">
 <input type="text" id="color" placeholder="🎨 Couleur">
-<textarea id="desc" placeholder="📝 Description"></textarea>
-`;
+<textarea id="desc" placeholder="📝 Description"></textarea>`;
 }
 
 else if(service === "Intelligence Artificielle"){
@@ -53,20 +51,17 @@ zone.innerHTML = `
 <option value="wa_bot">WhatsApp Bot</option>
 <option value="web_bot">Web Bot</option>
 </select>
-
 <input type="text" id="name" placeholder="Nom du bot">
 <input type="text" id="adminNumber" placeholder="📞 Numéro admin">
 <input type="text" id="color" placeholder="🎨 Couleur">
-<textarea id="desc" placeholder="📝 Description"></textarea>
-`;
+<textarea id="desc" placeholder="📝 Description"></textarea>`;
 }
 
 else if(service === "Mini Jeux"){
 zone.innerHTML = `
 <input type="text" id="name" placeholder="🎮 Nom jeu">
 <input type="text" id="color" placeholder="🎨 Couleur">
-<textarea id="desc" placeholder="📝 Description"></textarea>
-`;
+<textarea id="desc" placeholder="📝 Description"></textarea>`;
 }
 
 else if(service === "Réseaux Sociaux"){
@@ -90,8 +85,7 @@ zone.innerHTML = `
 </select>
 
 <input type="number" id="nombre" placeholder="Quantité">
-<input type="text" id="link" placeholder="🔗 Lien">
-`;
+<input type="text" id="link" placeholder="🔗 Lien">`;
 }
 
 else if(service === "Hébergement"){
@@ -102,29 +96,24 @@ zone.innerHTML = `
 <option>30 jours</option>
 <option>60 jours</option>
 </select>
-
-<input type="text" id="siteUrl" placeholder="🌐 Lien du site">
-`;
+<input type="text" id="siteUrl" placeholder="🌐 Lien du site">`;
 }
 
 else if(service === "VPN"){
 zone.innerHTML = `
 <input type="text" id="vpnName" placeholder="Nom VPN">
-
 <select id="reseau">
 <option>MTN</option>
 <option>Airtel</option>
 <option>Orange</option>
 <option>Vodacom</option>
-<option>africell</option>
+<option>Africell</option>
 </select>
-
 <select id="duree">
 <option>7 jour</option>
 <option>15 jours</option>
 <option>30 jours</option>
-</select>
-`;
+</select>`;
 }
 
 attachEvents();
@@ -141,11 +130,12 @@ el.addEventListener("input", calcPrice);
 });
 }
 
-// ================= PRIX  =================
+// ================= PRIX =================
 function calcPrice(){
 
 let price = 0;
 
+// prix fixes
 if(service === "Application") price = 45000;
 if(service === "Site Web Pro") price = 30000;
 
@@ -159,7 +149,7 @@ if(type === "web_bot") price = 10000;
 
 if(service === "Mini Jeux") price = 10000;
 
-// 🔥 FIX ICI
+// 🔥 RÉSEAUX SOCIAUX (CORRIGÉ)
 if(service === "Réseaux Sociaux"){
 
 const type = document.getElementById("type")?.value;
@@ -170,7 +160,7 @@ priceDisplay.innerText = 0;
 return;
 }
 
-// 💰 PRIX DE BASE (TES PRIX)
+// 💰 prix base
 let pricePer1000 = 0;
 
 if(type==="Vues") pricePer1000 = 1500;
@@ -180,16 +170,12 @@ if(type==="Membre Groupe") pricePer1000 = 5000;
 if(type==="Membre Canal") pricePer1000 = 6000;
 if(type==="Chaîne Followers") pricePer1000 = 6000;
 
-// 🔢 calcul réel (fonctionne pour 100, 243, 976…)
+// 🔢 calcul
 let total = (nb / 1000) * pricePer1000;
 
-// 🔻 réduction intelligente
-let discount = 0;
-
-if(nb >= 10000) discount = 0.30;
-else if(nb >= 5000) discount = 0.20;
-else if(nb >= 2000) discount = 0.10;
-else if(nb >= 1000) discount = 0.05;
+// 🔥 réduction progressive SANS BUG
+let discount = nb / 50000;
+if(discount > 0.25) discount = 0.25;
 
 // 💰 prix final sécurisé
 price = Math.max(100, Math.floor(total * (1 - discount)));
@@ -211,7 +197,7 @@ if(d==="30 jours") price=8000;
 }
 
 priceDisplay.innerText = Math.floor(price);
-   }
+}
 
 // ================= VALIDATION =================
 window.valider = async ()=>{
@@ -252,7 +238,7 @@ balance: balance - price,
 lastOrder: Date.now()
 });
 
-// 📦 DATA COMPLETE
+// 📦 DATA
 let data = {
 service: service,
 price: price,
@@ -261,7 +247,7 @@ statut: "pending",
 date: Date.now()
 };
 
-// 🔥 RÉCUPÉRATION CHAMPS
+// 🔥 champs dynamiques
 const inputs = document.querySelectorAll("#formZone input, #formZone select, #formZone textarea");
 
 inputs.forEach(el=>{
@@ -278,8 +264,6 @@ const id = Date.now();
 
 // 🔥 SAVE
 await set(ref(db,"orders/pending/"+user+"/"+id), data);
-
-console.log("COMMANDE:", data);
 
 alert("✅ Commande envoyée !");
 window.location.href = "dashboard.html";
