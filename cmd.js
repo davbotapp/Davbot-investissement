@@ -64,8 +64,6 @@ el.addEventListener("input", calcPrice);
 }
 
 // ================= PRIX =================
-
-
 function calcPrice(){
 
 let price = 0;
@@ -90,8 +88,8 @@ if(service === "Réseaux Sociaux"){
 const type = document.getElementById("type")?.value;
 const nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
-// 🔒 minimum 100
-if(nb < 100){
+// 🔒 minimum
+if(nb < 1){
 priceDisplay.innerText = 0;
 return;
 }
@@ -106,18 +104,8 @@ if(type === "Membre Groupe") unit = 5;
 if(type === "Membre Canal") unit = 6;
 if(type === "Chaîne Followers") unit = 6;
 
-// 💰 prix brut
-let total = nb * unit;
-
-// 🔥 réduction progressive (PRO)
-let discount = 0;
-
-if(nb >= 10000) discount = 0.15; // -15%
-else if(nb >= 5000) discount = 0.10; // -10%
-else if(nb >= 2000) discount = 0.05; // -5%
-
-// 💰 prix final
-price = Math.floor(total * (1 - discount));
+// 💰 calcul simple
+price = Math.floor(nb * unit);
 }
 
 // ================= AUTRES =================
