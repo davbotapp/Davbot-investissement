@@ -165,42 +165,40 @@ if(service === "Réseaux Sociaux"){
 const type = document.getElementById("type")?.value;
 const nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
-// ❌ sécurité
+// sécurité
 if(nb <= 0){
 priceDisplay.innerText = "0";
 return;
 }
 
-// 🔥 PRIX POUR 1 UNITÉ
+// prix pour 1 unité
 let unit = 0;
 
-if(type==="Vues") unit = 1500 / 1000;
-if(type==="Likes") unit = 4500 / 1000;
-if(type==="Followers") unit = 12000 / 1000;
-if(type==="Membre Groupe") unit = 5000 / 1000;
-if(type==="Membre Canal") unit = 6000 / 1000;
-if(type==="Chaîne Followers") unit = 6000 / 1000;
+if(type==="Vues") unit = 1.5;
+if(type==="Likes") unit = 4.5;
+if(type==="Followers") unit = 12;
+if(type==="Membre Groupe") unit = 5;
+if(type==="Membre Canal") unit = 6;
+if(type==="Chaîne Followers") unit = 6;
 
-// 🔥 CALCUL DIRECT
+// total
 let total = nb * unit;
 
-// 🔻 RÉDUCTION PROGRESSIVE
+// réduction
 let discount = 0;
 
 if(nb >= 10000) discount = 0.20;
 else if(nb >= 5000) discount = 0.10;
 else if(nb >= 2000) discount = 0.05;
 
-// 💰 PRIX FINAL
-let price = Math.floor(total - (total * discount));
+// prix final
+price = Math.floor(total - (total * discount));
 
-// 🔥 FORCER TES PRIX POUR 10000 (IMPORTANT)
+// forcer prix exact
 if(type==="Vues" && nb === 10000) price = 8000;
 if(type==="Likes" && nb === 10000) price = 20000;
 if(type==="Followers" && nb === 10000) price = 80000;
-
-priceDisplay.innerText = price;
-   }
+}
 
 // ================= HÉBERGEMENT =================
 if(service === "Hébergement"){
@@ -219,7 +217,10 @@ if(d==="15 jours") price=5000;
 if(d==="30 jours") price=8000;
 }
 
-priceDisplay.innerText = price;
+// affichage sécurisé
+if(priceDisplay){
+priceDisplay.innerText = price.toLocaleString();
+}
 }
 // ================= VALIDATION =================
 window.valider = async ()=>{
