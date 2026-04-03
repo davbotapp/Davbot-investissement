@@ -141,7 +141,7 @@ el.addEventListener("input", calcPrice);
 });
 }
 
-// ================= PRIX =================
+// ================= PRIX  =================
 function calcPrice(){
 
 let price = 0;
@@ -159,48 +159,42 @@ if(type === "web_bot") price = 10000;
 
 if(service === "Mini Jeux") price = 10000;
 
-// ================= 🔥 RÉSEAUX SOCIAUX =================
+// 🔥 FIX ICI
 if(service === "Réseaux Sociaux"){
 
 const type = document.getElementById("type")?.value;
 const nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
-// sécurité
 if(nb <= 0){
-priceDisplay.innerText = "0";
+priceDisplay.innerText = 0;
 return;
 }
 
-// prix pour 1 unité
-let unit = 0;
+// 💰 PRIX DE BASE (TES PRIX)
+let pricePer1000 = 0;
 
-if(type==="Vues") unit = 1.5;
-if(type==="Likes") unit = 4.5;
-if(type==="Followers") unit = 12;
-if(type==="Membre Groupe") unit = 5;
-if(type==="Membre Canal") unit = 6;
-if(type==="Chaîne Followers") unit = 6;
+if(type==="Vues") pricePer1000 = 1500;
+if(type==="Likes") pricePer1000 = 4500;
+if(type==="Followers") pricePer1000 = 12000;
+if(type==="Membre Groupe") pricePer1000 = 5000;
+if(type==="Membre Canal") pricePer1000 = 6000;
+if(type==="Chaîne Followers") pricePer1000 = 6000;
 
-// total
-let total = nb * unit;
+// 🔢 calcul réel (fonctionne pour 100, 243, 976…)
+let total = (nb / 1000) * pricePer1000;
 
-// réduction
+// 🔻 réduction intelligente
 let discount = 0;
 
-if(nb >= 10000) discount = 0.20;
-else if(nb >= 5000) discount = 0.10;
-else if(nb >= 2000) discount = 0.05;
+if(nb >= 10000) discount = 0.30;
+else if(nb >= 5000) discount = 0.20;
+else if(nb >= 2000) discount = 0.10;
+else if(nb >= 1000) discount = 0.05;
 
-// prix final
-price = Math.floor(total - (total * discount));
-
-// forcer prix exact
-if(type==="Vues" && nb === 10000) price = 8000;
-if(type==="Likes" && nb === 10000) price = 20000;
-if(type==="Followers" && nb === 10000) price = 80000;
+// 💰 prix final sécurisé
+price = Math.max(100, Math.floor(total * (1 - discount)));
 }
 
-// ================= HÉBERGEMENT =================
 if(service === "Hébergement"){
 const d = document.getElementById("duree")?.value;
 if(d==="7 jours") price=3500;
@@ -209,7 +203,6 @@ if(d==="30 jours") price=8000;
 if(d==="60 jours") price=12000;
 }
 
-// ================= VPN =================
 if(service === "VPN"){
 const d = document.getElementById("duree")?.value;
 if(d==="7 jour") price=2500;
@@ -217,11 +210,9 @@ if(d==="15 jours") price=5000;
 if(d==="30 jours") price=8000;
 }
 
-// affichage sécurisé
-if(priceDisplay){
-priceDisplay.innerText = price.toLocaleString();
-}
-}
+priceDisplay.innerText = Math.floor(price);
+   }
+
 // ================= VALIDATION =================
 window.valider = async ()=>{
 
