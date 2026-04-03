@@ -190,8 +190,8 @@ return;
 
 let unit = 0;
 
-if(type === "Likes") unit = 2.8;
-if(type === "Vues") unit = 1.5;
+if(type === "Likes") unit = 3.0;
+if(type === "Vues") unit = 2.0;
 if(type === "Followers") unit = 12;
 
 price = Math.floor(nb * unit);
