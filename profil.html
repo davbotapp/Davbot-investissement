@@ -1,8 +1,11 @@
-<!DOCTYPE html><html lang="fr">
+<!DOCTYPE html>
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Profil - Davbot</title><style>
+<title>Profil - Davbot</title>
+
+<style>
 :root { --blue:#00d2ff; --dark:#050a14; }
 
 body{
@@ -14,41 +17,36 @@ body{
 }
 
 .overlay{
-    background:rgba(5,10,20,0.9);
+    background:rgba(5,10,20,0.92);
     min-height:100vh;
 }
 
 /* HEADER */
 .header{
     text-align:center;
-    padding:30px;
+    padding:25px;
     border-bottom:1px solid var(--blue);
-    position:relative;
 }
 
-/* BADGE */
-.badge{
-    position:absolute;
-    top:20px;
-    right:20px;
-    background:#00ff88;
-    color:black;
-    padding:5px 10px;
-    border-radius:20px;
-    font-size:12px;
-    display:none;
-}
-
-/* PHOTO */
 .avatar{
     width:90px;
     height:90px;
     border-radius:50%;
     object-fit:cover;
-    margin:auto;
-    display:block;
     border:2px solid var(--blue);
-    box-shadow:0 0 20px var(--blue);
+    box-shadow:0 0 15px var(--blue);
+}
+
+/* BADGE */
+.badge{
+    display:inline-block;
+    margin-top:8px;
+    padding:5px 10px;
+    border-radius:8px;
+    font-size:12px;
+    background:#00ff88;
+    color:black;
+    font-weight:bold;
 }
 
 /* CARD */
@@ -59,6 +57,21 @@ body{
     border-radius:15px;
     border:1px solid rgba(0,210,255,0.2);
 }
+
+/* MONET */
+.monet button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+.locked{ background:#555; }
+.active{ background:#00ff88; color:black; }
+.wait{ background:#ff9800; }
 
 /* MENU */
 .menu a{
@@ -71,27 +84,26 @@ body{
     color:white;
 }
 
-/* MONÉTISATION */
-.monet{
-    text-align:center;
-}
-
-.monet button{
-    width:100%;
-    padding:15px;
-    border:none;
+/* MESSAGES */
+.msg{
+    background:#111;
+    padding:10px;
     border-radius:10px;
-    font-weight:bold;
     margin-top:10px;
-    cursor:pointer;
 }
 
-.locked{ background:#555; }
-.active{ background:#00ff88; color:black; }
-.wait{ background:#ff9800; }
+/* SEND */
+textarea{
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:none;
+    background:#111;
+    color:white;
+}
 
-/* MESSAGE */
-.msg-btn{
+.sendBtn{
+    margin-top:10px;
     width:100%;
     padding:12px;
     border:none;
@@ -99,7 +111,6 @@ body{
     background:#00d2ff;
     color:black;
     font-weight:bold;
-    margin-top:10px;
 }
 
 /* LOGOUT */
@@ -137,41 +148,73 @@ body{
     opacity:1;
     color:var(--blue);
 }
-</style></head><body><div class="overlay"><!-- HEADER --><div class="header">
-    <div id="badge" class="badge">✔ MONÉTISÉ</div><img id="avatar" class="avatar" src="">
-<h3 id="name">Nom</h3>
-<p id="phone">Numéro</p>
+</style>
+</head>
 
-</div><!-- 💰 STATS --><div class="card">
+<body>
+
+<div class="overlay">
+
+<!-- HEADER -->
+<div class="header">
+    <img id="avatar" class="avatar" src="">
+    <h3 id="name">Nom utilisateur</h3>
+    <p id="phone">Numéro</p>
+
+    <!-- BADGE -->
+    <div id="badgeBox"></div>
+</div>
+
+<!-- STATS -->
+<div class="card">
     💰 Solde : <b id="solde">0</b> FC<br><br>
-    💸 Revenus : <b id="revenus">0</b> FC<br><br>
+    📈 Revenus : <b id="revenus">0</b> FC<br><br>
     ⭐ Points : <b id="points">0</b>
-</div><!-- 💰 MONÉTISATION --><div class="card monet">
-    <h3>💰 Monétisation</h3><button id="monetBtn" class="locked">🔒 Demande non envoyée</button>
-<small id="monetInfo"></small>
+</div>
 
-<button id="askMonet" class="msg-btn">📩 Demander activation</button>
+<!-- MONETISATION -->
+<div class="card monet">
+    <h3>💰 Monétisation</h3>
 
-</div><!-- MENU --><div class="menu">
+    <button id="monetBtn" class="locked">
+        🔒 En attente (30 jours)
+    </button>
+
+    <small id="monetInfo"></small>
+</div>
+
+<!-- MENU -->
+<div class="menu">
     <a href="recharge.html">📥 Recharger</a>
     <a href="transf.html">🔂 Transfert</a>
     <a href="dashboard.html">📊 Dashboard</a>
     <a href="equipe.html">👥 Équipe</a>
-</div><!-- 📩 INBOX --><div class="card">
-    <h3>📩 Messages Admin</h3><div id="inbox"></div>
+</div>
 
-<!-- ✍️ RÉPONDRE -->
-<textarea id="msgInput" placeholder="📨 Écrire à l'admin..."
-style="width:100%;padding:10px;border-radius:10px;border:none;background:#111;color:white;"></textarea>
+<!-- MESSAGES -->
+<div class="card">
+    <h3>📩 Messages Admin</h3>
 
-<button id="sendBtn" class="msg-btn">📤 Envoyer message</button>
+    <div id="inbox"></div>
 
-</div><!-- LOGOUT --><a href="#" id="logout" class="logout-btn">🚪 Déconnexion</a>
+    <!-- SEND -->
+    <textarea id="msgInput" placeholder="📨 Écrire à l'admin..."></textarea>
+    <button id="sendBtn" class="sendBtn">Envoyer 📩</button>
+</div>
 
-</div><p>•</p>
-<p>•</p><!-- NAVBAR --><div class="navbar">
+<!-- LOGOUT -->
+<a href="#" id="logout" class="logout-btn">🚪 Déconnexion</a>
+
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
     <a href="dashboard.html">📊<br>Dash</a>
     <a href="service.html">🛒<br>Shop</a>
     <a href="profil.html" class="active">👤<br>Profil</a>
-</div><script type="module" src="profil.js"></script></body>
+</div>
+
+<script type="module" src="profil.js"></script>
+
+</body>
 </html>
