@@ -28,7 +28,60 @@ let loading = false;
 // ================= FORM =================
 function renderForm(){
 
-if(service === "Réseaux Sociaux"){
+// ================= APPLICATION =================
+if(service === "Application"){
+zone.innerHTML = `
+<input type="text" id="name" placeholder="📱 Nom de l'application">
+<input type="text" id="color" placeholder="🎨 Couleur">
+<textarea id="desc" placeholder="📝 Description et utilité"></textarea>
+`;
+}
+
+// ================= SITE WEB =================
+else if(service === "Site Web Pro"){
+zone.innerHTML = `
+<input type="text" id="name" placeholder="🌐 Nom du site">
+<input type="text" id="color" placeholder="🎨 Couleur du site">
+<input type="text" id="importance" placeholder="⭐ Importance du site">
+<textarea id="desc" placeholder="📝 Description"></textarea>
+`;
+}
+
+// ================= IA =================
+else if(service === "Intelligence Artificielle"){
+zone.innerHTML = `
+<select id="aiType">
+<option value="fb_bot">Facebook Bot</option>
+<option value="fb_page">Page Bot Facebook</option>
+<option value="wa_bot">WhatsApp Bot</option>
+<option value="web_bot">Web Bot</option>
+</select>
+
+<input type="text" id="name" placeholder="Nom du bot">
+<input type="text" id="adminNumber" placeholder="📞 Numéro admin">
+<input type="text" id="color" placeholder="🎨 Couleur">
+<textarea id="desc" placeholder="📝 Description"></textarea>
+`;
+}
+
+// ================= MINI JEUX =================
+else if(service === "Mini Jeux"){
+zone.innerHTML = `
+<select id="gameType">
+<option>Slot</option>
+<option>Snack</option>
+<option>Arcade</option>
+<option>Quiz</option>
+</select>
+
+<input type="text" id="name" placeholder="🎮 Nom du jeu">
+<input type="text" id="color" placeholder="🎨 Couleur">
+<textarea id="desc" placeholder="📝 Description"></textarea>
+`;
+}
+
+// ================= RÉSEAUX SOCIAUX =================
+else if(service === "Réseaux Sociaux"){
 zone.innerHTML = `
 <select id="platform">
 <option>Facebook</option>
@@ -46,15 +99,54 @@ zone.innerHTML = `
 </select>
 
 <input type="number" id="nombre" placeholder="Quantité (min 100)">
-<input type="text" id="link" placeholder="🔗 Lien">`;
+<input type="text" id="link" placeholder="🔗 Lien">
+`;
+}
+
+// ================= HÉBERGEMENT =================
+else if(service === "Hébergement"){
+zone.innerHTML = `
+<select id="duree">
+<option>15 jours</option>
+<option>30 jours</option>
+<option>60 jours</option>
+</select>
+
+<input type="text" id="siteUrl" placeholder="🌐 Lien du site">
+`;
+}
+
+// ================= VPN =================
+else if(service === "VPN"){
+zone.innerHTML = `
+<input type="text" id="vpnName" placeholder="Nom du VPN">
+
+<select id="reseau">
+<option>MTN</option>
+<option>Airtel</option>
+<option>Orange</option>
+<option>Vodacom</option>
+<option>Africell</option>
+</select>
+
+<select id="duree">
+<option>7 jour</option>
+<option>15 jours</option>
+<option>30 jours</option>
+</select>
+
+<textarea id="config" placeholder="⚙️ Configuration VPN (facultatif)"></textarea>
+`;
+}
+
+// ================= PAR DÉFAUT =================
+else{
+zone.innerHTML = `<p>⚠️ Service non reconnu</p>`;
 }
 
 attachEvents();
 calcPrice();
 }
-
-renderForm();
-
 // ================= EVENTS =================
 function attachEvents(){
 document.querySelectorAll("#formZone input, #formZone select")
