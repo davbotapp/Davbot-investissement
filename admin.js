@@ -166,7 +166,9 @@ ${name.substring(0,2)}
 
 <div style="margin-top:10px;display:flex;gap:5px;">
 <button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">Valider</button>
-<button class="no" onclick="deleteItem('demandes_recharges','${id}')">Refuser</button>
+<button class="no" onclick="refRecharge('${id}','${r.user}',${r.amount})">
+Refuser
+</button>
 </div>
 
 </div>
@@ -432,6 +434,30 @@ date: Date.now()
 await remove(ref(db,"demandes_recharges/"+id));
 };
 
+// ❌ REFUSER RECHARGE (VERSION PRO)
+window.refRecharge = async(id, user, amount)=>{
+
+if(!confirm("❌ Refuser cette recharge ?")) return;
+
+// 📩 notifier utilisateur
+await push(ref(db,"messages/"+user),{
+text: "❌ Recharge refusée\n💰 Montant : " + amount + " FC",
+date: Date.now()
+});
+
+// (optionnel) sauvegarder historique refus
+await set(ref(db,"demandes_recharges_refusees/"+id),{
+user,
+amount,
+date: Date.now(),
+status: "refused"
+});
+
+// ❌ supprimer demande
+await remove(ref(db,"demandes_recharges/"+id));
+
+alert("❌ Recharge refusée");
+};
 
 
 
