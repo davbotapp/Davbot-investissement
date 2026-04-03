@@ -135,7 +135,7 @@ function calcPrice(){
 
 let price = 0;
 
-// prix fixes
+// ================= FIXES =================
 if(service === "Application") price = 45000;
 if(service === "Site Web Pro") price = 30000;
 
@@ -149,52 +149,50 @@ if(type === "web_bot") price = 10000;
 
 if(service === "Mini Jeux") price = 10000;
 
-// 🔥 RÉSEAUX SOCIAUX (CORRIGÉ)
+// ================= RÉSEAUX SOCIAUX =================
 if(service === "Réseaux Sociaux"){
 
 const type = document.getElementById("type")?.value;
 let nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
-// 🔒 MINIMUM
+// 🔒 minimum
 if(nb < 100){
-alert("❌ Minimum 100");
 priceDisplay.innerText = 0;
 return;
 }
 
-// 🔥 TES PRIX RÉELS
+// 🔥 TES PRIX
 let p1000 = 0;
 let p10000 = 0;
 
-if(type==="Vues"){
+if(type === "Likes"){
+p1000 = 4000;
+p10000 = 20000;
+}
+
+if(type === "Vues"){
 p1000 = 1500;
-p10000 = 8000;
+p10000 = 10000;
 }
 
-if(type==="Likes"){
-p1000 = 4500;
-p10000 = 25000;
-}
-
-if(type==="Followers"){
+if(type === "Followers"){
 p1000 = 12000;
 p10000 = 80000;
 }
 
-// 🔢 interpolation intelligente
+// 🔢 interpolation (très important)
 let ratio = (nb - 1000) / (10000 - 1000);
 
-// clamp
 if(ratio < 0) ratio = 0;
 if(ratio > 1) ratio = 1;
 
-// 💰 prix pour 1000 évolutif
+// 💰 prix évolutif
 let pricePer1000 = p1000 + (p10000 - p1000) * ratio;
 
-// 💰 calcul final
+// 💰 total
 let total = (nb / 1000) * pricePer1000;
 
-// 🔥 réduction BONUS légère
+// 🔥 réduction légère intelligente
 if(nb >= 5000) total *= 0.95;
 if(nb >= 10000) total *= 0.90;
 
@@ -202,6 +200,7 @@ if(nb >= 10000) total *= 0.90;
 price = Math.max(100, Math.floor(total));
 }
 
+// ================= AUTRES =================
 if(service === "Hébergement"){
 const d = document.getElementById("duree")?.value;
 if(d==="7 jours") price=3500;
@@ -218,7 +217,7 @@ if(d==="30 jours") price=8000;
 }
 
 priceDisplay.innerText = Math.floor(price);
-}
+   }
 
 // ================= VALIDATION =================
 window.valider = async ()=>{
