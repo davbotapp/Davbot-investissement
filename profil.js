@@ -30,6 +30,11 @@ const soldeEl = document.getElementById("solde");
 const pointsEl = document.getElementById("points");
 const inboxEl = document.getElementById("inbox");
 
+// 🔥 NOUVEAUX
+const monetBtn = document.getElementById("monetBtn");
+const monetInfo = document.getElementById("monetInfo");
+const badgeBox = document.getElementById("badgeBox");
+
 // ================= USER =================
 let currentUser = {};
 
@@ -44,58 +49,100 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
     phoneEl.innerText = userPhone;
     nameEl.innerText = data.name || "Utilisateur";
 
-    // ✅ PHOTO CORRIGÉE
     const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-    if(avatarEl.tagName === "IMG"){
-        avatarEl.src = data.photo && data.photo.trim()
-            ? data.photo
-            : defaultAvatar;
-    }
+    avatarEl.src = data.photo && data.photo.trim()
+        ? data.photo
+        : defaultAvatar;
 
     soldeEl.innerText = (data.balance || 0).toLocaleString();
     pointsEl.innerText = data.points || 0;
 
-    // ================= 💰 MONÉTISATION =================
+    // ================= BADGE =================
+    if(data.monetized === true){
+        badgeBox.innerHTML = `<div class="badge">💰 Compte monétisé</div>`;
+    }
 
-    if(!data.lastRevenueTime){
+    // ================= MONÉTISATION =================
+
+    // 🔒 si pas encore activé
+    if(!data.createdAt){
         await update(ref(db,"users/"+userPhone),{
-            lastRevenueTime: Date.now()
+            createdAt: Date.now()
         });
-        return;
     }
 
     const now = Date.now();
-    const last = data.lastRevenueTime;
+    const created = data.createdAt || now;
 
     // ⏳ 30 jours
-    if(now - last > 30 * 24 * 60 * 60 * 1000){
-
-        const revenus = data.revenus || 0;
-
-        if(revenus > 0){
-
-            await update(ref(db,"users/"+userPhone),{
-                balance: (data.balance || 0) + revenus,
-                revenus: 0,
-                lastRevenueTime: now
-            });
-
-            await push(ref(db,"messages/"+userPhone),{
-                text: "💰 Revenus mensuels ajoutés avec succès",
-                date: Date.now(),
-                read:false
-            });
-
-        } else {
-
-            await update(ref(db,"users/"+userPhone),{
-                lastRevenueTime: now
-            });
-        }
+    if(now - created < 30 * 24 * 60 * 60 * 1000){
+        monetBtn.innerText = "🔒 Disponible après 30 jours";
+        monetBtn.className = "locked";
+        monetBtn.disabled = true;
+        return;
     }
 
+    // ⏳ déjà demandé
+    if(data.monetRequest === true){
+        monetBtn.innerText = "⏳ En attente admin";
+        monetBtn.className = "wait";
+        monetBtn.disabled = true;
+        return;
+    }
+
+    // ✅ déjà activé
+    if(data.monetized === true){
+        monetBtn.innerText = "✅ Monétisation active";
+        monetBtn.className = "active";
+        monetBtn.disabled = true;
+        return;
+    }
+
+    // 🔓 prêt
+    monetBtn.innerText = "💰 Activer la monétisation (2500 FC)";
+    monetBtn.className = "active";
+    monetBtn.disabled = false;
+
 });
+
+// ================= 💰 DEMANDE MONÉTISATION =================
+monetBtn.onclick = async ()=>{
+
+    const userRef = ref(db,"users/"+userPhone);
+    const snap = await get(userRef);
+
+    if(!snap.exists()) return;
+
+    const data = snap.val();
+    const balance = data.balance || 0;
+
+    if(balance < 2500){
+        return alert("❌ Solde insuffisant (2500 FC requis)");
+    }
+
+    // 🔻 retirer argent
+    await update(userRef,{
+        balance: balance - 2500,
+        monetRequest: true
+    });
+
+    // 📤 envoyer à admin
+    await push(ref(db,"monetisation_requests"),{
+        user: userPhone,
+        name: data.name || "Utilisateur",
+        photo: data.photo || "",
+        date: Date.now()
+    });
+
+    // 📩 message user
+    await push(ref(db,"messages/"+userPhone),{
+        text: "🔂 Demande de monétisation envoyée. En attente de validation admin.",
+        date: Date.now()
+    });
+
+    alert("✅ Demande envoyée");
+};
 
 // ================= 💸 CALCUL REVENUS =================
 onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
@@ -117,14 +164,60 @@ onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
     Object.values(snap.val()).forEach(cmd=>{
         const price = cmd.price || 0;
 
-        if(price >= 1500){
-            total += price * 0.05;
+        // 🔥 3% à partir de 2000 FC
+        if(price >= 2000){
+            total += price * 0.03;
         }
     });
 
     await update(ref(db,"users/"+userPhone),{
         revenus: Math.floor(total)
     });
+
+});
+
+// ================= 💰 PAIEMENT MENSUEL =================
+onValue(ref(db,"users/"+userPhone), async snap=>{
+
+    if(!snap.exists()) return;
+
+    const data = snap.val();
+
+    if(!data.lastRevenueTime){
+        await update(ref(db,"users/"+userPhone),{
+            lastRevenueTime: Date.now()
+        });
+        return;
+    }
+
+    const now = Date.now();
+    const last = data.lastRevenueTime;
+
+    if(now - last > 30 * 24 * 60 * 60 * 1000){
+
+        const revenus = data.revenus || 0;
+
+        if(revenus > 0){
+
+            await update(ref(db,"users/"+userPhone),{
+                balance: (data.balance || 0) + revenus,
+                revenus: 0,
+                lastRevenueTime: now
+            });
+
+            // 📩 MESSAGE PRO
+            await push(ref(db,"messages/"+userPhone),{
+                text: "🎉 Félicitations ! Votre solde a augmenté grâce à vos revenus mensuels. Continuez à générer des commandes pour gagner encore plus 🚀",
+                date: Date.now(),
+                read:false
+            });
+
+        }else{
+            await update(ref(db,"users/"+userPhone),{
+                lastRevenueTime: now
+            });
+        }
+    }
 
 });
 
