@@ -162,6 +162,7 @@ ${name.substring(0,2)}
 <hr>
 
 💰 ${r.amount} FC
+🆔 ${id}
 
 <div style="margin-top:10px;display:flex;gap:5px;">
 <button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">Valider</button>
@@ -354,6 +355,58 @@ ${getAvatar(toUser.photo,toUser.name)}
 }
 });
 
+// ================= 💰 MONÉTISATION =================
+onValue(ref(db,"demandes_monetisation"), async snap=>{
+
+const box = document.getElementById("monetisations");
+if(!box) return;
+
+box.innerHTML = "";
+
+if(!snap.exists()){
+box.innerHTML = "<small>Aucune demande</small>";
+return;
+}
+
+for(const [id,m] of Object.entries(snap.val())){
+
+if(m.status && m.status !== "pending") continue;
+
+// 🔥 récupérer user
+const userSnap = await get(ref(db,"users/"+m.user));
+const u = userSnap.val() || {};
+
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
+const phone = m.user;
+
+box.innerHTML += `
+<div class="card">
+
+<div style="display:flex;align-items:center;gap:10px;">
+${getAvatar(photo,name)}
+
+<div>
+<b>${name}</b><br>
+📱 ${phone}
+</div>
+</div>
+
+<hr>
+
+💰 Demande de monétisation<br>
+💵 Montant payé : 2500 FC
+
+<div style="margin-top:10px;display:flex;gap:5px;">
+<button class="ok" onclick="valMonet('${id}','${phone}')">Approuver</button>
+<button class="no" onclick="refMonet('${id}','${phone}')">Refuser</button>
+</div>
+
+</div>
+`;
+}
+
+});
 // ================= ACTIONS =================
 
 // ✅ RECHARGE
@@ -379,8 +432,6 @@ date: Date.now()
 await remove(ref(db,"demandes_recharges/"+id));
 };
 
-
-// 📩 notifier utilisateur  
 
 
 
@@ -535,7 +586,41 @@ date: Date.now()
 await remove(ref(db,"transferts/"+id));
 };
 
+// accept monétisation
+window.valMonet = async(id, user)=>{
 
+await update(ref(db,"users/"+user),{
+monetized: true,
+monetRequest: false,
+monetApprovedDate: Date.now()
+});
+
+// message
+await push(ref(db,"messages/"+user),{
+text: "🎉 Votre compte est maintenant MONÉTISÉ avec succès !",
+date: Date.now()
+});
+
+await remove(ref(db,"demandes_monetisation/"+id));
+
+alert("✅ Monétisation approuvée");
+};
+// refusé
+window.refMonet = async(id, user)=>{
+
+await update(ref(db,"users/"+user),{
+monetRequest: false
+});
+
+await push(ref(db,"messages/"+user),{
+text: "❌ Votre demande de monétisation a été refusée",
+date: Date.now()
+});
+
+await remove(ref(db,"demandes_monetisation/"+id));
+
+alert("❌ Refusé");
+};
 
 // ================= 📩 MESSAGE =================
 // ================= 📩 MESSAGE =================
