@@ -159,21 +159,48 @@ if(type === "web_bot") price = 10000;
 
 if(service === "Mini Jeux") price = 10000;
 
+// ================= 🔥 RÉSEAUX SOCIAUX =================
 if(service === "Réseaux Sociaux"){
+
 const type = document.getElementById("type")?.value;
 const nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
-let p = 0;
-if(type==="Vues") p=950;
-if(type==="Likes") p=4500;
-if(type==="Followers") p=12000;
-if(type==="Membre Groupe") p=5000;
-if(type==="Membre Canal") p=6000;
-if(type==="Chaîne Followers") p=6000;
-
-price = (nb/1000) * p;
+// ❌ sécurité
+if(nb < 1000){
+priceDisplay.innerText = "0";
+return;
 }
 
+// 🔥 PRIX BASE (1000)
+let base = 0;
+
+if(type==="Vues") base = 1500;
+if(type==="Likes") base = 4500;
+if(type==="Followers") base = 12000;
+if(type==="Membre Groupe") base = 5000;
+if(type==="Membre Canal") base = 6000;
+if(type==="Chaîne Followers") base = 6000;
+
+// 🔥 CALCUL NORMAL
+let total = (nb/1000) * base;
+
+// 🔻 RÉDUCTION
+let discount = 0;
+
+if(nb >= 10000) discount = 0.20;
+else if(nb >= 5000) discount = 0.10;
+else if(nb >= 2000) discount = 0.05;
+
+// 💰 PRIX FINAL
+price = Math.floor(total - (total * discount));
+
+// 🔥 FORCER TES PRIX EXACTS (IMPORTANT)
+if(type==="Vues" && nb >= 10000) price = 8000;
+if(type==="Likes" && nb >= 10000) price = 20000;
+if(type==="Followers" && nb >= 10000) price = 80000;
+}
+
+// ================= HÉBERGEMENT =================
 if(service === "Hébergement"){
 const d = document.getElementById("duree")?.value;
 if(d==="7 jours") price=3500;
@@ -182,6 +209,7 @@ if(d==="30 jours") price=8000;
 if(d==="60 jours") price=12000;
 }
 
+// ================= VPN =================
 if(service === "VPN"){
 const d = document.getElementById("duree")?.value;
 if(d==="7 jour") price=2500;
@@ -189,9 +217,8 @@ if(d==="15 jours") price=5000;
 if(d==="30 jours") price=8000;
 }
 
-priceDisplay.innerText = Math.floor(price);
+priceDisplay.innerText = price;
 }
-
 // ================= VALIDATION =================
 window.valider = async ()=>{
 
