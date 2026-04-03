@@ -166,25 +166,25 @@ const type = document.getElementById("type")?.value;
 const nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
 // ❌ sécurité
-if(nb < 1000){
+if(nb <= 0){
 priceDisplay.innerText = "0";
 return;
 }
 
-// 🔥 PRIX BASE (1000)
-let base = 0;
+// 🔥 PRIX POUR 1 UNITÉ
+let unit = 0;
 
-if(type==="Vues") base = 1500;
-if(type==="Likes") base = 4500;
-if(type==="Followers") base = 12000;
-if(type==="Membre Groupe") base = 5000;
-if(type==="Membre Canal") base = 6000;
-if(type==="Chaîne Followers") base = 6000;
+if(type==="Vues") unit = 1500 / 1000;
+if(type==="Likes") unit = 4500 / 1000;
+if(type==="Followers") unit = 12000 / 1000;
+if(type==="Membre Groupe") unit = 5000 / 1000;
+if(type==="Membre Canal") unit = 6000 / 1000;
+if(type==="Chaîne Followers") unit = 6000 / 1000;
 
-// 🔥 CALCUL NORMAL
-let total = (nb/1000) * base;
+// 🔥 CALCUL DIRECT
+let total = nb * unit;
 
-// 🔻 RÉDUCTION
+// 🔻 RÉDUCTION PROGRESSIVE
 let discount = 0;
 
 if(nb >= 10000) discount = 0.20;
@@ -192,13 +192,15 @@ else if(nb >= 5000) discount = 0.10;
 else if(nb >= 2000) discount = 0.05;
 
 // 💰 PRIX FINAL
-price = Math.floor(total - (total * discount));
+let price = Math.floor(total - (total * discount));
 
-// 🔥 FORCER TES PRIX EXACTS (IMPORTANT)
-if(type==="Vues" && nb >= 10000) price = 8000;
-if(type==="Likes" && nb >= 10000) price = 20000;
-if(type==="Followers" && nb >= 10000) price = 80000;
-}
+// 🔥 FORCER TES PRIX POUR 10000 (IMPORTANT)
+if(type==="Vues" && nb === 10000) price = 8000;
+if(type==="Likes" && nb === 10000) price = 20000;
+if(type==="Followers" && nb === 10000) price = 80000;
+
+priceDisplay.innerText = price;
+   }
 
 // ================= HÉBERGEMENT =================
 if(service === "Hébergement"){
