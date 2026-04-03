@@ -44,28 +44,18 @@ h2{
     color:var(--blue);
 }
 
-.price-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr 1fr;
-    gap:10px;
-    margin-top:15px;
-}
-
-.price-item{
-    padding:12px;
-    background:rgba(255,255,255,0.08);
-    text-align:center;
+/* 🔥 Currency */
+select{
+    width:100%;
+    padding:14px;
+    margin:10px 0;
     border-radius:10px;
-    cursor:pointer;
-    transition:0.3s;
+    border:none;
+    background:rgba(255,255,255,0.08);
+    color:white;
 }
 
-.price-item.active{
-    background:var(--blue);
-    color:black;
-    font-weight:bold;
-}
-
+/* inputs */
 input{
     width:100%;
     padding:14px;
@@ -76,12 +66,24 @@ input{
     color:white;
 }
 
+/* preview */
+.preview{
+    background:rgba(0,210,255,0.1);
+    padding:10px;
+    border-radius:10px;
+    text-align:center;
+    margin-top:5px;
+    font-size:14px;
+}
+
+/* info */
 .info{
     font-size:13px;
     opacity:0.8;
     margin:10px 0;
 }
 
+/* button */
 button{
     width:100%;
     padding:15px;
@@ -96,6 +98,7 @@ button:disabled{
     background:#444;
 }
 
+/* back */
 .back{
     text-align:center;
     margin-top:10px;
@@ -115,27 +118,33 @@ button:disabled{
 
 <h2>💰 Recharge</h2>
 
-
-
+<!-- 💰 MONTANT -->
 <input type="number" id="amount" placeholder="Montant">
 
+<!-- 💱 DEVISE -->
+<select id="currency">
+<option value="FC">Franc Congolais (FC)</option>
+<option value="USD">Dollar ($)</option>
+</select>
+
+<!-- 🔥 PREVIEW -->
+<div id="preview" class="preview"></div>
+
+<!-- ℹ️ INFO -->
 <div class="info">
-📱 <b>Paiement envoyé l'argent ici 👉:</b> 243 982697752 ✅<br><br> 
+📱 <b>Paiement :</b> 243 982697752<br><br>
 
-💰 <b>Montant :</b> Entrez exactement le montant envoyé<br>
+💰 <b>Montant :</b> doit être exact<br>
+🧾 <b>ID :</b> obligatoire après paiement<br>
+⏳ <b>Délai :</b> 0 à 1 heure<br><br>
 
-🧾 <b>Transaction :</b> Envoyez l’argent puis saisissez l’ID de transaction<br>
-
-⏳ <b>Délai :</b> Validation entre 0 et 1 heure<br><br>
-
-⚠️ <b>Attention :</b>  
-Si vous indiquez un montant supérieur à celui réellement envoyé, votre argent peut être perdu.<br>
-
-✅ Le montant saisi doit correspondre exactement au montant envoyé.
+⚠️ Si le montant est faux → perte possible<br>
 </div>
 
+<!-- 🧾 TRANSACTION -->
 <input type="text" id="tid" placeholder="ID Transaction">
 
+<!-- 🚀 BTN -->
 <button id="btn">Envoyer</button>
 
 <div class="back">
@@ -145,6 +154,7 @@ Si vous indiquez un montant supérieur à celui réellement envoyé, votre argen
 </div>
 </div>
 
+<!-- 🔥 SCRIPT -->
 <script type="module" src="recharge.js"></script>
 
 </body>
