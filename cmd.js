@@ -64,75 +64,76 @@ el.addEventListener("input", calcPrice);
 }
 
 // ================= PRIX =================
+
+
 function calcPrice(){
 
 let price = 0;
 
+// ================= FIXES =================
+if(service === "Application") price = 45000;
+if(service === "Site Web Pro") price = 30000;
+
+if(service === "Intelligence Artificielle"){
+const type = document.getElementById("aiType")?.value;
+if(type === "fb_bot") price = 3000;
+if(type === "fb_page") price = 6000;
+if(type === "wa_bot") price = 5000;
+if(type === "web_bot") price = 10000;
+}
+
+if(service === "Mini Jeux") price = 10000;
+
+// ================= RÉSEAUX SOCIAUX =================
 if(service === "Réseaux Sociaux"){
 
 const type = document.getElementById("type")?.value;
-let nb = parseInt(document.getElementById("nombre")?.value) || 0;
+const nb = parseInt(document.getElementById("nombre")?.value) || 0;
 
-// 🔒 minimum
+// 🔒 minimum 100
 if(nb < 100){
 priceDisplay.innerText = 0;
 return;
 }
 
-// 🔥 TES PRIX
-let p1000 = 0;
-let p10000 = 0;
+// 💰 prix par unité
+let unit = 0;
 
-if(type === "Likes"){
-p1000 = 4000;
-p10000 = 20000;
+if(type === "Likes") unit = 2.8;
+if(type === "Vues") unit = 1.5;
+if(type === "Followers") unit = 12;
+if(type === "Membre Groupe") unit = 5;
+if(type === "Membre Canal") unit = 6;
+if(type === "Chaîne Followers") unit = 6;
+
+// 💰 prix brut
+let total = nb * unit;
+
+// 🔥 réduction progressive (PRO)
+let discount = 0;
+
+if(nb >= 10000) discount = 0.15; // -15%
+else if(nb >= 5000) discount = 0.10; // -10%
+else if(nb >= 2000) discount = 0.05; // -5%
+
+// 💰 prix final
+price = Math.floor(total * (1 - discount));
 }
 
-if(type === "Vues"){
-p1000 = 1500;
-p10000 = 10000;
+// ================= AUTRES =================
+if(service === "Hébergement"){
+const d = document.getElementById("duree")?.value;
+if(d==="7 jours") price=3500;
+if(d==="15 jours") price=6000;
+if(d==="30 jours") price=8000;
+if(d==="60 jours") price=12000;
 }
 
-if(type === "Followers"){
-p1000 = 12000;
-p10000 = 80000;
-}
-
-// ================= CALCUL PRO =================
-
-// 🔹 cas 1 : petit volume
-if(nb <= 1000){
-price = (nb / 1000) * p1000;
-}
-
-// 🔹 cas 2 : moyen volume
-else if(nb <= 10000){
-
-let part1 = p1000;
-
-let reste = nb - 1000;
-
-// prix moyen progressif
-let prixMilieu = (p1000 + p10000) / 2;
-
-let part2 = (reste / 1000) * prixMilieu;
-
-price = part1 + part2;
-}
-
-// 🔹 cas 3 : gros volume (réduction)
-else{
-
-let base = (nb / 1000) * p10000;
-
-let discount = 0.1 + (nb / 100000); // 10% → 20%
-if(discount > 0.2) discount = 0.2;
-
-price = base * (1 - discount);
-}
-
-// 🔒 sécurité
-price = Math.max(100, Math.floor(price));
+if(service === "VPN"){
+const d = document.getElementById("duree")?.value;
+if(d==="7 jour") price=2500;
+if(d==="15 jours") price=5000;
+if(d==="30 jours") price=8000;
 }
 
 priceDisplay.innerText = price;
