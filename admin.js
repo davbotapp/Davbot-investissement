@@ -219,7 +219,7 @@ ${r.proof ? `
 });
 
 // ================= COMMANDES =================
-// ================= COMMANDES ULTRA PRO (VERSION FIX) =================
+// ================= COMMANDES FINAL FIX =================
 onValue(ref(db,"orders/pending"), async snap=>{
 
 const box = document.getElementById("commandes");
@@ -232,27 +232,24 @@ box.innerHTML = "<small>Aucune commande</small>";
 return;
 }
 
-// 🔥 boucle utilisateurs
+// 🔥 LOOP USERS
 for(const [user, cmds] of Object.entries(snap.val())){
 
-// 🔥 récupérer infos user
+// 🔥 GET USER
 const userSnap = await get(ref(db,"users/"+user));
 const u = userSnap.exists() ? userSnap.val() : null;
 
-const name = u ? u.name : "⚠️ Utilisateur inconnu";
-const photo = u ? u.photo : "";
+const name = u?.name || "⚠️ Utilisateur inconnu";
+const photo = u?.photo || "";
 
-// 🔥 avatar
+// 🔥 AVATAR
 const avatar = photo
 ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-: `<div style="
-width:50px;height:50px;border-radius:50%;
-background:#00d2ff;display:flex;align-items:center;
-justify-content:center;color:black;font-weight:bold;">
+: `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
 ${name.substring(0,2)}
 </div>`;
 
-// 🔥 boucle commandes
+// 🔥 LOOP COMMANDES
 for(const [id, c] of Object.entries(cmds)){
 
 const date = c.date ? new Date(c.date).toLocaleString() : "Non défini";
@@ -267,7 +264,7 @@ details += `
 📱 Nom App : ${c.name || "-"}<br>
 🎨 Couleur : ${c.color || "-"}<br>
 📝 Description : ${c.desc || "-"}<br>
-⚡ Mode : ${c.mode || "-"}<br>
+⚡ Type : ${c.type || "-"}<br>
 `;
 }
 
@@ -277,25 +274,14 @@ details += `
 🌐 Nom site : ${c.name || "-"}<br>
 🎨 Couleur : ${c.color || "-"}<br>
 📝 Description : ${c.desc || "-"}<br>
-⚡ Mode : ${c.mode || "-"}<br>
-`;
-}
-
-// 🤖 IA
-if(c.service === "Intelligence Artificielle"){
-details += `
-🤖 Type bot : ${c.aiType || "-"}<br>
-📛 Nom : ${c.name || "-"}<br>
-📞 Num admin : ${c.adminNumber || "-"}<br>
+⚡ Type : ${c.type || "-"}<br>
 `;
 }
 
 // 🎮 MINI JEUX
 if(c.service === "Mini Jeux"){
 details += `
-🎮 Jeu : ${c.gameName || "-"}<br>
-🎨 Couleur : ${c.color || "-"}<br>
-📝 Description : ${c.desc || "-"}<br>
+🎮 Jeu : ${c.name || "-"}<br>
 ⚡ Mode : ${c.mode || "-"}<br>
 `;
 }
@@ -305,9 +291,8 @@ if(c.service === "Réseaux Sociaux"){
 details += `
 📱 Plateforme : ${c.platform || "-"}<br>
 📊 Type : ${c.type || "-"}<br>
-🔢 Quantité : ${c.nombre || 0}<br>
+🔢 Quantité : ${c.quantity || 0}<br>
 🔗 Lien : ${c.link || "-"}<br>
-💰 Offre : ${c.offre || "-"}<br>
 `;
 }
 
@@ -315,7 +300,7 @@ details += `
 if(c.service === "Hébergement"){
 details += `
 🌐 Site : ${c.siteUrl || "-"}<br>
-⏳ Durée : ${c.duree || "-"}<br>
+⏳ Plan : ${c.plan || "-"}<br>
 `;
 }
 
@@ -324,38 +309,33 @@ if(c.service === "VPN"){
 details += `
 🛡️ Nom VPN : ${c.vpnName || "-"}<br>
 📶 Réseau : ${c.reseau || "-"}<br>
-⏳ Durée : ${c.duree || "-"}<br>
+⏳ Plan : ${c.plan || "-"}<br>
 `;
 }
 
-// ================= AUTO DETECTION =================
+// ================= AUTO CLEAN =================
+const ignore = [
+"service","price","user","date","status",
+"name","desc","color","type","mode",
+"platform","quantity","link","plan",
+"siteUrl","reseau","vpnName"
+];
+
 Object.entries(c).forEach(([key,value])=>{
+if(ignore.includes(key)) return;
 
-if(["service","price","user","date"].includes(key)) return;
-
-// 🖼️ IMAGE
 if(typeof value === "string" && value.startsWith("data:image")){
-details += `
-📸 ${key} :<br>
-<img src="${value}" style="width:100%;border-radius:10px;margin-top:5px;">
-<br>
-<a href="${value}" download="image.png">
-<button style="margin-top:5px;">⬇️ Télécharger</button>
-</a><br><br>
-`;
+details += `<img src="${value}" style="width:100%;border-radius:10px;"><br>`;
 }else{
-if(!details.includes(key)){
 details += `<b>${key}</b> : ${value}<br>`;
 }
-}
-
 });
 
 // ================= UI =================
 box.innerHTML += `
 <div class="card">
 
-<div style="display:flex;align-items:center;gap:10px;">
+<div style="display:flex;gap:10px;">
 ${avatar}
 <div>
 <b>${name}</b><br>
@@ -369,13 +349,13 @@ ${avatar}
 💰 <b>${c.price || 0} FC</b><br>
 📅 ${date}
 
-<div class="details" style="margin-top:10px;">
+<div style="margin-top:10px;">
 ${details || "Aucun détail"}
 </div>
 
 <div style="margin-top:10px;display:flex;gap:5px;">
-<button class="ok" onclick="valCmd('${user}','${id}')">✅ Valider</button>
-<button class="no" onclick="refCmd('${user}','${id}',${c.price || 0})">❌ Refuser</button>
+<button onclick="valCmd('${user}','${id}')">✅ Valider</button>
+<button onclick="refCmd('${user}','${id}',${c.price || 0})">❌ Refuser</button>
 </div>
 
 </div>
@@ -696,32 +676,15 @@ await remove(ref(db,"demandes_recharges/"+id));
 };
 
 // ================= COMMANDES =================
+// ================= VALIDER =================
 window.valCmd = async(user,id)=>{
 
 const snapRef = ref(db,"orders/pending/"+user+"/"+id);
 const snap = await get(snapRef);
 
-if(!snap.exists()) return;
+if(!snap.exists()) return alert("Commande introuvable");
 
 const data = snap.val();
-
-// 🔥 hébergement auto
-if(data.service === "Hébergement"){
-await set(ref(db,"hebergements/"+user+"/"+id),{
-...data,
-status:"online",
-dateStart: Date.now()
-});
-}
-
-// log
-await logAction("commande_validée",{user,service:data.service,price:data.price});
-
-// message
-await push(ref(db,"messages/"+user),{
-text:`✅ Commande validée\n📦 ${data.service}\n💰 ${data.price} FC`,
-date: Date.now()
-});
 
 // archive
 await set(ref(db,"orders/validated/"+user+"/"+id),{
@@ -730,46 +693,53 @@ status:"approved",
 dateValidated: Date.now()
 });
 
+// message user
+await push(ref(db,"messages/"+user),{
+text:`✅ Commande validée\n📦 ${data.service}`,
+date: Date.now()
+});
+
+// delete
 await remove(snapRef);
 
-alert("✅ Commande validée");
+alert("✅ Validée");
 };
 
+// ================= REFUSER =================
 window.refCmd = async(user,id,price)=>{
 
 const userRef = ref(db,"users/"+user);
 const snapUser = await get(userRef);
 
-if(!snapUser.exists()) return;
-
+if(snapUser.exists()){
 const bal = snapUser.val().balance || 0;
 
 // remboursement
 await update(userRef,{
 balance: bal + price
 });
-
-const snapRef = ref(db,"orders/pending/"+user+"/"+id);
-const snap = await get(snapRef);
-const data = snap.val() || {};
-
-// log
-await logAction("commande_refusée",{user,price});
-
-// message
-await push(ref(db,"messages/"+user),{
-text:`❌ Commande refusée\n💰 Remboursé : ${price} FC`,
-date: Date.now()
-});
+}
 
 // archive
+const snapRef = ref(db,"orders/pending/"+user+"/"+id);
+const snap = await get(snapRef);
+
 await set(ref(db,"orders/cancelled/"+user+"/"+id),{
-...data,
+...(snap.val() || {}),
 status:"refused",
 dateCancelled: Date.now()
 });
 
+// message
+await push(ref(db,"messages/"+user),{
+text:`❌ Commande refusée\n💰 Remboursé ${price} FC`,
+date: Date.now()
+});
+
+// delete
 await remove(snapRef);
+
+alert("❌ Refusée");
 };
 
 // ================= TRANSFERT =================
