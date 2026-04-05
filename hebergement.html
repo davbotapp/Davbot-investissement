@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hébergement</title>
+
+<style>
+:root{
+--blue:#00d2ff;
+--dark:#050a14;
+}
+
+body{
+margin:0;
+font-family:sans-serif;
+background:var(--dark);
+color:white;
+}
+
+/* HEADER */
+.header{
+text-align:center;
+padding:20px;
+color:var(--blue);
+font-size:22px;
+}
+
+/* CARD */
+.card{
+margin:15px;
+padding:15px;
+border-radius:15px;
+background:rgba(255,255,255,0.05);
+}
+
+/* OPTIONS */
+.option{
+padding:15px;
+margin:10px 0;
+border-radius:10px;
+background:#111;
+cursor:pointer;
+text-align:center;
+}
+
+.option.active{
+background:var(--blue);
+color:black;
+}
+
+/* INPUT */
+input{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:10px;
+background:#111;
+color:white;
+}
+
+/* PRICE */
+.price{
+text-align:center;
+font-size:24px;
+margin-top:10px;
+color:var(--blue);
+}
+
+/* BTN */
+button{
+width:100%;
+padding:15px;
+margin-top:15px;
+border:none;
+border-radius:10px;
+background:var(--blue);
+font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">💾 Hébergement Web</div>
+
+<div class="card">
+
+<div class="option" data-price="2500" data-name="30 jours">30 jours - 2500 FC</div>
+<div class="option" data-price="3500" data-name="60 jours">60 jours - 3500 FC</div>
+<div class="option" data-price="4000" data-name="90 jours">90 jours - 4000 FC</div>
+
+<input type="text" id="siteName" placeholder="Nom du site">
+<input type="text" id="siteUrl" placeholder="Lien du site">
+
+<div class="price" id="price">0 FC</div>
+
+<button onclick="valider()">🚀 Commander</button>
+
+</div>
+
+<script type="module" src="hebergement.js"></script>
+
+</body>
+</html>
