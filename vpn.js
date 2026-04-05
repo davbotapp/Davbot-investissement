@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// 🔥 CONFIG FIREBASE
+// ================= FIREBASE =================
 const firebaseConfig = {
 apiKey: "AIza...",
 authDomain: "starlink-investit.firebaseapp.com",
@@ -12,7 +12,7 @@ projectId: "starlink-investit"
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 👤 USER
+// ================= USER =================
 const user = localStorage.getItem("userPhone");
 if(!user){
 alert("❌ Connexion requise");
@@ -23,42 +23,33 @@ location.href = "index.html";
 let selectedVpn = "OpenVPN";
 let selectedPlan = "";
 let selectedPrice = 0;
+let loading = false;
 
 // ================= VPN SELECT =================
 document.querySelectorAll(".vpn-item").forEach(item=>{
 item.onclick = ()=>{
-
-document.querySelectorAll(".vpn-item")
-.forEach(i=>i.classList.remove("active"));
-
+document.querySelectorAll(".vpn-item").forEach(i=>i.classList.remove("active"));
 item.classList.add("active");
 
 selectedVpn = item.dataset.vpn;
-
 };
 });
 
 // ================= PLAN SELECT =================
 document.querySelectorAll(".option").forEach(opt=>{
 opt.onclick = ()=>{
-
-document.querySelectorAll(".option")
-.forEach(o=>o.classList.remove("active"));
-
+document.querySelectorAll(".option").forEach(o=>o.classList.remove("active"));
 opt.classList.add("active");
 
 selectedPlan = opt.dataset.name;
 selectedPrice = parseInt(opt.dataset.price);
 
-// 💰 update prix avec animation
 animatePrice(selectedPrice);
-
 };
 });
 
 // ================= ANIMATION PRIX =================
 function animatePrice(value){
-
 const el = document.getElementById("price");
 let start = 0;
 
@@ -80,6 +71,8 @@ step();
 // ================= VALIDATION =================
 window.valider = async ()=>{
 
+if(loading) return;
+
 const reseau = document.getElementById("reseau").value.trim();
 const vpnName = document.getElementById("vpnName").value.trim();
 const config = document.getElementById("config").value.trim();
@@ -89,28 +82,58 @@ if(!selectedPlan) return alert("❌ Choisir une durée");
 if(!reseau) return alert("❌ Entrer le réseau");
 if(!vpnName) return alert("❌ Nom VPN requis");
 
+loading = true;
+
 try{
 
-const id = Date.now();
+// 🔥 CHECK USER
+const userRef = ref(db,"users/"+user);
+const snap = await get(userRef);
 
-// 🔥 ENVOI ADMIN
-await set(ref(db,"orders/pending/"+id),{
-user: user,
+if(!snap.exists()){
+alert("❌ Utilisateur introuvable");
+loading=false;
+return;
+}
+
+const balance = snap.val().balance || 0;
+
+if(balance < selectedPrice){
+alert("❌ Solde insuffisant");
+loading=false;
+return;
+}
+
+// 💰 RETRAIT
+await update(userRef,{
+balance: balance - selectedPrice,
+lastOrder: Date.now()
+});
+
+// 📦 DATA PRO
+const data = {
 service: "VPN",
-type: "vpn",
+user: user,
 vpnType: selectedVpn,
 reseau: reseau,
 vpnName: vpnName,
-config: config,
+config: config || null,
 plan: selectedPlan,
 price: selectedPrice,
 status: "pending",
 date: Date.now()
-});
+};
 
-alert("✅ Commande envoyée à l'admin");
+const id = Date.now();
 
-// 🔄 reset
+// 🔥 ENVOI ADMIN
+await set(ref(db,"orders/pending/"+id), data);
+
+console.log("✅ COMMANDE VPN :", data);
+
+alert("✅ Commande envoyée");
+
+// 🔄 RESET
 selectedPlan = "";
 selectedPrice = 0;
 document.getElementById("price").innerText = "0 FC";
@@ -124,4 +147,5 @@ console.error(e);
 alert("❌ Erreur réseau");
 }
 
+loading = false;
 };
