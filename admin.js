@@ -22,7 +22,7 @@ return photo
 ${(name || "?").substring(0,2)}
 </div>`;
 }
-
+1
 // ================= 🔐 AUTH =================
 const ADMIN_PHONE = "0982697752";
 const ADMIN_PASS = "Davbotadmin123";
@@ -114,7 +114,7 @@ ${avatar}
 📈 Revenus : <b>${revenue} FC</b><br>
 💸 Monétisé : <b>${monetized}</b><br>
 
-${photo ? `<br>🖼️ Photo : <br><img src="${photo}" style="width:100%;border-radius:10px;">` : ""}
+${phot? `<br>🖼️ Photo : <br><img src="${photo}" style="width:100%;border-radius:10px;">` : ""}
 
 <div style="margin-top:10px;display:flex;gap:5px;">
 <button class="no" onclick="delUser('${phone}')">❌ Supprimer</button>
