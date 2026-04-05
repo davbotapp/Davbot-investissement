@@ -14,7 +14,9 @@ const db = getDatabase(app);
 
 // 👤 USER
 const user = localStorage.getItem("userPhone");
-if(!user) window.location.href = "index.html";
+if(!user){
+    window.location.href = "index.html";
+}
 
 // ================= VARIABLES =================
 let selectedPlatform = "";
@@ -35,7 +37,7 @@ document.querySelectorAll(".card").forEach(card=>{
     };
 });
 
-// ================= TYPES DYNAMIQUE =================
+// ================= TYPES AUTO =================
 function updateTypes(){
     const typeSelect = document.getElementById("type");
 
@@ -63,8 +65,9 @@ document.getElementById("nombre").addEventListener("input", calcPrice);
 
 // ================= ANIMATION PRIX =================
 function animatePrice(target){
+
     let current = 0;
-    let step = target / 30;
+    const step = target / 25;
 
     const interval = setInterval(()=>{
         current += step;
@@ -74,8 +77,10 @@ function animatePrice(target){
             clearInterval(interval);
         }
 
-        document.getElementById("price").innerText = Math.floor(current) + " FC";
-    },20);
+        document.getElementById("price").innerText =
+            Math.floor(current).toLocaleString() + " FC";
+
+    },15);
 }
 
 // ================= CALCUL PRIX =================
@@ -85,7 +90,7 @@ function calcPrice(){
     const type = document.getElementById("type").value;
     const nb = parseInt(document.getElementById("nombre").value) || 0;
 
-    if(nb <= 0 || !selectedPlatform){
+    if(nb <= 0){
         document.getElementById("price").innerText = "0 FC";
         return;
     }
@@ -164,7 +169,7 @@ window.valider = async ()=>{
             date: Date.now()
         });
 
-        alert("✅ Commande envoyée avec succès");
+        alert("✅ Commande envoyée");
 
         // RESET
         document.getElementById("nombre").value = "";
@@ -175,4 +180,9 @@ window.valider = async ()=>{
         console.error(e);
         alert("❌ Erreur réseau");
     }
+};
+
+// ================= INIT =================
+window.onload = ()=>{
+    calcPrice();
 };
