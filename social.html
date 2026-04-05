@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Davbot Social Boost</title>
+
+<style>
+:root{
+    --blue:#6c5cff;
+    --dark:#050a14;
+    --glass:rgba(255,255,255,0.05);
+}
+
+body{
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    background:var(--dark);
+    color:white;
+}
+
+/* HEADER */
+.header{
+    text-align:center;
+    padding:20px;
+    font-size:20px;
+    color:var(--blue);
+}
+
+/* GRID */
+.container{
+    padding:15px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+}
+
+/* CARD */
+.card{
+    position:relative;
+    background:var(--glass);
+    padding:20px;
+    border-radius:20px;
+    text-align:center;
+    cursor:pointer;
+    transition:0.3s;
+    border:1px solid rgba(255,255,255,0.1);
+}
+
+.card:hover{
+    transform:scale(1.05);
+}
+
+.card.active{
+    box-shadow:0 0 25px var(--blue);
+    border:1px solid var(--blue);
+}
+
+/* BADGES */
+.badge{
+    position:absolute;
+    top:5px;
+    right:5px;
+    font-size:10px;
+    padding:5px 8px;
+    border-radius:10px;
+    font-weight:bold;
+}
+
+.premium{
+    background:gold;
+    color:black;
+}
+
+.cheap{
+    background:#00ff88;
+    color:black;
+}
+
+/* ICON */
+.card img{
+    width:42px;
+    height:42px;
+    margin-bottom:10px;
+}
+
+/* FORM */
+input, select{
+    width:100%;
+    padding:14px;
+    margin-top:10px;
+    border:none;
+    border-radius:10px;
+    background:rgba(255,255,255,0.08);
+    color:white;
+}
+
+/* PRICE */
+.price{
+    text-align:center;
+    font-size:26px;
+    margin-top:15px;
+    color:var(--blue);
+}
+
+/* BUTTON */
+button{
+    width:100%;
+    padding:15px;
+    margin-top:15px;
+    background:linear-gradient(45deg,#6c5cff,#00d2ff);
+    border:none;
+    border-radius:12px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+/* LOADER */
+.loader{
+    display:none;
+    text-align:center;
+    margin-top:10px;
+}
+.loader span{
+    width:10px;
+    height:10px;
+    background:var(--blue);
+    display:inline-block;
+    border-radius:50%;
+    animation:bounce 1s infinite;
+}
+.loader span:nth-child(2){animation-delay:0.2s;}
+.loader span:nth-child(3){animation-delay:0.4s;}
+
+@keyframes bounce{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-8px);}
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">📲 Choisissez une plateforme</div>
+
+<div class="container">
+
+<div class="grid">
+
+<!-- PREMIUM -->
+<div class="card" data-plan="premium" data-name="Facebook">
+<div class="badge premium">🔥 Premium</div>
+<img src="https://cdn.simpleicons.org/facebook/1877F2">
+<div>Facebook</div>
+</div>
+
+<div class="card" data-plan="premium" data-name="TikTok">
+<div class="badge premium">🔥 Premium</div>
+<img src="https://cdn.simpleicons.org/tiktok/ffffff">
+<div>TikTok</div>
+</div>
+
+<div class="card" data-plan="premium" data-name="YouTube">
+<div class="badge premium">🔥 Premium</div>
+<img src="https://cdn.simpleicons.org/youtube/FF0000">
+<div>YouTube</div>
+</div>
+
+<div class="card" data-plan="premium" data-name="Instagram">
+<div class="badge premium">🔥 Premium</div>
+<img src="https://cdn.simpleicons.org/instagram/E4405F">
+<div>Instagram</div>
+</div>
+
+<!-- CHEAP -->
+<div class="card" data-plan="cheap" data-name="WhatsApp">
+<div class="badge cheap">💸 Moins cher</div>
+<img src="https://cdn.simpleicons.org/whatsapp/25D366">
+<div>WhatsApp</div>
+</div>
+
+<div class="card" data-plan="cheap" data-name="Telegram">
+<div class="badge cheap">💸 Moins cher</div>
+<img src="https://cdn.simpleicons.org/telegram/26A5E4">
+<div>Telegram</div>
+</div>
+
+<div class="card" data-plan="cheap" data-name="X">
+<div class="badge cheap">💸 Moins cher</div>
+<img src="https://cdn.simpleicons.org/x/ffffff">
+<div>X (Twitter)</div>
+</div>
+
+<div class="card" data-plan="cheap" data-name="Spotify">
+<div class="badge cheap">💸 Moins cher</div>
+<img src="https://cdn.simpleicons.org/spotify/1DB954">
+<div>Spotify</div>
+</div>
+
+<div class="card" data-plan="cheap" data-name="Snapchat">
+<div class="badge cheap">💸 Moins cher</div>
+<img src="https://cdn.simpleicons.org/snapchat/FFFC00">
+<div>Snapchat</div>
+</div>
+
+<div class="card" data-plan="cheap" data-name="LinkedIn">
+<div class="badge cheap">💸 Moins cher</div>
+<img src="https://cdn.simpleicons.org/linkedin/0A66C2">
+<div>LinkedIn</div>
+</div>
+
+<div class="card" data-plan="cheap" data-name="Pinterest">
+<div class="badge cheap">💸 Moins cher</div>
+<img src="https://cdn.simpleicons.org/pinterest/E60023">
+<div>Pinterest</div>
+</div>
+
+<div class="card" data-plan="cheap" data-name="Discord">
+<div class="badge cheap">💸 Moins cher</div>
+<img src="https://cdn.simpleicons.org/discord/5865F2">
+<div>Discord</div>
+</div>
+
+</div>
+
+<select id="type">
+<option>Vues</option>
+<option>Likes</option>
+<option>Followers</option>
+</select>
+
+<input type="number" id="nombre" placeholder="Quantité">
+
+<input type="text" id="link" placeholder="🔗 Lien">
+
+<div class="price" id="price">0 FC</div>
+
+<div class="loader" id="loader">
+<span></span><span></span><span></span>
+</div>
+
+<button onclick="valider()">🚀 Commander</button>
+
+</div>
+
+<script src="social.js"></script>
+
+</body>
+</html>
