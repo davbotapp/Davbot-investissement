@@ -1,7 +1,7 @@
+// ================= FIREBASE =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// ================= FIREBASE =================
 const firebaseConfig = {
 apiKey: "AIza...",
 authDomain: "starlink-investit.firebaseapp.com",
@@ -14,7 +14,10 @@ const db = getDatabase(app);
 
 // ================= USER =================
 const user = localStorage.getItem("userPhone");
-if(!user) location.href = "index.html";
+if(!user){
+alert("❌ Connecte-toi");
+location.href = "index.html";
+}
 
 // ================= VARIABLES =================
 let selectedType = "";
@@ -32,7 +35,6 @@ document.querySelectorAll("#typeSelect .item").forEach(i=>i.classList.remove("ac
 el.classList.add("active");
 
 selectedType = el.dataset.type;
-
 renderForm(selectedType);
 updatePrice();
 };
@@ -67,8 +69,7 @@ html += `<input id="questions" placeholder="❓ Nombre de questions">`;
 }
 
 if(type === "arcade"){
-html += `
-<select id="style">
+html += `<select id="style">
 <option>Voiture</option>
 <option>Tir</option>
 <option>Course</option>
@@ -76,11 +77,11 @@ html += `
 }
 
 if(type === "memory"){
-html += `<input id="levels" placeholder="🧩 Nombre de niveaux">`;
+html += `<input id="levels" placeholder="🧩 Niveaux">`;
 }
 
 if(type === "runner"){
-html += `<input id="speed" placeholder="🏃 Vitesse du jeu">`;
+html += `<input id="speedGame" placeholder="🏃 Vitesse">`;
 }
 
 if(type === "combat"){
@@ -92,7 +93,7 @@ html += `<input id="difficulty" placeholder="🧠 Difficulté">`;
 }
 
 if(type === "multiplayer"){
-html += `<input id="players" placeholder="🌐 Nombre de joueurs">`;
+html += `<input id="players" placeholder="🌐 Joueurs">`;
 }
 
 formZone.innerHTML = html;
@@ -106,7 +107,6 @@ priceDisplay.innerText = "💰 0 FC";
 return;
 }
 
-// 💰 BASE PAR TYPE
 let base = 10000;
 
 if(selectedType === "quiz") base = 8000;
@@ -118,25 +118,7 @@ if(selectedType === "arcade") base = 12000;
 if(selectedType === "combat") base = 13000;
 if(selectedType === "multiplayer") base = 15000;
 
-// ⚡ MODE
-if(selectedMode === "lent"){
-price = base;
-}
-
-if(selectedMode === "rapide"){
-price = base + 4000;
-}
-
-// 🔒 LIMITES BUSINESS
-if(selectedMode === "lent"){
-if(price < 8000) price = 8000;
-if(price > 12000) price = 12000;
-}
-
-if(selectedMode === "rapide"){
-if(price < 12000) price = 12000;
-if(price > 18000) price = 18000;
-}
+price = selectedMode === "rapide" ? base + 4000 : base;
 
 priceDisplay.innerText = "💰 " + price + " FC";
 }
@@ -147,7 +129,7 @@ window.valider = async ()=>{
 if(loading) return;
 
 if(!selectedType || !selectedMode){
-alert("❌ Choisissez type + mode");
+alert("❌ Choisir type + mode");
 return;
 }
 
@@ -159,6 +141,7 @@ const userRef = ref(db,"users/"+user);
 const snap = await get(userRef);
 
 if(!snap.exists()){
+alert("❌ Utilisateur introuvable");
 loading = false;
 return;
 }
@@ -177,26 +160,30 @@ balance: balance - price,
 lastOrder: Date.now()
 });
 
-// 📦 DATA
+// 📦 DATA PRO
 let data = {
 service: "Mini Jeux",
-type: selectedType,
+user: user,
+gameType: selectedType,
 mode: selectedMode,
 price: price,
-user: user,
-statut: "pending",
+status: "pending",
 date: Date.now()
 };
 
-// 🔥 FORM DATA
+// 🔥 ajouter champs dynamiques
 formZone.querySelectorAll("input, textarea, select").forEach(el=>{
 if(!el.id) return;
-data[el.id] = el.value || null;
+data[el.id] = el.value || "";
 });
 
-// 🔥 SAVE
+// 🔥 ID UNIQUE
 const id = Date.now();
-await set(ref(db,"orders/pending/"+user+"/"+id), data);
+
+// ✅ ENVOI ADMIN (FIX)
+await set(ref(db,"orders/pending/"+id), data);
+
+console.log("✅ COMMANDE MINI :", data);
 
 alert("✅ Commande envoyée !");
 location.href = "dashboard.html";
