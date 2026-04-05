@@ -1,4 +1,4 @@
-// 🔥 LISTE SERVICES (ULTRA PRO)
+// 🔥 LISTE SERVICES
 const services = [
     {
         nom: "Application",
@@ -40,38 +40,58 @@ const services = [
 // 🔥 CONTAINER
 const container = document.getElementById("services");
 
-// 🔥 AFFICHAGE
-services.forEach((s, index) => {
+// 🔥 CREATE CARD FUNCTION
+function createCard(service, index){
 
     const div = document.createElement("div");
     div.className = "card";
 
+    // animation delay
+    div.style.opacity = "0";
+    div.style.transform = "translateY(20px)";
+
     div.innerHTML = `
-        <div class="icon">${s.icon}</div>
+        <div class="icon">${service.icon}</div>
 
         <div class="content">
-            <div class="title">${s.nom}</div>
-            <div class="desc">${s.desc}</div>
+            <div class="title">${service.nom}</div>
+            <div class="desc">${service.desc}</div>
 
-            <button id="btn-${index}">
-                Commander
+            <button class="btn">
+                🚀 Commander
             </button>
         </div>
     `;
 
     container.appendChild(div);
 
-    // 🔐 Anti double clic
-    const btn = div.querySelector("button");
+    // 🔥 ANIMATION APPARITION
+    setTimeout(()=>{
+        div.style.transition = "0.5s ease";
+        div.style.opacity = "1";
+        div.style.transform = "translateY(0)";
+    }, index * 100);
+
+    // 🔥 BOUTON
+    const btn = div.querySelector(".btn");
 
     btn.onclick = () => {
-        btn.disabled = true;
-        btn.innerText = "⏳ Chargement...";
 
-        localStorage.setItem("serviceCommande", s.nom);
+        // 🔐 bloque multi clic
+        if(btn.classList.contains("loading")) return;
+
+        btn.classList.add("loading");
+        btn.innerHTML = "⏳ Chargement...";
+
+        // 🔥 effet clic
+        div.style.transform = "scale(0.97)";
 
         setTimeout(()=>{
+            localStorage.setItem("serviceCommande", service.nom);
             window.location.href = "commande.html";
-        }, 500);
+        }, 600);
     };
-});
+}
+
+// 🔥 LOOP
+services.forEach((s, i) => createCard(s, i));
