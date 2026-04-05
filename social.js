@@ -18,30 +18,53 @@ if(!user) window.location.href = "index.html";
 
 // ================= VARIABLES =================
 let selectedPlatform = "";
-let plan = "";
+let platformType = "";
 let finalPrice = 0;
 
-// ================= SELECT CARD =================
+// ================= SELECT PLATFORM =================
 document.querySelectorAll(".card").forEach(card=>{
     card.onclick = ()=>{
         document.querySelectorAll(".card").forEach(c=>c.classList.remove("active"));
         card.classList.add("active");
 
         selectedPlatform = card.dataset.name;
-        plan = card.dataset.plan;
+        platformType = card.dataset.type;
 
+        updateTypes();
         calcPrice();
     };
 });
 
+// ================= TYPES DYNAMIQUE =================
+function updateTypes(){
+    const typeSelect = document.getElementById("type");
+
+    if(platformType === "social"){
+        typeSelect.innerHTML = `
+            <option>Likes</option>
+            <option>Vues</option>
+            <option>Followers</option>
+        `;
+    }
+
+    if(platformType === "messaging"){
+        typeSelect.innerHTML = `
+            <option>Membre Groupe</option>
+            <option>Membre Chaîne</option>
+            <option>Membre Canal</option>
+        `;
+    }
+}
+
 // ================= EVENTS =================
+document.getElementById("plan").addEventListener("input", calcPrice);
 document.getElementById("type").addEventListener("input", calcPrice);
 document.getElementById("nombre").addEventListener("input", calcPrice);
 
 // ================= ANIMATION PRIX =================
 function animatePrice(target){
     let current = 0;
-    let step = target / 25;
+    let step = target / 30;
 
     const interval = setInterval(()=>{
         current += step;
@@ -58,31 +81,40 @@ function animatePrice(target){
 // ================= CALCUL PRIX =================
 function calcPrice(){
 
+    const plan = document.getElementById("plan").value;
     const type = document.getElementById("type").value;
     const nb = parseInt(document.getElementById("nombre").value) || 0;
 
-    if(nb < 1 || !plan){
+    if(nb <= 0 || !selectedPlatform){
         document.getElementById("price").innerText = "0 FC";
         return;
     }
 
-    let pricePer1000 = 0;
+    let p1000 = 0;
 
-    // 🔥 PREMIUM (MEILLEUR QUALITÉ)
-    if(plan === "premium"){
-        if(type === "Likes") pricePer1000 = 4000;
-        if(type === "Vues") pricePer1000 = 12000;
-        if(type === "Followers") pricePer1000 = 12000;
-    }
-
-    // 💸 CHEAP (MOINS CHER)
+    // 💸 MOINS CHER
     if(plan === "cheap"){
-        if(type === "Likes") pricePer1000 = 3000;
-        if(type === "Vues") pricePer1000 = 900;
-        if(type === "Followers") pricePer1000 = 10000;
+        if(type==="Likes") p1000 = 2900;
+        if(type==="Vues") p1000 = 1000;
+        if(type==="Followers") p1000 = 10000;
+
+        if(type==="Membre Groupe") p1000 = 4000;
+        if(type==="Membre Chaîne") p1000 = 6000;
+        if(type==="Membre Canal") p1000 = 6000;
     }
 
-    finalPrice = Math.floor((nb / 1000) * pricePer1000);
+    // 🔥 MEILLEUR PRIX
+    if(plan === "premium"){
+        if(type==="Likes") p1000 = 4000;
+        if(type==="Vues") p1000 = 1200;
+        if(type==="Followers") p1000 = 12000;
+
+        if(type==="Membre Groupe") p1000 = 4500;
+        if(type==="Membre Chaîne") p1000 = 6500;
+        if(type==="Membre Canal") p1000 = 6500;
+    }
+
+    finalPrice = Math.floor((nb / 1000) * p1000);
 
     animatePrice(finalPrice);
 }
@@ -90,15 +122,14 @@ function calcPrice(){
 // ================= VALIDATION =================
 window.valider = async ()=>{
 
-    const loader = document.getElementById("loader");
-
+    const plan = document.getElementById("plan").value;
     const type = document.getElementById("type").value;
     const nb = parseInt(document.getElementById("nombre").value);
     const link = document.getElementById("link").value.trim();
 
     // 🔒 VALIDATION
     if(!selectedPlatform){
-        alert("❌ Choisis une plateforme");
+        alert("❌ Choisir une plateforme");
         return;
     }
 
@@ -119,12 +150,11 @@ window.valider = async ()=>{
 
     try{
 
-        loader.style.display = "block";
-
         const id = Date.now();
 
         await set(ref(db, "orders/pending/"+user+"/"+id), {
             platform: selectedPlatform,
+            category: platformType,
             plan: plan,
             type: type,
             quantity: nb,
@@ -134,18 +164,15 @@ window.valider = async ()=>{
             date: Date.now()
         });
 
-        loader.style.display = "none";
-
         alert("✅ Commande envoyée avec succès");
 
-        // 🔁 RESET
+        // RESET
         document.getElementById("nombre").value = "";
         document.getElementById("link").value = "";
         document.getElementById("price").innerText = "0 FC";
 
     }catch(e){
         console.error(e);
-        loader.style.display = "none";
         alert("❌ Erreur réseau");
     }
 };
