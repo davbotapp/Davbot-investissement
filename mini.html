@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Jeux - Davbot</title>
+
+<style>
+:root{
+    --blue:#00d2ff;
+    --dark:#050a14;
+    --glass:rgba(255,255,255,0.05);
+}
+
+/* BODY */
+body{
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    background:var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
+    background-size:cover;
+    color:white;
+}
+
+.overlay{
+    background:rgba(5,10,20,0.9);
+    min-height:100vh;
+    padding:20px;
+}
+
+/* HEADER */
+h2{
+    text-align:center;
+    color:var(--blue);
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow{
+    from{ text-shadow:0 0 5px var(--blue);}
+    to{ text-shadow:0 0 20px var(--blue);}
+}
+
+/* CARD */
+.card{
+    background:var(--glass);
+    padding:20px;
+    border-radius:20px;
+    margin-top:20px;
+    backdrop-filter: blur(10px);
+    border:1px solid rgba(0,210,255,0.2);
+}
+
+/* GRID */
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+/* ITEMS */
+.item{
+    padding:12px;
+    text-align:center;
+    border-radius:10px;
+    background:rgba(255,255,255,0.08);
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.item:hover{
+    transform:scale(1.05);
+}
+
+.item.active{
+    background:var(--blue);
+    color:black;
+    font-weight:bold;
+}
+
+/* FORM */
+input, textarea, select{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border:none;
+    border-radius:10px;
+    background:rgba(255,255,255,0.08);
+    color:white;
+}
+
+/* PRICE */
+.price{
+    text-align:center;
+    font-size:22px;
+    color:var(--blue);
+    margin-top:15px;
+    animation: fadeIn 1s;
+}
+
+@keyframes fadeIn{
+    from{opacity:0;}
+    to{opacity:1;}
+}
+
+/* BUTTON */
+button{
+    width:100%;
+    padding:15px;
+    background:linear-gradient(45deg,#00d2ff,#0077ff);
+    border:none;
+    border-radius:10px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.05);
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay">
+
+<h2>🎮 Création Mini Jeux</h2>
+
+<div class="card">
+
+<!-- 🎮 TYPES -->
+<h3>🎮 Type de jeu</h3>
+<div class="grid" id="typeSelect">
+<div class="item" data-type="slot">🎰 Slot</div>
+<div class="item" data-type="quiz">🧠 Quiz</div>
+<div class="item" data-type="arcade">🕹️ Arcade</div>
+<div class="item" data-type="memory">🧩 Memory</div>
+<div class="item" data-type="runner">🏃 Runner</div>
+<div class="item" data-type="combat">🥊 Combat</div>
+<div class="item" data-type="puzzle">🧩 Puzzle</div>
+<div class="item" data-type="multiplayer">🌐 Multijoueur</div>
+</div>
+
+<!-- ⚡ MODE -->
+<h3>⚡ Mode</h3>
+<div class="grid" id="modeSelect">
+<div class="item" data-mode="lent">🐢 Lent</div>
+<div class="item" data-mode="rapide">⚡ Rapide</div>
+</div>
+
+<!-- 📋 FORM -->
+<div id="formZone"></div>
+
+<!-- 💰 PRICE -->
+<div class="price" id="price">💰 0 FC</div>
+
+<button onclick="valider()">🚀 Commander</button>
+
+</div>
+
+</div>
+
+<script type="module" src="mini.js"></script>
+
+</body>
+</html>
