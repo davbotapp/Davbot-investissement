@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Créer Application - Davbot</title>
+
+<style>
+:root{
+    --blue:#00d2ff;
+    --purple:#6a00ff;
+    --dark:#050a14;
+}
+
+body{
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    background:linear-gradient(270deg,#050a14,#0b1a30,#050a14);
+    background-size:400% 400%;
+    animation:bgMove 12s ease infinite;
+    color:white;
+}
+
+/* 🌌 BACKGROUND ANIMÉ */
+@keyframes bgMove{
+    0%{background-position:0% 50%;}
+    50%{background-position:100% 50%;}
+    100%{background-position:0% 50%;}
+}
+
+/* PARTICULE LUMIÈRE */
+body::after{
+    content:"";
+    position:fixed;
+    width:300px;
+    height:300px;
+    background:radial-gradient(circle, #00d2ff55, transparent);
+    top:20%;
+    left:10%;
+    filter:blur(80px);
+    animation:float 6s ease-in-out infinite;
+}
+
+@keyframes float{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-30px);}
+}
+
+/* CONTAINER */
+.container{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    padding:20px;
+}
+
+/* CARD */
+.card{
+    width:100%;
+    max-width:480px;
+    padding:30px;
+    border-radius:25px;
+    background:rgba(255,255,255,0.05);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,0.1);
+    box-shadow:0 0 40px #00d2ff33;
+    animation:fadeUp 0.8s ease;
+}
+
+@keyframes fadeUp{
+    from{opacity:0; transform:translateY(30px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+h2{
+    text-align:center;
+    margin-bottom:20px;
+    background:linear-gradient(90deg,#00d2ff,#6a00ff);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+/* INPUT */
+input, textarea, select{
+    width:100%;
+    padding:14px;
+    margin:10px 0;
+    border-radius:12px;
+    border:1px solid transparent;
+    background:rgba(255,255,255,0.08);
+    color:white;
+    transition:0.3s;
+}
+
+input:hover, textarea:hover{
+    border:1px solid #00d2ff66;
+}
+
+input:focus, textarea:focus, select:focus{
+    outline:none;
+    border:1px solid var(--blue);
+    box-shadow:0 0 12px var(--blue);
+    transform:scale(1.02);
+}
+
+/* FILE BOX */
+.file-box{
+    border:2px dashed #00d2ff55;
+    padding:15px;
+    text-align:center;
+    border-radius:12px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.file-box:hover{
+    background:#00d2ff22;
+    transform:scale(1.02);
+}
+
+/* PREVIEW */
+.preview{
+    text-align:center;
+}
+
+.preview img{
+    width:90px;
+    margin-top:10px;
+    border-radius:12px;
+    box-shadow:0 0 15px #00d2ff55;
+}
+
+/* BUTTON PRO */
+button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:12px;
+    background:linear-gradient(90deg,#00d2ff,#6a00ff);
+    font-weight:bold;
+    color:white;
+    cursor:pointer;
+    transition:0.3s;
+    margin-top:10px;
+}
+
+button:hover{
+    transform:scale(1.05);
+    box-shadow:0 0 25px #00d2ff;
+}
+
+/* CLICK EFFECT */
+button:active{
+    transform:scale(0.97);
+}
+
+/* LABEL STYLE */
+.label{
+    font-size:13px;
+    opacity:0.8;
+    margin-top:10px;
+}
+
+/* SECTION TITLE */
+.section{
+    margin-top:15px;
+    font-weight:bold;
+    color:#00d2ff;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+<div class="card">
+
+<h2>🚀 Créer une Application</h2>
+
+<div class="section">Informations principales</div>
+
+<input type="text" id="name" placeholder="Nom de l'application">
+<input type="text" id="color" placeholder="Couleur principale">
+
+<select id="theme">
+<option>Clair</option>
+<option>Sombre</option>
+<option>Mixte</option>
+</select>
+
+<div class="section">Description</div>
+
+<textarea id="desc" placeholder="Description de l'application"></textarea>
+<textarea id="use" placeholder="Utilité / Objectif"></textarea>
+
+<div class="section">Images</div>
+
+<label class="file-box">
+📱 Icône de l'application
+<input type="file" id="icon" hidden>
+</label>
+
+<div class="preview" id="iconPreview"></div>
+
+<label class="file-box">
+🎯 Image publicitaire
+<input type="file" id="pubImage" hidden>
+</label>
+
+<div class="preview" id="pubPreview"></div>
+
+<button id="sendBtn">🚀 Créer l'application</button>
+
+</div>
+</div>
+
+<script type="module" src="application.js"></script>
+
+</body>
+</html>
