@@ -10,6 +10,7 @@
     --blue:#00d2ff; 
     --dark:#050a14; 
     --glass:rgba(255,255,255,0.05);
+    --glow:0 0 20px rgba(0,210,255,0.4);
 }
 
 body{
@@ -20,8 +21,9 @@ body{
     color:white;
 }
 
+/* OVERLAY */
 .overlay{
-    background:rgba(5,10,20,0.85);
+    background:linear-gradient(180deg, rgba(5,10,20,0.9), rgba(5,10,20,0.95));
     min-height:100vh;
     padding:20px;
 }
@@ -29,11 +31,24 @@ body{
 /* HEADER */
 .header{
     text-align:center;
-    margin-bottom:20px;
+    margin-bottom:25px;
+    animation:fadeIn 1s ease;
 }
 
 .header h2{
     color:var(--blue);
+    font-size:26px;
+    text-shadow: var(--glow);
+}
+
+.header p{
+    opacity:0.7;
+}
+
+/* SERVICES GRID */
+#services{
+    display:grid;
+    gap:15px;
 }
 
 /* CARD */
@@ -41,17 +56,44 @@ body{
     background:var(--glass);
     border:1px solid rgba(0,210,255,0.2);
     border-radius:20px;
-    padding:15px;
-    margin-top:15px;
+    padding:18px;
     display:flex;
     align-items:center;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    transition:0.3s;
+    position:relative;
+    overflow:hidden;
+}
+
+/* HOVER EFFECT */
+.card:hover{
+    transform:translateY(-5px) scale(1.02);
+    box-shadow: var(--glow);
+    border:1px solid var(--blue);
+}
+
+/* LIGHT EFFECT */
+.card::before{
+    content:"";
+    position:absolute;
+    width:150px;
+    height:150px;
+    background: radial-gradient(circle, rgba(0,210,255,0.3), transparent);
+    top:-50px;
+    left:-50px;
+    opacity:0;
+    transition:0.5s;
+}
+
+.card:hover::before{
+    opacity:1;
 }
 
 /* ICON */
 .icon{
-    font-size:30px;
+    font-size:32px;
     margin-right:15px;
+    animation:float 3s ease-in-out infinite;
 }
 
 /* CONTENT */
@@ -62,22 +104,31 @@ body{
 .title{
     color:var(--blue);
     font-weight:bold;
+    font-size:16px;
 }
 
 .desc{
     font-size:13px;
-    opacity:0.8;
+    opacity:0.75;
+    margin-top:3px;
 }
 
 /* BUTTON */
 button{
     margin-top:10px;
-    padding:10px;
+    padding:10px 14px;
     border:none;
     border-radius:10px;
-    background:var(--blue);
+    background:linear-gradient(45deg, #00d2ff, #3a7bd5);
     font-weight:bold;
     cursor:pointer;
+    color:white;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.05);
+    box-shadow: var(--glow);
 }
 
 /* NAVBAR */
@@ -90,6 +141,7 @@ button{
     justify-content:space-around;
     padding:15px 0;
     border-top:1px solid var(--blue);
+    backdrop-filter:blur(10px);
 }
 
 .nav-link{
@@ -97,12 +149,40 @@ button{
     text-decoration:none;
     font-size:12px;
     opacity:0.6;
+    transition:0.3s;
+}
+
+.nav-link:hover{
+    opacity:1;
 }
 
 .nav-link.active{
     opacity:1;
     color:var(--blue);
     font-weight:bold;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(-10px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+@keyframes float{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-5px);}
+}
+
+/* MOBILE */
+@media(max-width:500px){
+    .card{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .icon{
+        margin-bottom:10px;
+    }
 }
 </style>
 </head>
@@ -112,22 +192,90 @@ button{
 <div class="overlay">
 
     <div class="header">
-        <h2>🚀 Nos Services</h2>
-        <p style="opacity:0.7;">Choisissez un service</p>
+        <h2>🚀 Nos Services Premium</h2>
+        <p>Boost ton business avec Davbot</p>
     </div>
 
-    <div id="services"></div>
+    <div id="services">
+
+        <!-- APPLICATION -->
+        <div class="card">
+            <div class="icon">📱</div>
+            <div class="content">
+                <div class="title">Création Application</div>
+                <div class="desc">Application Android professionnelle avec design moderne</div>
+                <button onclick="go('Application')">Commander</button>
+            </div>
+        </div>
+
+        <!-- SITE -->
+        <div class="card">
+            <div class="icon">🌐</div>
+            <div class="content">
+                <div class="title">Site Web Pro</div>
+                <div class="desc">Site moderne rapide et sécurisé</div>
+                <button onclick="go('Site Web Pro')">Commander</button>
+            </div>
+        </div>
+
+        <!-- IA -->
+        <div class="card">
+            <div class="icon">🤖</div>
+            <div class="content">
+                <div class="title">Intelligence Artificielle</div>
+                <div class="desc">Bots Facebook, WhatsApp, Web automatisés</div>
+                <button onclick="go('Intelligence Artificielle')">Commander</button>
+            </div>
+        </div>
+
+        <!-- SOCIAL -->
+        <div class="card">
+            <div class="icon">📈</div>
+            <div class="content">
+                <div class="title">Réseaux Sociaux</div>
+                <div class="desc">Boost vues, likes et followers</div>
+                <button onclick="go('Réseaux Sociaux')">Commander</button>
+            </div>
+        </div>
+
+        <!-- HÉBERGEMENT -->
+        <div class="card">
+            <div class="icon">☁️</div>
+            <div class="content">
+                <div class="title">Hébergement</div>
+                <div class="desc">Hébergement rapide et sécurisé</div>
+                <button onclick="go('Hébergement')">Commander</button>
+            </div>
+        </div>
+
+        <!-- VPN -->
+        <div class="card">
+            <div class="icon">🔐</div>
+            <div class="content">
+                <div class="title">VPN</div>
+                <div class="desc">Connexion sécurisée et rapide</div>
+                <button onclick="go('VPN')">Commander</button>
+            </div>
+        </div>
+
+    </div>
 
 </div>
-    <p>*</p>
 
+<!-- NAVBAR -->
 <nav class="navbar">
     <a href="dashboard.html" class="nav-link">📊<br>Dash</a>
     <a href="service.html" class="nav-link active">📡<br>Shop</a>
     <a href="profil.html" class="nav-link">👤<br>Profil</a>
 </nav>
 
-<script src="service.js"></script>
+<script>
+// REDIRECTION
+function go(service){
+    localStorage.setItem("serviceCommande", service);
+    window.location.href = "cmd.html";
+}
+</script>
 
 </body>
 </html>
