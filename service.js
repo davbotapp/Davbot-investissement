@@ -16,7 +16,7 @@ const services = [
         nom: "Intelligence Artificielle",
         desc: "Chatbot, automatisation IA",
         icon: "🤖",
-        page: "ia.html"
+        page: "ai.html"
     },
     {
         nom: "Mini Jeux",
