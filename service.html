@@ -3,16 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Davbot - Services</title>
 
 <style>
-:root { 
-    --blue:#00d2ff; 
-    --dark:#050a14; 
+
+/* ================= ROOT ================= */
+:root{
+    --blue:#00d2ff;
+    --dark:#050a14;
     --glass:rgba(255,255,255,0.05);
-    --glow:0 0 20px rgba(0,210,255,0.4);
 }
 
+/* ================= BODY ================= */
 body{
     margin:0;
     font-family:'Segoe UI', sans-serif;
@@ -21,85 +24,66 @@ body{
     color:white;
 
     opacity:0;
-    transition:0.5s;
-    }
+    transition:0.6s;
+}
 
-/* OVERLAY */
+/* ================= OVERLAY ================= */
 .overlay{
-    background:linear-gradient(180deg, rgba(5,10,20,0.9), rgba(5,10,20,0.95));
+    background:rgba(5,10,20,0.85);
     min-height:100vh;
     padding:20px;
 }
 
-/* HEADER */
+/* ================= HEADER ================= */
 .header{
     text-align:center;
     margin-bottom:25px;
-    animation:fadeIn 1s ease;
 }
 
 .header h2{
     color:var(--blue);
     font-size:26px;
-    text-shadow: var(--glow);
+    margin-bottom:5px;
 }
 
 .header p{
     opacity:0.7;
 }
 
-/* SERVICES GRID */
+/* ================= GRID ================= */
 #services{
     display:grid;
+    grid-template-columns:1fr;
     gap:15px;
 }
 
-/* CARD */
+/* ================= CARD ================= */
 .card{
-    background:var(--glass);
-    border:1px solid rgba(0,210,255,0.2);
-    border-radius:20px;
-    padding:18px;
     display:flex;
     align-items:center;
-    backdrop-filter: blur(12px);
+    gap:15px;
+
+    background:var(--glass);
+    border:1px solid rgba(0,210,255,0.2);
+    border-radius:18px;
+    padding:15px;
+
+    backdrop-filter:blur(12px);
+
     transition:0.3s;
-    position:relative;
-    overflow:hidden;
 }
 
-/* HOVER EFFECT */
+/* glow hover */
 .card:hover{
-    transform:translateY(-5px) scale(1.02);
-    box-shadow: var(--glow);
-    border:1px solid var(--blue);
+    box-shadow:0 0 20px rgba(0,210,255,0.4);
 }
 
-/* LIGHT EFFECT */
-.card::before{
-    content:"";
-    position:absolute;
-    width:150px;
-    height:150px;
-    background: radial-gradient(circle, rgba(0,210,255,0.3), transparent);
-    top:-50px;
-    left:-50px;
-    opacity:0;
-    transition:0.5s;
-}
-
-.card:hover::before{
-    opacity:1;
-}
-
-/* ICON */
+/* ================= ICON ================= */
 .icon{
     font-size:32px;
-    margin-right:15px;
-    animation:float 3s ease-in-out infinite;
 }
 
-/* CONTENT */
+/* ================= CONTENT ================= */
 .content{
     flex:1;
 }
@@ -112,39 +96,40 @@ body{
 
 .desc{
     font-size:13px;
-    opacity:0.75;
-    margin-top:3px;
+    opacity:0.7;
 }
 
-/* BUTTON */
-button{
+/* ================= BUTTON ================= */
+.btn{
     margin-top:10px;
-    padding:10px 14px;
+    padding:10px;
     border:none;
     border-radius:10px;
-    background:linear-gradient(45deg, #00d2ff, #3a7bd5);
-    font-weight:bold;
-    cursor:pointer;
+
+    background:linear-gradient(45deg,#00d2ff,#3a7bd5);
     color:white;
+    font-weight:bold;
+
+    cursor:pointer;
     transition:0.3s;
 }
 
-button:hover{
+.btn:hover{
     transform:scale(1.05);
-    box-shadow: var(--glow);
 }
 
-/* NAVBAR */
+/* ================= NAVBAR ================= */
 .navbar{
     position:fixed;
     bottom:0;
     width:100%;
+
     background:rgba(5,10,20,0.95);
+    border-top:1px solid var(--blue);
+
     display:flex;
     justify-content:space-around;
-    padding:15px 0;
-    border-top:1px solid var(--blue);
-    backdrop-filter:blur(10px);
+    padding:12px 0;
 }
 
 .nav-link{
@@ -152,11 +137,7 @@ button:hover{
     text-decoration:none;
     font-size:12px;
     opacity:0.6;
-    transition:0.3s;
-}
-
-.nav-link:hover{
-    opacity:1;
+    text-align:center;
 }
 
 .nav-link.active{
@@ -165,28 +146,13 @@ button:hover{
     font-weight:bold;
 }
 
-/* ANIMATIONS */
-@keyframes fadeIn{
-    from{opacity:0; transform:translateY(-10px);}
-    to{opacity:1; transform:translateY(0);}
-}
-
-@keyframes float{
-    0%,100%{transform:translateY(0);}
-    50%{transform:translateY(-5px);}
-}
-
-/* MOBILE */
-@media(max-width:500px){
-    .card{
-        flex-direction:column;
-        align-items:flex-start;
-    }
-
-    .icon{
-        margin-bottom:10px;
+/* ================= RESPONSIVE ================= */
+@media(min-width:600px){
+    #services{
+        grid-template-columns:1fr 1fr;
     }
 }
+
 </style>
 </head>
 
@@ -194,90 +160,32 @@ button:hover{
 
 <div class="overlay">
 
+    <!-- HEADER -->
     <div class="header">
-        <h2>🚀 Nos Services Premium</h2>
-        <p>Boost ton business avec Davbot</p>
+        <h2>🚀 Nos Services</h2>
+        <p>Choisissez un service et lancez votre projet</p>
     </div>
 
-    <div id="services">
-
-        <!-- APPLICATION -->
-        <div class="card">
-            <div class="icon">📱</div>
-            <div class="content">
-                <div class="title">Création Application</div>
-                <div class="desc">Application Android professionnelle avec design moderne</div>
-                <button onclick="go('Application')">Commander</button>
-            </div>
-        </div>
-
-        <!-- SITE -->
-        <div class="card">
-            <div class="icon">🌐</div>
-            <div class="content">
-                <div class="title">Site Web Pro</div>
-                <div class="desc">Site moderne rapide et sécurisé</div>
-                <button onclick="go('Site Web Pro')">Commander</button>
-            </div>
-        </div>
-
-        <!-- IA -->
-        <div class="card">
-            <div class="icon">🤖</div>
-            <div class="content">
-                <div class="title">Intelligence Artificielle</div>
-                <div class="desc">Bots Facebook, WhatsApp, Web automatisés</div>
-                <button onclick="go('Intelligence Artificielle')">Commander</button>
-            </div>
-        </div>
-
-        <!-- SOCIAL -->
-        <div class="card">
-            <div class="icon">📈</div>
-            <div class="content">
-                <div class="title">Réseaux Sociaux</div>
-                <div class="desc">Boost vues, likes et followers</div>
-                <button onclick="go('Réseaux Sociaux')">Commander</button>
-            </div>
-        </div>
-
-        <!-- HÉBERGEMENT -->
-        <div class="card">
-            <div class="icon">☁️</div>
-            <div class="content">
-                <div class="title">Hébergement</div>
-                <div class="desc">Hébergement rapide et sécurisé</div>
-                <button onclick="go('Hébergement')">Commander</button>
-            </div>
-        </div>
-
-        <!-- VPN -->
-        <div class="card">
-            <div class="icon">🔐</div>
-            <div class="content">
-                <div class="title">VPN</div>
-                <div class="desc">Connexion sécurisée et rapide</div>
-                <button onclick="go('VPN')">Commander</button>
-            </div>
-        </div>
-
-    </div>
+    <!-- SERVICES -->
+    <div id="services"></div>
 
 </div>
 
 <!-- NAVBAR -->
 <nav class="navbar">
-    <a href="dashboard.html" class="nav-link">📊<br>Dash</a>
-    <a href="service.html" class="nav-link active">📡<br>Shop</a>
+    <a href="dashboard.html" class="nav-link">📊<br>Dashboard</a>
+    <a href="service.html" class="nav-link active">🛒<br>Services</a>
     <a href="profil.html" class="nav-link">👤<br>Profil</a>
 </nav>
 
+<!-- JS -->
+<script src="service.js"></script>
+
 <script>
-// REDIRECTION
-function go(service){
-    localStorage.setItem("serviceCommande", service);
-    window.location.href = "cmd.html";
-}
+// fade in smooth
+window.onload = ()=>{
+    document.body.style.opacity = "1";
+};
 </script>
 
 </body>
