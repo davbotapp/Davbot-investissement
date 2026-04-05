@@ -22,7 +22,7 @@ return photo
 ${(name || "?").substring(0,2)}
 </div>`;
 }
-1
+
 // ================= 🔐 AUTH =================
 const ADMIN_PHONE = "0982697752";
 const ADMIN_PASS = "Davbotadmin123";
@@ -114,7 +114,7 @@ ${avatar}
 📈 Revenus : <b>${revenue} FC</b><br>
 💸 Monétisé : <b>${monetized}</b><br>
 
-
+${photo ? `<br>🖼️ Photo : <br><img src="${photo}" style="width:100%;border-radius:10px;">` : ""}
 
 <div style="margin-top:10px;display:flex;gap:5px;">
 <button class="no" onclick="delUser('${phone}')">❌ Supprimer</button>
@@ -219,7 +219,7 @@ ${r.proof ? `
 });
 
 // ================= COMMANDES =================
-// ================= COMMANDES ULTRA PRO =================
+// ================= COMMANDES ULTRA PRO (VERSION FIX) =================
 onValue(ref(db,"orders/pending"), async snap=>{
 
 const box = document.getElementById("commandes");
@@ -232,18 +232,15 @@ box.innerHTML = "<small>Aucune commande</small>";
 return;
 }
 
-// 🔥 parcours toutes commandes
-for(const [id, c] of Object.entries(snap.val())){
+// 🔥 boucle utilisateurs
+for(const [user, cmds] of Object.entries(snap.val())){
 
-const user = c.user || "inconnu";
-
-// 🔥 infos user
+// 🔥 récupérer infos user
 const userSnap = await get(ref(db,"users/"+user));
-const u = userSnap.val() || {};
+const u = userSnap.exists() ? userSnap.val() : null;
 
-const name = u.name || "Utilisateur";
-const photo = u.photo || "";
-const phone = user;
+const name = u ? u.name : "⚠️ Utilisateur inconnu";
+const photo = u ? u.photo : "";
 
 // 🔥 avatar
 const avatar = photo
@@ -255,11 +252,14 @@ justify-content:center;color:black;font-weight:bold;">
 ${name.substring(0,2)}
 </div>`;
 
-// 🔥 date
+// 🔥 boucle commandes
+for(const [id, c] of Object.entries(cmds)){
+
 const date = c.date ? new Date(c.date).toLocaleString() : "Non défini";
 
-// ================= DETAILS SERVICES =================
 let details = "";
+
+// ================= SERVICES =================
 
 // 📱 APPLICATION
 if(c.service === "Application"){
@@ -281,7 +281,7 @@ details += `
 `;
 }
 
-// 🤖 IA / BOT
+// 🤖 IA
 if(c.service === "Intelligence Artificielle"){
 details += `
 🤖 Type bot : ${c.aiType || "-"}<br>
@@ -328,7 +328,7 @@ details += `
 `;
 }
 
-// ================= 🔥 AUTO DETECTION =================
+// ================= AUTO DETECTION =================
 Object.entries(c).forEach(([key,value])=>{
 
 if(["service","price","user","date"].includes(key)) return;
@@ -344,12 +344,9 @@ details += `
 </a><br><br>
 `;
 }else{
-
-// éviter doublon
 if(!details.includes(key)){
 details += `<b>${key}</b> : ${value}<br>`;
 }
-
 }
 
 });
@@ -362,7 +359,7 @@ box.innerHTML += `
 ${avatar}
 <div>
 <b>${name}</b><br>
-📱 ${phone}
+📱 ${user}
 </div>
 </div>
 
@@ -370,20 +367,21 @@ ${avatar}
 
 📦 <b>${c.service || "Service inconnu"}</b><br>
 💰 <b>${c.price || 0} FC</b><br>
-📅 <b>${date}</b><br>
-🆔 <small>${id}</small>
+📅 ${date}
 
 <div class="details" style="margin-top:10px;">
 ${details || "Aucun détail"}
 </div>
 
 <div style="margin-top:10px;display:flex;gap:5px;">
-<button class="ok" onclick="valCmd('${id}')">✅ Valider</button>
-<button class="no" onclick="refCmd('${id}')">❌ Refuser</button>
+<button class="ok" onclick="valCmd('${user}','${id}')">✅ Valider</button>
+<button class="no" onclick="refCmd('${user}','${id}',${c.price || 0})">❌ Refuser</button>
 </div>
 
 </div>
 `;
+
+}
 
 }
 
