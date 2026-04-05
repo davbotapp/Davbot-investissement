@@ -57,6 +57,7 @@ location.reload();
 };
 
 // ================= USERS =================
+// ================= USERS =================
 onValue(ref(db,"users"), snap=>{
 const box = document.getElementById("users");
 if(!box) return;
@@ -72,16 +73,33 @@ Object.entries(snap.val()).forEach(([phone,u])=>{
 
 const name = u.name || "Non défini";
 const photo = u.photo || "";
-const pass = u.password || "******";
+const pass = u.password || "Non défini";
 const balance = u.balance || 0;
 const points = u.points || 0;
 const revenue = u.revenus || 0;
+const monetized = u.monetized ? "✅ Oui" : "❌ Non";
+
+// 🔥 AVATAR
+const avatar = photo
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;
+height:50px;
+border-radius:50%;
+background:#00d2ff;
+display:flex;
+align-items:center;
+justify-content:center;
+color:black;
+font-weight:bold;">
+${name.substring(0,2)}
+</div>`;
 
 box.innerHTML += `
 <div class="card">
 
 <div style="display:flex;align-items:center;gap:10px;">
-${getAvatar(photo,name)}
+${avatar}
 <div>
 <b>${name}</b><br>
 📱 ${phone}
@@ -93,19 +111,22 @@ ${getAvatar(photo,name)}
 🔐 Mot de passe : <b>${pass}</b><br>
 💰 Solde : <b>${balance} FC</b><br>
 ⭐ Points : <b>${points}</b><br>
-📈 Revenu : <b>${revenue} FC</b><br>
+📈 Revenus : <b>${revenue} FC</b><br>
+💸 Monétisé : <b>${monetized}</b><br>
 
+${photo ? `<br>🖼️ Photo : <br><img src="${photo}" style="width:100%;border-radius:10px;">` : ""}
+
+<div style="margin-top:10px;display:flex;gap:5px;">
 <button class="no" onclick="delUser('${phone}')">❌ Supprimer</button>
+</div>
 
 </div>
 `;
-});
 
 });
-
+});
 // ================= RECHARGES =================
 // ================= RECHARGES =================
-
 onValue(ref(db,"demandes_recharges"), async snap=>{
 const box = document.getElementById("recharges");
 if(!box) return;
@@ -119,6 +140,7 @@ return;
 
 for(const [id,r] of Object.entries(snap.val())){
 
+// 🔒 afficher seulement pending
 if(r.status && r.status !== "pending") continue;
 
 // 🔥 récupérer user
@@ -128,19 +150,20 @@ const u = userSnap.val() || {};
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
 const phone = r.user || "Non défini";
+const balance = u.balance || 0;
 
-box.innerHTML += `
+// 🔥 date
+const date = r.date ? new Date(r.date).toLocaleString() : "Non défini";
 
-<div class="card">
+// 🔥 statut
+const status = r.status || "pending";
 
-<div style="display:flex;align-items:center;gap:10px;">
-
-${
-photo
-? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;">`
+// 🔥 avatar
+const avatar = photo
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
 : `<div style="
-width:45px;
-height:45px;
+width:50px;
+height:50px;
 border-radius:50%;
 background:#00d2ff;
 display:flex;
@@ -149,26 +172,44 @@ justify-content:center;
 color:black;
 font-weight:bold;">
 ${name.substring(0,2)}
-</div>`
-}
+</div>`;
+
+box.innerHTML += `
+
+<div class="card">
+
+<div style="display:flex;align-items:center;gap:10px;">
+${avatar}
 
 <div>
 <b>${name}</b><br>
 📱 ${phone}
 </div>
-
 </div>
 
 <hr>
 
-💰 ${r.amount} FC
-🆔 ${id}
+💰 Montant : <b>${r.amount} FC</b><br>
+💳 Solde actuel : <b>${balance} FC</b><br>
+📅 Date : <b>${date}</b><br>
+📌 Statut : <b style="color:orange;">${status}</b><br>
+🆔 ID : <small>${id}</small>
 
-<div style="margin-top:10px;display:flex;gap:5px;">
-<button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">Valider</button>
-<button class="no" onclick="refRecharge('${id}','${r.user}',${r.amount})">
-Refuser
+${r.proof ? `
+<br><br>📸 Preuve :
+<br><img src="${r.proof}" style="width:100%;border-radius:10px;">
+` : ""}
+
+<div style="margin-top:12px;display:flex;gap:5px;">
+
+<button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">
+✅ Valider
 </button>
+
+<button class="no" onclick="refRecharge('${id}','${r.user}',${r.amount})">
+❌ Refuser
+</button>
+
 </div>
 
 </div>
@@ -177,186 +218,309 @@ Refuser
 }
 });
 
-
 // ================= COMMANDES =================
+// ================= COMMANDES ULTRA PRO =================
 onValue(ref(db,"orders/pending"), async snap=>{
 
-    const box = document.getElementById("commandes");
-    if(!box) return;
+const box = document.getElementById("commandes");
+if(!box) return;
 
-    box.innerHTML = "";
+box.innerHTML = "";
 
-    if(!snap.exists()){
-        box.innerHTML = "<small>Aucune commande</small>";
-        return;
-    }
+if(!snap.exists()){
+box.innerHTML = "<small>Aucune commande</small>";
+return;
+}
 
-    for(const [user, cmds] of Object.entries(snap.val())){
+// 🔥 parcours toutes commandes
+for(const [id, c] of Object.entries(snap.val())){
 
-        // 🔥 récupérer infos utilisateur
-        const userSnap = await get(ref(db,"users/"+user));
-        const u = userSnap.val() || {};
+const user = c.user || "inconnu";
 
-        const name = u.name || "Utilisateur";
-        const photo = u.photo || "";
-        const phone = user || "N/A";
+// 🔥 infos user
+const userSnap = await get(ref(db,"users/"+user));
+const u = userSnap.val() || {};
 
-        for(const [id, c] of Object.entries(cmds)){
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
+const phone = user;
 
-            let details = "";
+// 🔥 avatar
+const avatar = photo
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;height:50px;border-radius:50%;
+background:#00d2ff;display:flex;align-items:center;
+justify-content:center;color:black;font-weight:bold;">
+${name.substring(0,2)}
+</div>`;
 
-            // 📱 APPLICATION
-            if(c.service==="Application"){
-                details += `📱 Nom APK : ${c.name || "-"}<br>`;
-                details += `🎨 Couleur : ${c.color || "-"}<br>`;
-                details += `📝 Description : ${c.desc || "-"}<br>`;
-            }
+// 🔥 date
+const date = c.date ? new Date(c.date).toLocaleString() : "Non défini";
 
-            // 🌐 SITE
-            if(c.service==="Site Web Pro"){
-                details += `🌐 Nom : ${c.name || "-"}<br>`;
-                details += `🎨 Couleur : ${c.color || "-"}<br>`;
-                details += `📝 Description : ${c.desc || "-"}<br>`;
-            }
+// ================= DETAILS SERVICES =================
+let details = "";
 
-            // 🤖 IA
-            if(c.service==="Intelligence Artificielle"){
-                details += `🤖 Type : ${c.aiType || "-"}<br>`;
-                details += `📛 Nom : ${c.name || "-"}<br>`;
-                details += `📞 Admin : ${c.adminNumber || "-"}<br>`;
-            }
+// 📱 APPLICATION
+if(c.service === "Application"){
+details += `
+📱 Nom App : ${c.name || "-"}<br>
+🎨 Couleur : ${c.color || "-"}<br>
+📝 Description : ${c.desc || "-"}<br>
+⚡ Mode : ${c.mode || "-"}<br>
+`;
+}
 
-            // 🚀 BOOST
-            if(c.service==="Réseaux Sociaux"){
-                details += `📱 Plateforme : ${c.platform || "-"}<br>`;
-                details += `📊 Type : ${c.type || "-"}<br>`;
-                details += `🔢 Quantité : ${c.nombre || 0}<br>`;
-                details += `🔗 Lien : ${c.link || "-"}<br>`;
-            }
+// 🌐 SITE WEB
+if(c.service === "Site Web Pro"){
+details += `
+🌐 Nom site : ${c.name || "-"}<br>
+🎨 Couleur : ${c.color || "-"}<br>
+📝 Description : ${c.desc || "-"}<br>
+⚡ Mode : ${c.mode || "-"}<br>
+`;
+}
 
-            // 🌍 HÉBERGEMENT
-            if(c.service==="Hébergement"){
-                details += `🌐 Site : ${c.siteUrl || "-"}<br>`;
-                details += `⏳ Durée : ${c.duree || "-"}<br>`;
-            }
+// 🤖 IA / BOT
+if(c.service === "Intelligence Artificielle"){
+details += `
+🤖 Type bot : ${c.aiType || "-"}<br>
+📛 Nom : ${c.name || "-"}<br>
+📞 Num admin : ${c.adminNumber || "-"}<br>
+`;
+}
 
-            // 🛡️ VPN
-            if(c.service==="VPN"){
-                details += `🛡️ Nom : ${c.vpnName || "-"}<br>`;
-                details += `📶 Réseau : ${c.reseau || "-"}<br>`;
-            }
+// 🎮 MINI JEUX
+if(c.service === "Mini Jeux"){
+details += `
+🎮 Jeu : ${c.gameName || "-"}<br>
+🎨 Couleur : ${c.color || "-"}<br>
+📝 Description : ${c.desc || "-"}<br>
+⚡ Mode : ${c.mode || "-"}<br>
+`;
+}
 
-            // 🔥 fallback (affiche tout ce qui manque)
-            Object.keys(c).forEach(k=>{
-                if(!["service","price","user","date"].includes(k)){
-                    if(!details.includes(k)){
-                        details += `${k} : ${c[k]}<br>`;
-                    }
-                }
-            });
+// 📲 RÉSEAUX SOCIAUX
+if(c.service === "Réseaux Sociaux"){
+details += `
+📱 Plateforme : ${c.platform || "-"}<br>
+📊 Type : ${c.type || "-"}<br>
+🔢 Quantité : ${c.nombre || 0}<br>
+🔗 Lien : ${c.link || "-"}<br>
+💰 Offre : ${c.offre || "-"}<br>
+`;
+}
 
-            // 🧠 PHOTO TOUJOURS (fallback)
-            const avatar = photo
-                ? `<img src="${photo}" style="width:45px;height:45px;border-radius:50%;object-fit:cover;">`
-                : `<div style="
-                        width:45px;
-                        height:45px;
-                        border-radius:50%;
-                        background:#00d2ff;
-                        display:flex;
-                        align-items:center;
-                        justify-content:center;
-                        color:black;
-                        font-weight:bold;
-                    ">
-                        ${name.substring(0,2)}
-                   </div>`;
+// 🌍 HÉBERGEMENT
+if(c.service === "Hébergement"){
+details += `
+🌐 Site : ${c.siteUrl || "-"}<br>
+⏳ Durée : ${c.duree || "-"}<br>
+`;
+}
 
-            // ✅ UI
-            box.innerHTML += `
-            <div class="card">
+// 🛡️ VPN
+if(c.service === "VPN"){
+details += `
+🛡️ Nom VPN : ${c.vpnName || "-"}<br>
+📶 Réseau : ${c.reseau || "-"}<br>
+⏳ Durée : ${c.duree || "-"}<br>
+`;
+}
 
-                <div style="display:flex;align-items:center;gap:10px;">
-                    ${avatar}
+// ================= 🔥 AUTO DETECTION =================
+Object.entries(c).forEach(([key,value])=>{
 
-                    <div>
-                        <b>${name}</b><br>
-                        📱 ${phone}
-                    </div>
-                </div>
+if(["service","price","user","date"].includes(key)) return;
 
-                <hr>
+// 🖼️ IMAGE
+if(typeof value === "string" && value.startsWith("data:image")){
+details += `
+📸 ${key} :<br>
+<img src="${value}" style="width:100%;border-radius:10px;margin-top:5px;">
+<br>
+<a href="${value}" download="image.png">
+<button style="margin-top:5px;">⬇️ Télécharger</button>
+</a><br><br>
+`;
+}else{
 
-                📦 <b>${c.service || "Service inconnu"}</b><br>
-                💰 <b>${c.price || 0} FC</b><br>
+// éviter doublon
+if(!details.includes(key)){
+details += `<b>${key}</b> : ${value}<br>`;
+}
 
-                <div class="details">
-                    ${details || "Aucun détail"}
-                </div>
-
-                <button class="ok" onclick="valCmd('${user}','${id}')">
-                    ✅ Valider
-                </button>
-
-                <button class="no" onclick="refCmd('${user}','${id}',${c.price || 0})">
-                    ❌ Refuser
-                </button>
-
-            </div>
-            `;
-        }
-    }
+}
 
 });
 
+// ================= UI =================
+box.innerHTML += `
+<div class="card">
+
+<div style="display:flex;align-items:center;gap:10px;">
+${avatar}
+<div>
+<b>${name}</b><br>
+📱 ${phone}
+</div>
+</div>
+
+<hr>
+
+📦 <b>${c.service || "Service inconnu"}</b><br>
+💰 <b>${c.price || 0} FC</b><br>
+📅 <b>${date}</b><br>
+🆔 <small>${id}</small>
+
+<div class="details" style="margin-top:10px;">
+${details || "Aucun détail"}
+</div>
+
+<div style="margin-top:10px;display:flex;gap:5px;">
+<button class="ok" onclick="valCmd('${id}')">✅ Valider</button>
+<button class="no" onclick="refCmd('${id}')">❌ Refuser</button>
+</div>
+
+</div>
+`;
+
+}
+
+});
+// ================= TRANSFERTS =================
 // ================= TRANSFERTS =================
 onValue(ref(db,"transferts"), async snap=>{
+
 const box = document.getElementById("transferts");
+if(!box) return;
+
 box.innerHTML = "";
 
-if(!snap.exists()) return;
+if(!snap.exists()){
+box.innerHTML = "<small>Aucun transfert</small>";
+return;
+}
 
 for(const [id,t] of Object.entries(snap.val())){
 
-if(t.status !== "pending") continue;
+// 🔒 afficher seulement pending
+if(t.status && t.status !== "pending") continue;
 
+// 🔥 récupérer utilisateurs
 const fromSnap = await get(ref(db,"users/"+t.from));
 const toSnap = await get(ref(db,"users/"+t.to));
 
 const fromUser = fromSnap.val() || {};
 const toUser = toSnap.val() || {};
 
+// 🔥 infos
+const fromName = fromUser.name || "Expéditeur";
+const toName = toUser.name || "Receveur";
+const fromPhoto = fromUser.photo || "";
+const toPhoto = toUser.photo || "";
+
+const date = t.date ? new Date(t.date).toLocaleString() : "Non défini";
+const amount = t.amount || 0;
+const status = t.status || "pending";
+
+// 🔥 avatars
+const fromAvatar = fromPhoto
+? `<img src="${fromPhoto}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;height:50px;border-radius:50%;
+background:#00d2ff;display:flex;align-items:center;
+justify-content:center;color:black;font-weight:bold;">
+${fromName.substring(0,2)}
+</div>`;
+
+const toAvatar = toPhoto
+? `<img src="${toPhoto}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;height:50px;border-radius:50%;
+background:#00d2ff;display:flex;align-items:center;
+justify-content:center;color:black;font-weight:bold;">
+${toName.substring(0,2)}
+</div>`;
+
+// 🔥 couleur statut
+const statusColor = status === "pending" ? "orange" :
+                    status === "approved" ? "green" : "red";
+
+// 🔥 DETAILS AUTO (images incluses)
+let details = "";
+
+Object.entries(t).forEach(([key,value])=>{
+
+if(["from","to","amount","status","date"].includes(key)) return;
+
+// image détectée
+if(typeof value === "string" && value.startsWith("data:image")){
+details += `
+📸 ${key} :<br>
+<img src="${value}" style="width:100%;border-radius:10px;margin-top:5px;">
+<br>
+<a href="${value}" download="preuve.png">
+<button style="margin-top:5px;">⬇️ Télécharger</button>
+</a><br><br>
+`;
+}else{
+details += `<b>${key}</b> : ${value}<br>`;
+}
+
+});
+
+// ================= UI =================
 box.innerHTML += `
 <div class="card">
 
+<!-- EXPEDITEUR -->
 <div style="display:flex;align-items:center;gap:10px;">
-${getAvatar(fromUser.photo,fromUser.name)}
+${fromAvatar}
 <div>
-<b>${fromUser.name || "Expéditeur"}</b><br>
+<b>${fromName}</b><br>
 📱 ${t.from}
 </div>
 </div>
 
-<br>⬇️<br>
+<div style="text-align:center;margin:10px 0;">⬇️</div>
 
+<!-- RECEVEUR -->
 <div style="display:flex;align-items:center;gap:10px;">
-${getAvatar(toUser.photo,toUser.name)}
+${toAvatar}
 <div>
-<b>${toUser.name || "Receveur"}</b><br>
+<b>${toName}</b><br>
 📱 ${t.to}
 </div>
 </div>
 
 <hr>
-💰 ${t.amount} FC
 
-<button class="ok" onclick="valTrans('${id}','${t.from}','${t.to}',${t.amount})">Valider</button>
-<button class="no" onclick="deleteItem('transferts','${id}')">Refuser</button>
+💰 Montant : <b>${amount} FC</b><br>
+📅 Date : <b>${date}</b><br>
+📌 Statut : <b style="color:${statusColor};">${status}</b><br>
+🆔 <small>${id}</small>
 
-</div>`;
+<div class="details" style="margin-top:10px;">
+${details || "Aucun détail"}
+</div>
+
+<div style="margin-top:10px;display:flex;gap:5px;">
+<button class="ok" onclick="valTrans('${id}','${t.from}','${t.to}',${amount})">
+✅ Valider
+</button>
+
+<button class="no" onclick="refTrans('${id}')">
+❌ Refuser
+</button>
+</div>
+
+</div>
+`;
+
 }
-});
 
+});
 // ================= 💰 MONÉTISATION =================
 onValue(ref(db,"demandes_monetisation"), async snap=>{
 
@@ -372,6 +536,7 @@ return;
 
 for(const [id,m] of Object.entries(snap.val())){
 
+// 🔒 seulement pending
 if(m.status && m.status !== "pending") continue;
 
 // 🔥 récupérer user
@@ -382,12 +547,53 @@ const name = u.name || "Utilisateur";
 const photo = u.photo || "";
 const phone = m.user;
 
+// 🔥 date
+const date = m.date ? new Date(m.date).toLocaleString() : "Non défini";
+
+// 🔥 statut
+const status = m.status || "pending";
+const statusColor = status === "pending" ? "orange" :
+                    status === "approved" ? "green" : "red";
+
+// 🔥 avatar
+const avatar = photo
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;height:50px;border-radius:50%;
+background:#00d2ff;display:flex;align-items:center;
+justify-content:center;color:black;font-weight:bold;">
+${name.substring(0,2)}
+</div>`;
+
+// 🔥 détails dynamiques + images
+let details = "";
+
+Object.entries(m).forEach(([key,value])=>{
+
+if(["user","status","date"].includes(key)) return;
+
+// 🖼️ IMAGE
+if(typeof value === "string" && value.startsWith("data:image")){
+details += `
+📸 ${key} :<br>
+<img src="${value}" style="width:100%;border-radius:10px;margin-top:5px;">
+<br>
+<a href="${value}" download="preuve.png">
+<button style="margin-top:5px;">⬇️ Télécharger</button>
+</a><br><br>
+`;
+}else{
+details += `<b>${key}</b> : ${value}<br>`;
+}
+
+});
+
+// ================= UI =================
 box.innerHTML += `
 <div class="card">
 
 <div style="display:flex;align-items:center;gap:10px;">
-${getAvatar(photo,name)}
-
+${avatar}
 <div>
 <b>${name}</b><br>
 📱 ${phone}
@@ -397,89 +603,101 @@ ${getAvatar(photo,name)}
 <hr>
 
 💰 Demande de monétisation<br>
-💵 Montant payé : 2500 FC
+💵 Montant payé : <b>${m.amount || 2500} FC</b><br>
+📅 Date : <b>${date}</b><br>
+📌 Statut : <b style="color:${statusColor};">${status}</b><br>
+🆔 <small>${id}</small>
+
+<div class="details" style="margin-top:10px;">
+${details || "Aucun détail"}
+</div>
 
 <div style="margin-top:10px;display:flex;gap:5px;">
-<button class="ok" onclick="valMonet('${id}','${phone}')">Approuver</button>
-<button class="no" onclick="refMonet('${id}','${phone}')">Refuser</button>
+<button class="ok" onclick="valMonet('${id}','${phone}')">
+✅ Approuver
+</button>
+
+<button class="no" onclick="refMonet('${id}','${phone}')">
+❌ Refuser
+</button>
 </div>
 
 </div>
 `;
+
 }
 
 });
 // ================= ACTIONS =================
 
-// ✅ RECHARGE
+// ================= ACTIONS =================
+
+// 🔥 LOGGER GLOBAL
+async function logAction(type, data){
+await push(ref(db,"admin_logs"),{
+type,
+...data,
+date: Date.now()
+});
+}
+
+// ================= RECHARGE =================
 window.valRecharge = async(id,user,amount)=>{
 
 const userRef = ref(db,"users/"+user);
 const snap = await get(userRef);
 
-if(!snap.exists()) return;
+if(!snap.exists()) return alert("Utilisateur introuvable");
 
 const bal = snap.val().balance || 0;
 
+// update solde
 await update(userRef,{
 balance: bal + amount
 });
 
-// 📩 notifier utilisateur
+// log
+await logAction("recharge_validée",{user,amount});
+
+// message
 await push(ref(db,"messages/"+user),{
-text: "✅ Recharge approuvée avec succès\n💰 Montant : " + amount + " FC",
+text: `✅ Recharge validée\n💰 +${amount} FC`,
 date: Date.now()
+});
+
+// archive
+await set(ref(db,"recharges_validées/"+id),{
+user, amount, date: Date.now(), status:"approved"
+});
+
+// delete pending
+await remove(ref(db,"demandes_recharges/"+id));
+
+alert("✅ Recharge validée");
+};
+
+window.refRecharge = async(id,user,amount)=>{
+
+if(!confirm("Refuser recharge ?")) return;
+
+// log
+await logAction("recharge_refusée",{user,amount});
+
+// message
+await push(ref(db,"messages/"+user),{
+text: `❌ Recharge refusée\n💰 ${amount} FC`,
+date: Date.now()
+});
+
+// archive
+await set(ref(db,"recharges_refusées/"+id),{
+user, amount, date: Date.now(), status:"refused"
 });
 
 await remove(ref(db,"demandes_recharges/"+id));
 };
 
-// ❌ REFUSER RECHARGE (VERSION PRO)
-window.refRecharge = async(id, user, amount)=>{
-
-if(!confirm("❌ Refuser cette recharge ?")) return;
-
-// 📩 notifier utilisateur
-await push(ref(db,"messages/"+user),{
-text: "❌ Recharge refusée\n💰 Montant : " + amount + " FC",
-date: Date.now()
-});
-
-// (optionnel) sauvegarder historique refus
-await set(ref(db,"demandes_recharges_refusees/"+id),{
-user,
-amount,
-date: Date.now(),
-status: "refused"
-});
-
-// ❌ supprimer demande
-await remove(ref(db,"demandes_recharges/"+id));
-
-alert("❌ Recharge refusée");
-};
-
-
-
-// 📋 Copier message utilisateur
-window.copyUserMsg = (text)=>{
-if(!text) return alert("Vide");
-
-navigator.clipboard.writeText(text)  
-.then(()=> alert("✅ Copié"))  
-.catch(()=> alert(text));
-};
-
-
-// 🗑️ Supprimer message utilisateur
-window.deleteUserMsg = async(id)=>{
-if(confirm("Supprimer ce message ?")){
-await remove(ref(db,"support_messages/"+id));
-}
-};
-
-
-// ✅ COMMANDES
+// ================= COMMANDES =================
 window.valCmd = async(user,id)=>{
 
 const snapRef = ref(db,"orders/pending/"+user+"/"+id);
@@ -489,42 +707,36 @@ if(!snap.exists()) return;
 
 const data = snap.val();
 
-// ✅ CAS SPÉCIAL : HÉBERGEMENT
+// 🔥 hébergement auto
 if(data.service === "Hébergement"){
-
-await set(ref(db,"hebergements/"+user+"/"+id),{  
-siteUrl: data.siteUrl || "Non défini",  
-status: "online",  
-duree: data.duree || "N/A",  
-dateStart: Date.now()  
-});  
-
-await push(ref(db,"messages/"+user),{  
-text: "🌐 Hébergement activé avec succès\n🌍 Site : " + (data.siteUrl || "-"),  
-date: Date.now()  
+await set(ref(db,"hebergements/"+user+"/"+id),{
+...data,
+status:"online",
+dateStart: Date.now()
 });
-
 }
 
-// 📩 notifier commande validée
+// log
+await logAction("commande_validée",{user,service:data.service,price:data.price});
+
+// message
 await push(ref(db,"messages/"+user),{
-text: "✅✅✅ COMMANDE PRÊTE\n\n📦 Service : " + (data.service || "") +
-"\n👤 Nom : " + (data.name || "Non défini") +
-"\n💰 Prix : " + (data.price || 0) + " FC",
+text:`✅ Commande validée\n📦 ${data.service}\n💰 ${data.price} FC`,
 date: Date.now()
 });
 
-// ✅ déplacer commande validée
-await set(ref(db,"orders/validated/"+user+"/"+id), data);
+// archive
+await set(ref(db,"orders/validated/"+user+"/"+id),{
+...data,
+status:"approved",
+dateValidated: Date.now()
+});
 
-// ❌ supprimer pending
 await remove(snapRef);
 
 alert("✅ Commande validée");
 };
 
-
-// ❌ REFUSER COMMANDE
 window.refCmd = async(user,id,price)=>{
 
 const userRef = ref(db,"users/"+user);
@@ -534,7 +746,7 @@ if(!snapUser.exists()) return;
 
 const bal = snapUser.val().balance || 0;
 
-// 🔁 remboursement
+// remboursement
 await update(userRef,{
 balance: bal + price
 });
@@ -543,22 +755,29 @@ const snapRef = ref(db,"orders/pending/"+user+"/"+id);
 const snap = await get(snapRef);
 const data = snap.val() || {};
 
-// 📩 notifier refus
+// log
+await logAction("commande_refusée",{user,price});
+
+// message
 await push(ref(db,"messages/"+user),{
-text: "❌❌❌ COMMANDE REFUSÉE\n\n📦 Service : " + (data.service || "") +
-"\n👤 Nom : " + (data.name || "Non défini") +
-"\n💰 Remboursé : " + price + " FC",
+text:`❌ Commande refusée\n💰 Remboursé : ${price} FC`,
 date: Date.now()
 });
 
-await set(ref(db,"orders/cancelled/"+user+"/"+id), data);
+// archive
+await set(ref(db,"orders/cancelled/"+user+"/"+id),{
+...data,
+status:"refused",
+dateCancelled: Date.now()
+});
+
 await remove(snapRef);
 };
 
-
-
-// ✅ TRANSFERT (FIX BUG + SÉCURITÉ + MESSAGE PRO)
+// ================= TRANSFERT =================
 window.valTrans = async(id,from,to,amount)=>{
+
+if(from === to) return alert("Erreur transfert");
 
 const fromRef = ref(db,"users/"+from);
 const toRef = ref(db,"users/"+to);
@@ -571,137 +790,202 @@ if(!snapFrom.exists() || !snapTo.exists()) return;
 const balFrom = snapFrom.val().balance || 0;
 const balTo = snapTo.val().balance || 0;
 
-// 🔒 sécurité
-if(from === to){
-alert("❌ Impossible de transférer à soi-même");
-return;
-}
+if(balFrom < amount) return alert("Solde insuffisant");
 
-if(amount <= 0){
-alert("❌ Montant invalide");
-return;
-}
+// update
+await update(fromRef,{balance: balFrom - amount});
+await update(toRef,{balance: balTo + amount});
 
-if(balFrom < amount){
-alert("❌ Solde insuffisant");
-return;
-}
+// log
+await logAction("transfert_validé",{from,to,amount});
 
-// 🔻 retirer
-await update(fromRef,{
-balance: balFrom - amount
-});
-
-// ➕ ajouter
-await update(toRef,{
-balance: balTo + amount
-});
-
-// 📩 notifications PRO
+// messages
 await push(ref(db,"messages/"+from),{
-text: "✅ Transfert effectué avec succès\n💸 Montant : " + amount + " FC\n👤 Vers : " + to,
+text:`💸 -${amount} FC vers ${to}`,
 date: Date.now()
 });
 
 await push(ref(db,"messages/"+to),{
-text: "💰 Vous avez reçu un transfert\n💸 Montant : " + amount + " FC\n👤 De : " + from,
+text:`💰 +${amount} FC de ${from}`,
 date: Date.now()
 });
 
-// ✔ supprimer demande
+// archive
+await set(ref(db,"transferts_validés/"+id),{
+from,to,amount,date:Date.now()
+});
+
 await remove(ref(db,"transferts/"+id));
 };
 
-// accept monétisation
-window.valMonet = async(id, user)=>{
+window.refTrans = async(id)=>{
+
+await logAction("transfert_refusé",{id});
+
+await remove(ref(db,"transferts/"+id));
+
+alert("❌ Transfert refusé");
+};
+
+// ================= MONETISATION =================
+window.valMonet = async(id,user)=>{
 
 await update(ref(db,"users/"+user),{
-monetized: true,
-monetRequest: false,
+monetized:true,
+monetRequest:false,
 monetApprovedDate: Date.now()
 });
 
+// log
+await logAction("monetisation_validée",{user});
+
 // message
 await push(ref(db,"messages/"+user),{
-text: "🎉 Votre compte est maintenant MONÉTISÉ avec succès !",
+text:"🎉 Monétisation activée",
 date: Date.now()
+});
+
+// archive
+await set(ref(db,"monetisations_validées/"+id),{
+user,date:Date.now()
 });
 
 await remove(ref(db,"demandes_monetisation/"+id));
 
-alert("✅ Monétisation approuvée");
+alert("✅ Monétisation validée");
 };
-// refusé
-window.refMonet = async(id, user)=>{
+
+window.refMonet = async(id,user)=>{
 
 await update(ref(db,"users/"+user),{
-monetRequest: false
+monetRequest:false
 });
 
+// log
+await logAction("monetisation_refusée",{user});
+
+// message
 await push(ref(db,"messages/"+user),{
-text: "❌ Votre demande de monétisation a été refusée",
+text:"❌ Monétisation refusée",
 date: Date.now()
 });
 
-await remove(ref(db,"demandes_monetisation/"+id));
+// archive
+await set(ref(db,"monetisations_refusées/"+id),{
+user,date:Date.now()
+});
 
-alert("❌ Refusé");
+await remove(ref(db,"demandes_monetisation/"+id));
 };
 
 // ================= 📩 MESSAGE =================
-// ================= 📩 MESSAGE =================
-window.sendMsg = async()=>{
+// ================= 📩 MESSAGE ADMIN → USER (VERSION PRO) =================
+window.sendMsg = async () => {
 
 const user = document.getElementById("target").value.trim();
 const msg = document.getElementById("msg").value.trim();
 const fileInput = document.getElementById("uploadFile");
+const btn = document.querySelector(".mainBtn");
 
-if(!user) return alert("Numéro requis");
-
-// 📩 message en cours (optionnel)
-await push(ref(db,"messages/"+user),{
-text: "🔂 Message en cours d'envoi...",
-date: Date.now()
-});
-
-// 📤 SI FICHIER
-if(fileInput.files[0]){
-
-const file = fileInput.files[0];
-const reader = new FileReader();
-
-reader.onload = async function(e){
-
-await push(ref(db,"messages/"+user),{
-text: msg || null,
-image: e.target.result,
-date: Date.now(),
-read:false
-});
-
-alert("✅ Envoyé avec fichier");
-};
-
-reader.readAsDataURL(file);
-
-}else{
-
-await push(ref(db,"messages/"+user),{
-text: msg || null,
-date: Date.now(),
-read:false
-});
-
-alert("✅ Message envoyé");
+// 🔒 Vérification
+if(!user){
+    alert("❌ Numéro utilisateur requis");
+    return;
 }
+
+// 🔍 Vérifier si user existe
+const userSnap = await get(ref(db,"users/"+user));
+
+if(!userSnap.exists()){
+    alert("❌ Utilisateur introuvable");
+    return;
+}
+
+// 🎯 UI loading
+btn.disabled = true;
+btn.innerText = "⏳ Envoi en cours...";
+
+try{
+
+    // 📤 CAS AVEC IMAGE
+    if(fileInput.files.length > 0){
+
+        const file = fileInput.files[0];
+
+        // 🔒 sécurité type fichier
+        if(!file.type.startsWith("image/")){
+            alert("❌ Seules les images sont autorisées");
+            btn.disabled = false;
+            btn.innerText = "Envoyer";
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = async function(e){
+
+            await push(ref(db,"messages/"+user),{
+                text: msg || "📷 Image envoyée",
+                image: e.target.result,
+                from: "admin",
+                date: Date.now(),
+                read:false
+            });
+
+            alert("✅ Message + image envoyé");
+
+            // reset
+            document.getElementById("msg").value = "";
+            fileInput.value = "";
+
+            btn.disabled = false;
+            btn.innerText = "Envoyer";
+        };
+
+        reader.readAsDataURL(file);
+
+    } else {
+
+        // 📤 TEXTE SIMPLE
+        if(!msg){
+            alert("❌ Message vide");
+            btn.disabled = false;
+            btn.innerText = "Envoyer";
+            return;
+        }
+
+        await push(ref(db,"messages/"+user),{
+            text: msg,
+            from: "admin",
+            date: Date.now(),
+            read:false
+        });
+
+        alert("✅ Message envoyé");
+
+        // reset
+        document.getElementById("msg").value = "";
+
+        btn.disabled = false;
+        btn.innerText = "Envoyer";
+    }
+
+} catch(err){
+
+    console.error(err);
+    alert("❌ Erreur lors de l'envoi");
+
+    btn.disabled = false;
+    btn.innerText = "Envoyer";
+}
+
 };
-
-
 // ================= 📩 MESSAGES UTILISATEURS =================
 // ================= 📩 MESSAGES UTILISATEURS =================
 onValue(ref(db,"support_messages"), snap=>{
 
 const box = document.getElementById("userMessages");
+if(!box) return;
 
 box.innerHTML = "";
 
@@ -713,11 +997,15 @@ return;
 Object.entries(snap.val()).reverse().forEach(([id,msg])=>{
 
 const name = msg.name || "Utilisateur";
+const phone = msg.phone || "Non défini";
 const photo = msg.photo || "";
+const text = msg.text || "";
+const image = msg.image || "";
+const date = msg.date ? new Date(msg.date).toLocaleString() : "Date inconnue";
 
-// 🔥 AVATAR AUTO (toujours image)
+// 🔥 AVATAR AUTO
 const avatar = photo
-? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;">`
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
 : `<div style="
 width:50px;
 height:50px;
@@ -727,44 +1015,49 @@ display:flex;
 align-items:center;
 justify-content:center;
 color:black;
-font-weight:bold;
-">
+font-weight:bold;">
 ${name.substring(0,2)}
 </div>`;
 
-box.innerHTML += `
+// 🧠 IMAGE MESSAGE
+const imageBox = image
+? `<img src="${image}" style="width:100%;margin-top:10px;border-radius:10px;">`
+: "";
 
+// ✅ UI COMPLETE
+box.innerHTML += `
 <div class="card">
 
 <div style="display:flex;align-items:center;gap:10px;">
 ${avatar}
 <div>
-👤 ${name}<br>
-📱 ${msg.phone}
+<b>${name}</b><br>
+📱 ${phone}
 </div>
 </div>
 
 <hr>
 
-📝 ${msg.text}
+📝 ${text || "<i>Aucun message</i>"}
 
-<br><small>${new Date(msg.date).toLocaleString()}</small>
+${imageBox}
 
-<div style="margin-top:10px;display:flex;gap:5px;">
+<br><small>${date}</small>
 
-<button onclick="copyUserMsg('${msg.text || ""}')">
+<div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap;">
+
+<button onclick="copyUserMsg(\`${text}\`)">
 📋 Copier
 </button>
 
-<button onclick="deleteUserMsg('${id}')"  
+<button onclick="deleteUserMsg('${id}')"
 style="background:red;color:white;">
 🗑️ Supprimer
 </button>
 
 </div>
 
-</div>  
-`;  
-});  
+</div>
+`;
 });
-
+});
