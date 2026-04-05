@@ -1,54 +1,68 @@
-// 🔥 LISTE SERVICES
+// ================= CONFIG =================
 const services = [
     {
         nom: "Application",
         desc: "Création application mobile Android / iOS",
-        icon: "📱"
+        icon: "📱",
+        page: "application.html"
     },
     {
         nom: "Site Web Pro",
-        desc: "Site professionnel moderne",
-        icon: "🌐"
+        desc: "Site professionnel moderne et rapide",
+        icon: "🌐",
+        page: "site.html"
     },
     {
         nom: "Intelligence Artificielle",
         desc: "Chatbot, automatisation IA",
-        icon: "🤖"
+        icon: "🤖",
+        page: "ia.html"
     },
     {
         nom: "Mini Jeux",
-        desc: "Création jeux (slot, quiz, memory...)",
-        icon: "🎮"
+        desc: "Création jeux (slot, quiz, arcade...)",
+        icon: "🎮",
+        page: "game.html"
     },
     {
         nom: "Réseaux Sociaux",
         desc: "Boost followers, likes, vues",
-        icon: "📲"
+        icon: "📲",
+        page: "social.html"
     },
     {
         nom: "Hébergement",
-        desc: "Serveur rapide sécurisé",
-        icon: "💾"
+        desc: "Serveur rapide et sécurisé",
+        icon: "💾",
+        page: "hebergement.html"
     },
     {
         nom: "VPN",
-        desc: "Connexion sécurisée & anonyme",
-        icon: "🛡️"
+        desc: "Connexion sécurisée et anonyme",
+        icon: "🛡️",
+        page: "vpn.html"
     }
 ];
 
-// 🔥 CONTAINER
+// ================= USER CHECK =================
+const user = localStorage.getItem("userPhone");
+
+if(!user){
+    window.location.href = "index.html";
+}
+
+// ================= CONTAINER =================
 const container = document.getElementById("services");
 
-// 🔥 CREATE CARD FUNCTION
+// ================= CREATE CARD =================
 function createCard(service, index){
 
     const div = document.createElement("div");
     div.className = "card";
 
-    // animation delay
+    // animation départ
     div.style.opacity = "0";
-    div.style.transform = "translateY(20px)";
+    div.style.transform = "translateY(30px)";
 
     div.innerHTML = `
         <div class="icon">${service.icon}</div>
@@ -65,33 +79,59 @@ function createCard(service, index){
 
     container.appendChild(div);
 
-    // 🔥 ANIMATION APPARITION
+    // ================= ANIMATION =================
     setTimeout(()=>{
         div.style.transition = "0.5s ease";
         div.style.opacity = "1";
         div.style.transform = "translateY(0)";
-    }, index * 100);
+    }, index * 120);
 
-    // 🔥 BOUTON
+    // ================= CLICK =================
     const btn = div.querySelector(".btn");
 
     btn.onclick = () => {
 
-        // 🔐 bloque multi clic
+        // 🔐 anti double clic
         if(btn.classList.contains("loading")) return;
 
         btn.classList.add("loading");
         btn.innerHTML = "⏳ Chargement...";
 
-        // 🔥 effet clic
+        // 🎯 effet visuel
         div.style.transform = "scale(0.97)";
+        div.style.boxShadow = "0 0 20px rgba(0,210,255,0.4)";
 
+        // 💾 sauvegarde service
+        localStorage.setItem("serviceCommande", service.nom);
+
+        // 🔀 redirection
         setTimeout(()=>{
-            localStorage.setItem("serviceCommande", service.nom);
-            window.location.href = "commande.html";
+            window.location.href = service.page;
         }, 600);
     };
 }
 
-// 🔥 LOOP
-services.forEach((s, i) => createCard(s, i));
+// ================= RENDER =================
+services.forEach((s, i)=>{
+    createCard(s, i);
+});
+
+// ================= BONUS UX =================
+
+// hover effet glow
+document.addEventListener("mouseover", e=>{
+    if(e.target.closest(".card")){
+        e.target.closest(".card").style.transform = "scale(1.02)";
+    }
+});
+
+document.addEventListener("mouseout", e=>{
+    if(e.target.closest(".card")){
+        e.target.closest(".card").style.transform = "scale(1)";
+    }
+});
+
+// ================= LOADER GLOBAL =================
+window.addEventListener("load", ()=>{
+    document.body.style.opacity = "1";
+});
