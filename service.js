@@ -22,7 +22,7 @@ const services = [
         nom: "Mini Jeux",
         desc: "Création jeux (slot, quiz, arcade...)",
         icon: "🎮",
-        page: "game.html"
+        page: "mini.html"
     },
     {
         nom: "Réseaux Sociaux",
