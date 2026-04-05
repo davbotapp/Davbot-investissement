@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Création Site Web - Davbot</title>
+
+<style>
+:root{
+    --blue:#00d2ff;
+    --dark:#050a14;
+    --glass:rgba(255,255,255,0.05);
+}
+
+body{
+    margin:0;
+    font-family:'Segoe UI',sans-serif;
+    background: var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
+    background-size:cover;
+    color:white;
+}
+
+.overlay{
+    background:rgba(5,10,20,0.9);
+    min-height:100vh;
+    padding:20px;
+}
+
+.header{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+.header h2{
+    color:var(--blue);
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow{
+    from{ text-shadow:0 0 5px var(--blue);}
+    to{ text-shadow:0 0 20px var(--blue);}
+}
+
+/* card */
+.card{
+    background:var(--glass);
+    border:1px solid rgba(0,210,255,0.2);
+    border-radius:20px;
+    padding:20px;
+    backdrop-filter:blur(10px);
+    animation: fadeUp 0.6s ease;
+}
+
+@keyframes fadeUp{
+    from{opacity:0; transform:translateY(20px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+/* inputs */
+input, select, textarea{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border-radius:10px;
+    border:none;
+    background:rgba(255,255,255,0.08);
+    color:white;
+}
+
+/* types */
+.types{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+.type-item{
+    padding:10px;
+    text-align:center;
+    border-radius:10px;
+    background:rgba(255,255,255,0.08);
+    cursor:pointer;
+}
+
+.type-item.active{
+    background:var(--blue);
+    color:black;
+    font-weight:bold;
+}
+
+/* price */
+.price{
+    text-align:center;
+    font-size:22px;
+    color:var(--blue);
+    margin-top:10px;
+}
+
+/* file */
+.file{
+    border:1px dashed var(--blue);
+    padding:15px;
+    text-align:center;
+    border-radius:10px;
+}
+
+/* button */
+button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    background:var(--blue);
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.05);
+}
+</style>
+</head>
+
+<body>
+
+<div class="overlay">
+
+<div class="header">
+<h2>🌐 Création Site Web Pro</h2>
+<p>Crée ton site comme une vraie entreprise 🚀</p>
+</div>
+
+<div class="card">
+
+<input type="text" id="name" placeholder="Nom du site">
+
+<!-- TYPE SITE -->
+<div class="types" id="types">
+<div class="type-item">E-commerce</div>
+<div class="type-item">Entreprise</div>
+<div class="type-item">Blog</div>
+<div class="type-item">Portfolio</div>
+<div class="type-item">Landing Page</div>
+<div class="type-item">Autre</div>
+</div>
+
+<input type="text" id="color" placeholder="🎨 Couleur principale">
+<input type="text" id="importance" placeholder="⭐ Importance (Business, Startup...)">
+
+<textarea id="desc" placeholder="📝 Description du site"></textarea>
+
+<!-- fonctionnalités -->
+<textarea id="features" placeholder="⚙️ Fonctionnalités (ex: paiement, login, admin...)"></textarea>
+
+<!-- image -->
+<div class="file">
+🖼️ Image du projet
+<input type="file" id="image">
+</div>
+
+<!-- VITESSE -->
+<div class="types" id="speed">
+    <div class="type-item active" data-price="35000">🐢 Lent (35000 FC)</div>
+    <div class="type-item" data-price="40000">⚡ Rapide (40000 FC)</div>
+</div>
+
+<div class="price" id="price">💰 35000 FC</div>
+
+<button onclick="valider()">🚀 Commander</button>
+
+</div>
+
+</div>
+
+<script type="module" src="site.js"></script>
+
+</body>
+</html>
