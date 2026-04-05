@@ -19,17 +19,19 @@ background:var(--dark);
 color:white;
 }
 
+/* HEADER */
 .header{
 text-align:center;
 padding:20px;
 color:var(--blue);
-font-size:20px;
+font-size:22px;
+font-weight:bold;
 }
 
 /* GRID */
 .grid{
 display:grid;
-grid-template-columns:1fr 1fr 1fr;
+grid-template-columns:repeat(3,1fr);
 gap:12px;
 padding:15px;
 }
@@ -82,7 +84,7 @@ color:white;
 /* PRICE */
 .price{
 text-align:center;
-font-size:24px;
+font-size:26px;
 color:var(--blue);
 margin-top:15px;
 font-weight:bold;
@@ -98,17 +100,22 @@ border:none;
 border-radius:10px;
 font-weight:bold;
 cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+opacity:0.9;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">📲 Toutes les plateformes</div>
+<div class="header">📲 Commande Réseaux Sociaux</div>
 
+<!-- PLATEFORMES -->
 <div class="grid" id="platforms">
 
-<!-- SOCIAL -->
 <div class="card" data-type="social" data-name="Facebook">
 <img src="https://cdn.simpleicons.org/facebook/1877F2">
 <div class="name">Facebook</div>
@@ -139,12 +146,6 @@ cursor:pointer;
 <div class="name">LinkedIn</div>
 </div>
 
-<div class="card" data-type="social" data-name="Snapchat">
-<img src="https://cdn.simpleicons.org/snapchat/FFFC00">
-<div class="name">Snapchat</div>
-</div>
-
-<!-- MESSAGING -->
 <div class="card" data-type="messaging" data-name="WhatsApp">
 <img src="https://cdn.simpleicons.org/whatsapp/25D366">
 <div class="name">WhatsApp</div>
@@ -160,16 +161,6 @@ cursor:pointer;
 <div class="name">Discord</div>
 </div>
 
-<div class="card" data-type="messaging" data-name="Messenger">
-<img src="https://cdn.simpleicons.org/messenger/00B2FF">
-<div class="name">Messenger</div>
-</div>
-
-<div class="card" data-type="messaging" data-name="Threads">
-<img src="https://cdn.simpleicons.org/threads/ffffff">
-<div class="name">Threads</div>
-</div>
-
 </div>
 
 <!-- FORM -->
@@ -181,7 +172,7 @@ cursor:pointer;
 </select>
 
 <select id="type">
-<option>Likes</option>
+<option selected>Likes</option>
 <option>Vues</option>
 <option>Followers</option>
 <option>Membre Groupe</option>
@@ -189,17 +180,19 @@ cursor:pointer;
 <option>Membre Canal</option>
 </select>
 
-<input type="number" id="nombre" placeholder="Quantité">
+<input type="number" id="nombre" placeholder="Quantité (ex: 1000)">
 
 <input type="text" id="link" placeholder="🔗 Lien">
 
 <div class="price" id="price">0 FC</div>
 
-<button id="btn">🚀 Commander</button>
+<!-- IMPORTANT : onclick -->
+<button onclick="valider()">🚀 Commander</button>
 
 </div>
 
-<script src="social.js"></script>
+<!-- JS -->
+<script type="module" src="social.js"></script>
 
 </body>
 </html>
