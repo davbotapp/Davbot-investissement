@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VPN - Davbot</title>
+
+<!-- 🔥 ICONS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+:root{
+--blue:#00d2ff;
+--dark:#050a14;
+--glass:rgba(255,255,255,0.05);
+}
+
+body{
+margin:0;
+font-family:'Segoe UI', sans-serif;
+background:var(--dark);
+color:white;
+}
+
+/* HEADER */
+.header{
+text-align:center;
+padding:20px;
+font-size:22px;
+color:var(--blue);
+font-weight:bold;
+animation:fadeIn 1s ease;
+}
+
+/* CARD */
+.card{
+margin:15px;
+padding:20px;
+border-radius:20px;
+background:var(--glass);
+backdrop-filter:blur(10px);
+border:1px solid rgba(0,210,255,0.2);
+animation:fadeUp 0.8s ease;
+}
+
+/* VPN LIST */
+.vpn-list{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:12px;
+}
+
+.vpn-item{
+background:#111;
+padding:15px;
+border-radius:12px;
+text-align:center;
+cursor:pointer;
+transition:0.3s;
+}
+
+.vpn-item:hover{
+transform:scale(1.05);
+}
+
+.vpn-item i{
+font-size:22px;
+display:block;
+margin-bottom:5px;
+color:var(--blue);
+}
+
+.vpn-item.active{
+background:var(--blue);
+color:black;
+box-shadow:0 0 15px var(--blue);
+}
+
+.vpn-item.active i{
+color:black;
+}
+
+/* OPTIONS */
+.option{
+padding:15px;
+margin-top:10px;
+border-radius:10px;
+background:#111;
+cursor:pointer;
+text-align:center;
+transition:0.3s;
+}
+
+.option.active{
+background:var(--blue);
+color:black;
+box-shadow:0 0 10px var(--blue);
+}
+
+/* INPUT */
+input, textarea{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:10px;
+background:#111;
+color:white;
+}
+
+/* PRICE */
+.price{
+text-align:center;
+font-size:26px;
+margin-top:15px;
+color:var(--blue);
+font-weight:bold;
+}
+
+/* BTN */
+button{
+width:100%;
+padding:15px;
+margin-top:15px;
+border:none;
+border-radius:10px;
+background:linear-gradient(45deg,#00d2ff,#0099ff);
+font-weight:bold;
+cursor:pointer;
+transition:0.3s;
+}
+
+button:hover{
+transform:scale(1.05);
+}
+
+/* ANIMATION */
+@keyframes fadeIn{
+from{opacity:0;}
+to{opacity:1;}
+}
+
+@keyframes fadeUp{
+from{opacity:0; transform:translateY(20px);}
+to{opacity:1; transform:translateY(0);}
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">🛡️ Choisir votre VPN</div>
+
+<div class="card">
+
+<!-- 🔥 VPN TYPE -->
+<div class="vpn-list" id="vpnList">
+
+<div class="vpn-item active" data-vpn="OpenVPN">
+<i class="fa-solid fa-shield-halved"></i>
+OpenVPN
+</div>
+
+<div class="vpn-item" data-vpn="WireGuard">
+<i class="fa-solid fa-bolt"></i>
+WireGuard
+</div>
+
+<div class="vpn-item" data-vpn="HTTP Injector">
+<i class="fa-solid fa-globe"></i>
+HTTP Injector
+</div>
+
+<div class="vpn-item" data-vpn="ShadowSocks">
+<i class="fa-solid fa-user-secret"></i>
+ShadowSocks
+</div>
+
+</div>
+
+<!-- 📡 RÉSEAU -->
+<input type="text" id="reseau" placeholder="📡 Réseau (MTN, Airtel...)">
+
+<!-- ⏳ DURÉE -->
+<div class="option" data-price="2500" data-name="7 jours">7 jours - 2500 FC</div>
+<div class="option" data-price="5000" data-name="15 jours">15 jours - 5000 FC</div>
+<div class="option" data-price="8000" data-name="30 jours">30 jours - 8000 FC</div>
+
+<!-- 📦 INFOS -->
+<input type="text" id="vpnName" placeholder="Nom du VPN">
+<textarea id="config" placeholder="⚙️ Configuration spéciale (facultatif)"></textarea>
+
+<!-- 💰 PRIX -->
+<div class="price" id="price">0 FC</div>
+
+<button onclick="valider()">🚀 Commander</button>
+
+</div>
+
+<script type="module" src="vpn.js"></script>
+
+</body>
+</html>
