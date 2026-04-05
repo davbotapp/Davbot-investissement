@@ -1,115 +1,98 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// ================= FIREBASE =================
+// CONFIG
 const firebaseConfig = {
-    apiKey: "AIza...",
-    authDomain: "starlink-investit.firebaseapp.com",
-    databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
-    projectId: "starlink-investit"
+apiKey: "AIza...",
+authDomain: "starlink-investit.firebaseapp.com",
+databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
+projectId: "starlink-investit"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ================= USER =================
+// USER
 const user = localStorage.getItem("userPhone");
+if(!user) location.href = "index.html";
 
-if(!user){
-    window.location.href = "index.html";
+// ================= TYPE SELECT =================
+let selectedType = "";
+
+document.querySelectorAll(".type-item").forEach(el=>{
+    el.onclick = ()=>{
+        document.querySelectorAll(".type-item").forEach(i=>i.classList.remove("active"));
+        el.classList.add("active");
+        selectedType = el.innerText;
+    }
+});
+
+// ================= SPEED =================
+let price = 45000;
+
+document.querySelectorAll("#speed div").forEach(el=>{
+    el.onclick = ()=>{
+        document.querySelectorAll("#speed div").forEach(i=>i.classList.remove("active"));
+        el.classList.add("active");
+
+        price = parseInt(el.dataset.price);
+        document.getElementById("price").innerText = price + " FC";
+    }
+});
+
+// ================= VALIDATION =================
+window.valider = async ()=>{
+
+const name = document.getElementById("name").value;
+const desc = document.getElementById("desc").value;
+
+if(!name || !desc){
+    alert("❌ Remplis tous les champs");
+    return;
 }
 
-// ================= ELEMENTS =================
-const nameInput = document.getElementById("name");
-const colorInput = document.getElementById("color");
-const themeInput = document.getElementById("theme");
-const descInput = document.getElementById("desc");
-const useInput = document.getElementById("use");
+try{
 
-const iconInput = document.getElementById("icon");
-const pubInput = document.getElementById("pubImage");
+const userRef = ref(db,"users/"+user);
+const snap = await get(userRef);
 
-const iconPreview = document.getElementById("iconPreview");
-const pubPreview = document.getElementById("pubPreview");
+if(!snap.exists()) return;
 
-const btn = document.getElementById("sendBtn");
+const balance = snap.val().balance || 0;
 
-// ================= IMAGE PREVIEW =================
-function previewImage(input, previewZone){
-    input.addEventListener("change", ()=>{
-        const file = input.files[0];
-        if(!file) return;
-
-        const reader = new FileReader();
-
-        reader.onload = (e)=>{
-            previewZone.innerHTML = `<img src="${e.target.result}">`;
-        };
-
-        reader.readAsDataURL(file);
-    });
+if(balance < price){
+    alert("❌ Solde insuffisant");
+    return;
 }
 
-previewImage(iconInput, iconPreview);
-previewImage(pubInput, pubPreview);
+// RETRAIT
+await update(userRef,{
+balance: balance - price
+});
 
-// ================= ENVOI =================
-btn.onclick = async ()=>{
+// DATA
+let data = {
+service:"Application",
+name,
+desc,
+type:selectedType,
+theme:document.getElementById("theme").value,
+color:document.getElementById("color").value,
+price,
+statut:"pending",
+date:Date.now()
+};
 
-    const name = nameInput.value.trim();
-    const color = colorInput.value.trim();
-    const theme = themeInput.value;
-    const desc = descInput.value.trim();
-    const use = useInput.value.trim();
+const id = Date.now();
 
-    // 🔒 VALIDATION
-    if(!name || !color || !desc){
-        alert("❌ Remplis tous les champs obligatoires");
-        return;
-    }
+// SAVE
+await set(ref(db,"orders/pending/"+user+"/"+id), data);
 
-    try{
-        // animation bouton
-        btn.disabled = true;
-        btn.innerText = "⏳ Envoi en cours...";
+alert("✅ Application envoyée !");
+location.href="dashboard.html";
 
-        // 📦 DATA
-        const data = {
-            user: user,
-            service: "Application",
-            name: name,
-            color: color,
-            theme: theme,
-            description: desc,
-            utilisation: use,
-            icon: iconInput.files[0] ? iconInput.files[0].name : null,
-            pubImage: pubInput.files[0] ? pubInput.files[0].name : null,
-            statut: "pending",
-            date: Date.now()
-        };
-
-        const id = Date.now();
-
-        // 🔥 SAVE
-        await set(ref(db, "orders/applications/" + user + "/" + id), data);
-
-        // 🔔 MESSAGE USER
-        await set(ref(db, "messages/" + user + "/" + id), {
-            text: "📱 Demande application envoyée avec succès",
-            type: "app",
-            date: Date.now()
-        });
-
-        alert("✅ Application envoyée !");
-
-        // 🔁 redirect
-        window.location.href = "dashboard.html";
-
-    }catch(e){
-        console.error(e);
-        alert("❌ Erreur réseau");
-    }
-
-    btn.disabled = false;
-    btn.innerText = "🚀 Créer l'application";
+}catch(e){
+console.error(e);
+alert("❌ Erreur");
+}
 };
