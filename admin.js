@@ -114,7 +114,7 @@ ${avatar}
 📈 Revenus : <b>${revenue} FC</b><br>
 💸 Monétisé : <b>${monetized}</b><br>
 
-${phot? `<br>🖼️ Photo : <br><img src="${photo}" style="width:100%;border-radius:10px;">` : ""}
+
 
 <div style="margin-top:10px;display:flex;gap:5px;">
 <button class="no" onclick="delUser('${phone}')">❌ Supprimer</button>
