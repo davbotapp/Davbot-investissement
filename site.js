@@ -1,32 +1,47 @@
+// ================= FIREBASE =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// CONFIG
+// ================= CONFIG =================
 const firebaseConfig = {
-apiKey: "AIza...",
-authDomain: "starlink-investit.firebaseapp.com",
-databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
-projectId: "starlink-investit"
+    apiKey: "AIza...",
+    authDomain: "starlink-investit.firebaseapp.com",
+    databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
+    projectId: "starlink-investit"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// USER
+// ================= USER =================
 const user = localStorage.getItem("userPhone");
-if(!user) location.href = "index.html";
+if(!user){
+    alert("❌ Connecte-toi");
+    location.href = "index.html";
+}
 
+// ================= VARIABLES =================
 let selectedType = "";
 let price = 35000;
 let speed = "lent";
 let loading = false;
 
+// ================= CONVERT IMAGE =================
+const toBase64 = file => new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+});
+
 // ================= TYPE SITE =================
 document.querySelectorAll("#types .type-item").forEach(el=>{
     el.onclick = ()=>{
-        document.querySelectorAll("#types .type-item").forEach(i=>i.classList.remove("active"));
+        document.querySelectorAll("#types .type-item")
+        .forEach(i=>i.classList.remove("active"));
+
         el.classList.add("active");
-        selectedType = el.innerText;
+        selectedType = el.innerText.trim();
     }
 });
 
@@ -42,12 +57,11 @@ document.querySelectorAll("#speed .type-item").forEach(el=>{
         el.style.transform = "scale(1.05)";
 
         price = parseInt(el.dataset.price);
-        speed = price === 40000 ? "rapide" : "lent";
+        speed = price >= 40000 ? "rapide" : "lent";
 
         const priceEl = document.getElementById("price");
         priceEl.innerText = "💰 " + price + " FC";
 
-        // animation
         priceEl.style.transform = "scale(1.2)";
         setTimeout(()=>{
             priceEl.style.transform = "scale(1)";
@@ -65,11 +79,11 @@ const desc = document.getElementById("desc").value.trim();
 const color = document.getElementById("color").value.trim();
 const importance = document.getElementById("importance").value.trim();
 const features = document.getElementById("features").value.trim();
-const image = document.getElementById("image").files[0];
+const imageFile = document.getElementById("image").files[0];
 
 // 🔒 VALIDATION
 if(!name || !desc){
-    alert("❌ Remplis le nom et la description");
+    alert("❌ Remplis nom + description");
     return;
 }
 
@@ -82,58 +96,66 @@ loading = true;
 
 try{
 
-const userRef = ref(db,"users/"+user);
-const snap = await get(userRef);
+    const userRef = ref(db,"users/"+user);
+    const snap = await get(userRef);
 
-if(!snap.exists()){
-    alert("❌ Utilisateur introuvable");
-    loading=false;
-    return;
-}
+    if(!snap.exists()){
+        alert("❌ Utilisateur introuvable");
+        loading = false;
+        return;
+    }
 
-const balance = snap.val().balance || 0;
+    const balance = snap.val().balance || 0;
 
-if(balance < price){
-    alert("❌ Solde insuffisant");
-    loading=false;
-    return;
-}
+    if(balance < price){
+        alert("❌ Solde insuffisant");
+        loading = false;
+        return;
+    }
 
-// 💰 RETRAIT
-await update(userRef,{
-    balance: balance - price,
-    lastOrder: Date.now()
-});
+    // 💰 RETRAIT
+    await update(userRef,{
+        balance: balance - price,
+        lastOrder: Date.now()
+    });
 
-// 📦 DATA
-const data = {
-    service:"Site Web Pro",
-    user:user,
-    name,
-    type:selectedType,
-    color:color || null,
-    importance:importance || null,
-    desc,
-    features:features || null,
-    image:image ? image.name : null,
-    price,
-    speed,
-    statut:"pending",
-    date:Date.now()
-};
+    // 📸 IMAGE BASE64
+    let imageBase64 = null;
+    if(imageFile){
+        imageBase64 = await toBase64(imageFile);
+    }
 
-const id = Date.now();
+    // 📦 DATA PROPRE
+    const data = {
+        service: "Site Web Pro",
+        user: user,
+        name: name,
+        type: selectedType,
+        color: color || "",
+        importance: importance || "",
+        desc: desc,
+        features: features || "",
+        image: imageBase64,
+        price: price,
+        speed: speed,
+        status: "pending",
+        date: Date.now()
+    };
 
-// 🔥 SAVE
-await set(ref(db,"orders/pending/"+user+"/"+id), data);
+    const id = Date.now();
 
-alert("✅ Commande envoyée !");
-location.href="dashboard.html";
+    // 🔥 IMPORTANT (FIX ADMIN)
+    await set(ref(db,"orders/pending/"+id), data);
+
+    console.log("✅ COMMANDE SITE :", data);
+
+    alert("✅ Commande envoyée !");
+    location.href = "dashboard.html";
 
 }catch(e){
-console.error(e);
-alert("❌ Erreur réseau");
+    console.error(e);
+    alert("❌ Erreur réseau");
 }
 
-loading=false;
+loading = false;
 };
