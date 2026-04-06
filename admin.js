@@ -633,19 +633,185 @@ alert("Erreur");
 unlock(id);
 };
 
-// ================= MESSAGE =================
-window.sendMsg = async ()=>{
+// ================= 📩 MESSAGE ADMIN → USER (VERSION PRO) =================
+window.sendMsg = async () => {
 
-const user = target.value.trim();
-const msg = msgInput.value.trim();
+const user = document.getElementById("target").value.trim();
+const msg = document.getElementById("msg").value.trim();
+const fileInput = document.getElementById("uploadFile");
+const btn = document.querySelector(".mainBtn");
 
-if(!user || !msg) return alert("Erreur");
+// 🔒 Vérification
+if(!user){
+    alert("❌ Numéro utilisateur requis");
+    return;
+}
 
-await push(ref(db,"messages/"+user),{
-text: msg,
-date: Date.now()
-});
+// 🔍 Vérifier si user existe
+const userSnap = await get(ref(db,"users/"+user));
 
-alert("Message envoyé");
-msgInput.value="";
+if(!userSnap.exists()){
+    alert("❌ Utilisateur introuvable");
+    return;
+}
+
+// 🎯 UI loading
+btn.disabled = true;
+btn.innerText = "⏳ Envoi en cours...";
+
+try{
+
+    // 📤 CAS AVEC IMAGE
+    if(fileInput.files.length > 0){
+
+        const file = fileInput.files[0];
+
+        // 🔒 sécurité type fichier
+        if(!file.type.startsWith("image/")){
+            alert("❌ Seules les images sont autorisées");
+            btn.disabled = false;
+            btn.innerText = "Envoyer";
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = async function(e){
+
+            await push(ref(db,"messages/"+user),{
+                text: msg || "📷 Image envoyée",
+                image: e.target.result,
+                from: "admin",
+                date: Date.now(),
+                read:false
+            });
+
+            alert("✅ Message + image envoyé");
+
+            // reset
+            document.getElementById("msg").value = "";
+            fileInput.value = "";
+
+            btn.disabled = false;
+            btn.innerText = "Envoyer";
+        };
+
+        reader.readAsDataURL(file);
+
+    } else {
+
+        // 📤 TEXTE SIMPLE
+        if(!msg){
+            alert("❌ Message vide");
+            btn.disabled = false;
+            btn.innerText = "Envoyer";
+            return;
+        }
+
+        await push(ref(db,"messages/"+user),{
+            text: msg,
+            from: "admin",
+            date: Date.now(),
+            read:false
+        });
+
+        alert("✅ Message envoyé");
+
+        // reset
+        document.getElementById("msg").value = "";
+
+        btn.disabled = false;
+        btn.innerText = "Envoyer";
+    }
+
+} catch(err){
+
+    console.error(err);
+    alert("❌ Erreur lors de l'envoi");
+
+    btn.disabled = false;
+    btn.innerText = "Envoyer";
+}
+
 };
+// ================= 📩 MESSAGES UTILISATEURS =================
+// ================= 📩 MESSAGES UTILISATEURS =================
+onValue(ref(db,"support_messages"), snap=>{
+
+const box = document.getElementById("userMessages");
+if(!box) return;
+
+box.innerHTML = "";
+
+if(!snap.exists()){
+box.innerHTML = "<p>Aucun message utilisateur</p>";
+return;
+}
+
+Object.entries(snap.val()).reverse().forEach(([id,msg])=>{
+
+const name = msg.name || "Utilisateur";
+const phone = msg.phone || "Non défini";
+const photo = msg.photo || "";
+const text = msg.text || "";
+const image = msg.image || "";
+const date = msg.date ? new Date(msg.date).toLocaleString() : "Date inconnue";
+
+// 🔥 AVATAR AUTO
+const avatar = photo
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;
+height:50px;
+border-radius:50%;
+background:#00d2ff;
+display:flex;
+align-items:center;
+justify-content:center;
+color:black;
+font-weight:bold;">
+${name.substring(0,2)}
+</div>`;
+
+// 🧠 IMAGE MESSAGE
+const imageBox = image
+? `<img src="${image}" style="width:100%;margin-top:10px;border-radius:10px;">`
+: "";
+
+// ✅ UI COMPLETE
+box.innerHTML += `
+<div class="card">
+
+<div style="display:flex;align-items:center;gap:10px;">
+${avatar}
+<div>
+<b>${name}</b><br>
+📱 ${phone}
+</div>
+</div>
+
+<hr>
+
+📝 ${text || "<i>Aucun message</i>"}
+
+${imageBox}
+
+<br><small>${date}</small>
+
+<div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap;">
+
+<button onclick="copyUserMsg(\`${text}\`)">
+📋 Copier
+</button>
+
+<button onclick="deleteUserMsg('${id}')"
+style="background:red;color:white;">
+🗑️ Supprimer
+</button>
+
+</div>
+
+</div>
+`;
+});
+});
