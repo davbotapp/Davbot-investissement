@@ -1,149 +1,175 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// 🔥 CONFIG
 const firebaseConfig = {
-apiKey: "AIza...",
-authDomain: "starlink-investit.firebaseapp.com",
-databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
-projectId: "starlink-investit"
+  apiKey: "AIza...",
+  authDomain: "starlink-investit.firebaseapp.com",
+  databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
+  projectId: "starlink-investit"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const user = localStorage.getItem("userPhone");
-if(!user) location.href = "index.html";
-
+// ================= VARIABLES =================
 let selectedType = "";
 let price = 0;
-let loading = false;
 
-const formZone = document.getElementById("formZone");
-
-// ================= TYPES =================
-document.querySelectorAll(".type-item").forEach(el=>{
-    el.onclick = ()=>{
-
-        document.querySelectorAll(".type-item").forEach(i=>i.classList.remove("active"));
-        el.classList.add("active");
-
-        selectedType = el.dataset.type;
-        price = parseInt(el.dataset.price);
-
-        renderForm(selectedType);
-
-        document.getElementById("price").innerText = "💰 " + price + " FC";
-    }
+// ================= INIT =================
+window.addEventListener("DOMContentLoaded", () => {
+  initTypes();
 });
 
-// ================= FORMULAIRES =================
-function renderForm(type){
+// ================= TYPES =================
+function initTypes(){
+  const items = document.querySelectorAll("#types .type-item");
 
-if(type === "fb_page"){
-formZone.innerHTML = `
-<input id="pageLink" placeholder="Lien page Facebook">
-<input id="admin" placeholder="Numéro admin">
-<textarea id="desc" placeholder="Fonction du bot"></textarea>
-`;
+  items.forEach(el=>{
+    el.addEventListener("click", ()=>{
+      items.forEach(i=>i.classList.remove("active"));
+      el.classList.add("active");
+
+      selectedType = el.dataset.type;
+      price = Number(el.dataset.price);
+
+      document.getElementById("price").innerText = price + " FC";
+
+      loadForm(selectedType);
+    });
+  });
 }
 
-else if(type === "fb_goat"){
-formZone.innerHTML = `
-<input id="account" placeholder="Compte Facebook">
-<input id="admin" placeholder="Numéro admin">
-<textarea id="strategy" placeholder="Stratégie Goat"></textarea>
-`;
+// ================= FORM DYNAMIQUE =================
+function loadForm(type){
+
+  const box = document.getElementById("formZone");
+
+  if(type === "fb_page"){
+    box.innerHTML = `
+    <input id="pageName" placeholder="Nom de la page Facebook">
+    <textarea id="scenario" placeholder="Messages automatiques (ex: bienvenue...)"></textarea>
+    `;
+  }
+
+  else if(type === "fb_auto"){
+    box.innerHTML = `
+    <input id="account" placeholder="Nom du compte Facebook">
+    <textarea id="actions" placeholder="Actions (like, commentaire, auto reply...)"></textarea>
+    `;
+  }
+
+  else if(type === "wa"){
+    box.innerHTML = `
+    <input id="number" placeholder="Numéro WhatsApp">
+    <textarea id="messages" placeholder="Messages automatiques"></textarea>
+    `;
+  }
+
+  else if(type === "web"){
+    box.innerHTML = `
+    <input id="site" placeholder="Lien du site">
+    <textarea id="features" placeholder="Fonctionnalités du bot"></textarea>
+    `;
+  }
 }
 
-else if(type === "fb_auto"){
-formZone.innerHTML = `
-<input id="page" placeholder="Page Facebook">
-<input id="reply" placeholder="Réponse automatique">
-<textarea id="keywords" placeholder="Mots-clés"></textarea>
-`;
-}
+// ================= RÉCUP DATA =================
+function getFormData(type){
 
-else if(type === "wa"){
-formZone.innerHTML = `
-<input id="number" placeholder="Numéro WhatsApp">
-<input id="autoReply" placeholder="Message automatique">
-<textarea id="commands" placeholder="Commandes du bot"></textarea>
-`;
-}
+  let data = {};
 
-else if(type === "web"){
-formZone.innerHTML = `
-<input id="site" placeholder="Lien du site">
-<input id="botName" placeholder="Nom du bot">
-<textarea id="features" placeholder="Fonctionnalités"></textarea>
-`;
-}
+  if(type === "fb_page"){
+    data.pageName = document.getElementById("pageName").value;
+    data.scenario = document.getElementById("scenario").value;
+  }
 
+  if(type === "fb_auto"){
+    data.account = document.getElementById("account").value;
+    data.actions = document.getElementById("actions").value;
+  }
+
+  if(type === "wa"){
+    data.number = document.getElementById("number").value;
+    data.messages = document.getElementById("messages").value;
+  }
+
+  if(type === "web"){
+    data.site = document.getElementById("site").value;
+    data.features = document.getElementById("features").value;
+  }
+
+  return data;
 }
 
 // ================= VALIDATION =================
+function validate(type){
+  if(!type){
+    alert("❌ Choisis un type de bot");
+    return false;
+  }
+  return true;
+}
+
+// ================= ENVOI =================
 window.valider = async ()=>{
 
-if(loading) return;
+  const btn = document.querySelector("button");
 
-if(!selectedType){
-alert("❌ Choisis un type de bot");
-return;
+  if(!validate(selectedType)) return;
+
+  const user = localStorage.getItem("userPhone");
+
+  if(!user){
+    alert("❌ Connecte-toi");
+    return;
+  }
+
+  try{
+
+    btn.disabled = true;
+    btn.innerText = "⏳ Envoi...";
+
+    const extraData = getFormData(selectedType);
+
+    // 🔥 DATA ADMIN COMPATIBLE
+    const data = {
+      service: "IA Bot",
+      botType: selectedType,
+      ...extraData,
+      price,
+      user,
+      status: "pending",
+      date: Date.now()
+    };
+
+    // 🔥 FIREBASE
+    await push(ref(db, "orders/pending/" + user), data);
+
+    // 🔔 MESSAGE USER
+    await push(ref(db, "messages/" + user), {
+      text: `🤖 Bot commandé (${selectedType})`,
+      date: Date.now()
+    });
+
+    alert("✅ Commande envoyée");
+
+    // RESET
+    document.getElementById("formZone").innerHTML = "";
+    document.getElementById("price").innerText = "0 FC";
+
+    selectedType = "";
+    price = 0;
+
+    document.querySelectorAll(".type-item").forEach(el=>{
+      el.classList.remove("active");
+    });
+
+  }catch(err){
+    console.error(err);
+    alert("❌ Erreur");
+  }finally{
+    btn.disabled = false;
+    btn.innerText = "🚀 Commander";
+  }
 }
-
-loading = true;
-
-try{
-
-const userRef = ref(db,"users/"+user);
-const snap = await get(userRef);
-
-if(!snap.exists()) return;
-
-const balance = snap.val().balance || 0;
-
-if(balance < price){
-alert("❌ Solde insuffisant");
-loading=false;
-return;
-}
-
-// 💰 RETRAIT
-await update(userRef,{
-balance: balance - price,
-lastOrder: Date.now()
-});
-
-// 📦 DATA BASE
-let data = {
-service:"Intelligence Artificielle",
-type:selectedType,
-user:user,
-price,
-statut:"pending",
-date:Date.now()
-};
-
-// 🔥 RÉCUP CHAMPS
-const inputs = formZone.querySelectorAll("input, textarea");
-
-inputs.forEach(el=>{
-if(!el.id) return;
-data[el.id] = el.value || null;
-});
-
-const id = Date.now();
-
-// SAVE
-await set(ref(db,"orders/pending/"+user+"/"+id), data);
-
-alert("✅ Bot commandé !");
-location.href="dashboard.html";
-
-}catch(e){
-console.error(e);
-alert("❌ Erreur");
-}
-
-loading=false;
-};
