@@ -309,116 +309,121 @@ document.getElementById("logout").onclick = ()=>{
 };
 
         // ================= 🤖 BOT DAVBOT =================
-// ================= 🤖 BOT DAVBOT =================
+// ================= 🤖 DAVBOT ASSISTANT =================
+
 const API_URL = "https://arychauhann.onrender.com/api/gemini-proxy2";
 
+const chatBox = document.getElementById("chatBox");
+const chatInput = document.getElementById("chatInput");
+
+// message initial
+addBotMessage("👋 Bonjour ! Je suis Davbot.\nJe peux vous aider sur le site.\n\n💡 Posez une question !");
+
+// ================= ENVOYER MESSAGE =================
 window.sendBot = async () => {
 
-    const input = document.getElementById("chatInput");
-    const chatBox = document.getElementById("chatBox");
+    const text = chatInput.value.trim();
+    if(!text) return;
 
-    const msg = input.value.trim();
-
-    if(!msg) return;
-
-    // afficher message user
-    chatBox.innerHTML += `
-        <div style="margin-bottom:10px;text-align:right;">
-            <div style="
-                display:inline-block;
-                background:#00d2ff;
-                color:black;
-                padding:10px;
-                border-radius:10px;
-                max-width:80%;
-            ">
-                ${msg}
-            </div>
-        </div>
-    `;
-
-    input.value = "";
-
-    // message loading
-    const loadingId = Date.now();
-
-    chatBox.innerHTML += `
-        <div id="load${loadingId}" style="margin-bottom:10px;">
-            <div style="
-                display:inline-block;
-                background:#111;
-                padding:10px;
-                border-radius:10px;
-            ">
-                ⏳ Davbot réfléchit...
-            </div>
-        </div>
-    `;
-
-    chatBox.scrollTop = chatBox.scrollHeight;
+    addUserMessage(text);
+    chatInput.value = "";
 
     try{
 
-        const res = await fetch(API_URL,{
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body: JSON.stringify({
-                message: `
-Tu es Davbot Assistant.
+        const prompt = encodeURIComponent(buildPrompt(text));
 
-Tu aides uniquement sur ce site créé par Ir David Mpongo.
-
-Tu expliques :
-- Comment gagner de l'argent
-- Comment parrainer
-- Comment activer la monétisation
-- Comment utiliser les outils (APK, sites, bot, VPN, etc)
-- Le numéro de recharge : 243982697753
-
-Réponds clairement et simplement.
-
-Question: ${msg}
-                `
-            })
-        });
-
+        const res = await fetch(`${API_URL}?prompt=${prompt}`);
         const data = await res.json();
 
-        // supprimer loading
-        document.getElementById("load"+loadingId).remove();
+        const reply =
+            data.result ||
+            data.reply ||
+            data.response ||
+            "❌ Erreur de réponse";
 
-        const reply = data.reply || "❌ Erreur de réponse";
+        addBotMessage(reply);
 
-        // afficher réponse bot
-        chatBox.innerHTML += `
-            <div style="margin-bottom:10px;">
-                <div style="
-                    display:inline-block;
-                    background:#0d1625;
-                    padding:10px;
-                    border-radius:10px;
-                    border-left:3px solid #00d2ff;
-                    max-width:80%;
-                ">
-                    🤖 ${reply}
-                </div>
-            </div>
-        `;
-
-    }catch(err){
-
-        console.error(err);
-
-        document.getElementById("load"+loadingId).remove();
-
-        chatBox.innerHTML += `
-            <div style="color:red;margin-top:10px;">
-                ❌ Erreur connexion API
-            </div>
-        `;
+    }catch(e){
+        addBotMessage("⚠️ Serveur indisponible");
     }
-
-    chatBox.scrollTop = chatBox.scrollHeight;
 };
+
+// ================= PROMPT PERSONNALISÉ =================
+function buildPrompt(userText){
+
+    return `
+Tu es Davbot, assistant officiel du site créé par Ir David Mpongo.
+
+Tu réponds UNIQUEMENT sur ce site.
+
+Tu dois expliquer clairement :
+
+- comment utiliser le site
+- comment faire les parrainages
+- comment gagner de l'argent
+- comment activer la monétisation
+- comment recharger (numéro : 243 982697753)
+
+Tu dois être simple, clair et précis.
+
+Question :
+${userText}
+
+Réponse :
+`;
+}
+
+// ================= UI MESSAGES =================
+
+function addUserMessage(text){
+    chatBox.innerHTML += `
+    <div style="
+        text-align:right;
+        margin-top:10px;
+    ">
+        <div style="
+            display:inline-block;
+            background:#00d2ff;
+            color:black;
+            padding:10px;
+            border-radius:10px;
+            max-width:80%;
+        ">
+            ${text}
+        </div>
+    </div>
+    `;
+    scrollChat();
+}
+
+function addBotMessage(text){
+    chatBox.innerHTML += `
+    <div style="
+        text-align:left;
+        margin-top:10px;
+    ">
+        <div style="
+            display:inline-block;
+            background:#111;
+            padding:10px;
+            border-radius:10px;
+            border-left:3px solid #00d2ff;
+            max-width:80%;
+        ">
+            ${text}
+        </div>
+    </div>
+    `;
+    scrollChat();
+}
+
+function scrollChat(){
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// ================= ENTER KEY =================
+chatInput.addEventListener("keydown", e=>{
+    if(e.key === "Enter"){
+        sendBot();
+    }
+});
