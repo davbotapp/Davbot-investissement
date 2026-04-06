@@ -114,6 +114,7 @@ ${avatar}
 📈 Revenus : <b>${revenue} FC</b><br>
 💸 Monétisé : <b>${monetized}</b><br>
 
+${photo ? `<br>🖼️ Photo : <br><img src="${photo}" style="width:100%;border-radius:10px;">` : ""}
 
 <div style="margin-top:10px;display:flex;gap:5px;">
 <button class="no" onclick="delUser('${phone}')">❌ Supprimer</button>
@@ -219,150 +220,115 @@ ${r.proof ? `
 
 // ================= COMMANDES =================
 // ================= COMMANDES FINAL FIX =================
+// ================= COMMANDES ULTRA OPTIMISÉ =================
 onValue(ref(db,"orders/pending"), async snap=>{
 
 const box = document.getElementById("commandes");
 if(!box) return;
 
-box.innerHTML = "";
+box.innerHTML = "<small>⏳ Chargement...</small>";
 
 if(!snap.exists()){
-box.innerHTML = "<small>Aucune commande</small>";
-return;
+    box.innerHTML = "<small>Aucune commande</small>";
+    return;
 }
+
+// 🔥 récupérer TOUS les users en 1 seule fois (⚡ rapide)
+const usersSnap = await get(ref(db,"users"));
+const usersData = usersSnap.exists() ? usersSnap.val() : {};
+
+let html = "";
 
 // 🔥 LOOP USERS
 for(const [user, cmds] of Object.entries(snap.val())){
 
-// 🔥 GET USER
-const userSnap = await get(ref(db,"users/"+user));
-const u = userSnap.exists() ? userSnap.val() : null;
+    const u = usersData[user] || {};
+    const name = u.name || "⚠️ Inconnu";
+    const photo = u.photo || "";
 
-const name = u?.name || "⚠️ Utilisateur inconnu";
-const photo = u?.photo || "";
+    const avatar = photo
+    ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+    : `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+    ${name.substring(0,2)}
+    </div>`;
 
-// 🔥 AVATAR
-const avatar = photo
-? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-: `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
-${name.substring(0,2)}
-</div>`;
+    // 🔥 LOOP COMMANDES
+    for(const [id, c] of Object.entries(cmds)){
 
-// 🔥 LOOP COMMANDES
-for(const [id, c] of Object.entries(cmds)){
+        const date = c.date ? new Date(c.date).toLocaleString() : "Non défini";
 
-const date = c.date ? new Date(c.date).toLocaleString() : "Non défini";
+        let details = "";
 
-let details = "";
+        // 📱 APPLICATION
+        if(c.service === "Application"){
+            details += `
+            📱 Nom : ${c.name || "-"}<br>
+            🎨 Couleur : ${c.color || "-"}<br>
+            ⚡ Type : ${c.type || "-"}<br>`;
+        }
 
-// ================= SERVICES =================
+        // 🌐 SITE WEB
+        if(c.service === "Site Web Pro"){
+            details += `
+            🌐 Site : ${c.name || "-"}<br>
+            🎨 Couleur : ${c.color || "-"}<br>
+            ⚡ Type : ${c.type || "-"}<br>`;
+        }
 
-// 📱 APPLICATION
-if(c.service === "Application"){
-details += `
-📱 Nom App : ${c.name || "-"}<br>
-🎨 Couleur : ${c.color || "-"}<br>
-📝 Description : ${c.desc || "-"}<br>
-⚡ Type : ${c.type || "-"}<br>
-`;
+        // 🎮 MINI JEUX
+        if(c.service === "Mini Jeux"){
+            details += `🎮 Jeu : ${c.name || "-"}<br>`;
+        }
+
+        // 📲 RÉSEAUX SOCIAUX
+        if(c.service === "Réseaux Sociaux"){
+            details += `
+            📱 Plateforme : ${c.platform || "-"}<br>
+            🔢 Quantité : ${c.quantity || 0}<br>`;
+        }
+
+        // 🔥 AUTO DETAILS
+        Object.entries(c).forEach(([k,v])=>{
+            if(["service","price","date"].includes(k)) return;
+
+            if(typeof v === "string" && v.startsWith("data:image")){
+                details += `<img src="${v}" style="width:100%;border-radius:10px;"><br>`;
+            }
+        });
+
+        html += `
+        <div class="card">
+
+        <div style="display:flex;gap:10px;">
+        ${avatar}
+        <div>
+        <b>${name}</b><br>
+        📱 ${user}
+        </div>
+        </div>
+
+        <hr>
+
+        📦 <b>${c.service || "Service"}</b><br>
+        💰 <b>${c.price || 0} FC</b><br>
+        📅 ${date}
+
+        <div style="margin-top:10px;">
+        ${details || "Aucun détail"}
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:5px;">
+        <button onclick="valCmd('${user}','${id}')">✅</button>
+        <button onclick="refCmd('${user}','${id}',${c.price || 0})">❌</button>
+        </div>
+
+        </div>
+        `;
+    }
 }
 
-// 🌐 SITE WEB
-if(c.service === "Site Web Pro"){
-details += `
-🌐 Nom site : ${c.name || "-"}<br>
-🎨 Couleur : ${c.color || "-"}<br>
-📝 Description : ${c.desc || "-"}<br>
-⚡ Type : ${c.type || "-"}<br>
-`;
-}
-
-// 🎮 MINI JEUX
-if(c.service === "Mini Jeux"){
-details += `
-🎮 Jeu : ${c.name || "-"}<br>
-⚡ Mode : ${c.mode || "-"}<br>
-`;
-}
-
-// 📲 RÉSEAUX SOCIAUX
-if(c.service === "Réseaux Sociaux"){
-details += `
-📱 Plateforme : ${c.platform || "-"}<br>
-📊 Type : ${c.type || "-"}<br>
-🔢 Quantité : ${c.quantity || 0}<br>
-🔗 Lien : ${c.link || "-"}<br>
-`;
-}
-
-// 🌍 HÉBERGEMENT
-if(c.service === "Hébergement"){
-details += `
-🌐 Site : ${c.siteUrl || "-"}<br>
-⏳ Plan : ${c.plan || "-"}<br>
-`;
-}
-
-// 🛡️ VPN
-if(c.service === "VPN"){
-details += `
-🛡️ Nom VPN : ${c.vpnName || "-"}<br>
-📶 Réseau : ${c.reseau || "-"}<br>
-⏳ Plan : ${c.plan || "-"}<br>
-`;
-}
-
-// ================= AUTO CLEAN =================
-const ignore = [
-"service","price","user","date","status",
-"name","desc","color","type","mode",
-"platform","quantity","link","plan",
-"siteUrl","reseau","vpnName"
-];
-
-Object.entries(c).forEach(([key,value])=>{
-if(ignore.includes(key)) return;
-
-if(typeof value === "string" && value.startsWith("data:image")){
-details += `<img src="${value}" style="width:100%;border-radius:10px;"><br>`;
-}else{
-details += `<b>${key}</b> : ${value}<br>`;
-}
-});
-
-// ================= UI =================
-box.innerHTML += `
-<div class="card">
-
-<div style="display:flex;gap:10px;">
-${avatar}
-<div>
-<b>${name}</b><br>
-📱 ${user}
-</div>
-</div>
-
-<hr>
-
-📦 <b>${c.service || "Service inconnu"}</b><br>
-💰 <b>${c.price || 0} FC</b><br>
-📅 ${date}
-
-<div style="margin-top:10px;">
-${details || "Aucun détail"}
-</div>
-
-<div style="margin-top:10px;display:flex;gap:5px;">
-<button onclick="valCmd('${user}','${id}')">✅ Valider</button>
-<button onclick="refCmd('${user}','${id}',${c.price || 0})">❌ Refuser</button>
-</div>
-
-</div>
-`;
-
-}
-
-}
+// 🔥 injecter en une fois (⚡ ULTRA RAPIDE)
+box.innerHTML = html;
 
 });
 // ================= TRANSFERTS =================
