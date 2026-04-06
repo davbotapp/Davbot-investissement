@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mini Jeux - Davbot</title>
 
-<!-- ICONS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
@@ -54,31 +53,32 @@ body{
     border:1px solid rgba(0,210,255,0.2);
 }
 
-/* GAME GRID */
-.games{
+/* GRID */
+.grid{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:10px;
 }
 
-/* GAME ITEM */
-.game{
+/* ITEM */
+.item{
     border-radius:12px;
     overflow:hidden;
     background:#111;
     cursor:pointer;
     transition:0.3s;
     position:relative;
+    text-align:center;
 }
 
-.game img{
+.item img{
     width:100%;
     height:90px;
     object-fit:cover;
-    opacity:0.8;
+    opacity:0.85;
 }
 
-.game span{
+.item span{
     position:absolute;
     bottom:5px;
     left:8px;
@@ -86,11 +86,11 @@ body{
     font-weight:bold;
 }
 
-.game:hover{
+.item:hover{
     transform:scale(1.05);
 }
 
-.game.active{
+.item.active{
     outline:2px solid var(--blue);
 }
 
@@ -146,7 +146,6 @@ button{
     background:linear-gradient(90deg,#00d2ff,#3a7bd5);
     font-weight:bold;
     cursor:pointer;
-    transition:0.3s;
 }
 
 button:hover{
@@ -166,45 +165,45 @@ button:hover{
 
 <div class="card">
 
-<!-- 🎮 LISTE JEUX -->
-<div class="games" id="typeSelect">
+<!-- 🎮 TYPES -->
+<div class="grid" id="typeSelect">
 
-<div class="game" data-type="slot">
+<div class="item" data-type="slot">
 <img src="https://picsum.photos/300/200?1">
 <span>🎰 Slot</span>
 </div>
 
-<div class="game" data-type="quiz">
+<div class="item" data-type="quiz">
 <img src="https://picsum.photos/300/200?2">
 <span>🧠 Quiz</span>
 </div>
 
-<div class="game" data-type="arcade">
+<div class="item" data-type="arcade">
 <img src="https://picsum.photos/300/200?3">
 <span>🕹️ Arcade</span>
 </div>
 
-<div class="game" data-type="memory">
+<div class="item" data-type="memory">
 <img src="https://picsum.photos/300/200?4">
 <span>🧩 Memory</span>
 </div>
 
-<div class="game" data-type="runner">
+<div class="item" data-type="runner">
 <img src="https://picsum.photos/300/200?5">
 <span>🏃 Runner</span>
 </div>
 
-<div class="game" data-type="combat">
+<div class="item" data-type="combat">
 <img src="https://picsum.photos/300/200?6">
 <span>🥊 Combat</span>
-</div
+</div>
 
-<div class="game" data-type="puzzle">
+<div class="item" data-type="puzzle">
 <img src="https://picsum.photos/300/200?7">
 <span>🧩 Puzzle</span>
 </div>
 
-<div class="game" data-type="multiplayer">
+<div class="item" data-type="multiplayer">
 <img src="https://picsum.photos/300/200?8">
 <span>🌐 Multi</span>
 </div>
@@ -213,8 +212,8 @@ button:hover{
 
 <!-- ⚡ MODE -->
 <div class="modes" id="modeSelect">
-<div class="mode" data-mode="lent">🐢 Lent</div>
-<div class="mode" data-mode="rapide">⚡ Rapide</div>
+<div class="mode item" data-mode="lent">🐢 Lent</div>
+<div class="mode item" data-mode="rapide">⚡ Rapide</div>
 </div>
 
 <!-- FORM -->
@@ -235,4 +234,4 @@ button:hover{
 <script type="module" src="mini.js"></script>
 
 </body>
-    </html>
+</html>
