@@ -61,34 +61,89 @@ adminPanel.style.display="block";
 };
 
 // ================= USERS =================
+// ================= USERS =================
 onValue(ref(db,"users"), snap=>{
 
 const box = document.getElementById("users");
 if(!box) return;
 
+box.innerHTML = "<small>⏳ Chargement...</small>";
+
 if(!snap.exists()){
-box.innerHTML = "Aucun utilisateur";
-return;
+    box.innerHTML = "<small>Aucun utilisateur</small>";
+    return;
 }
 
 let html = "";
 
+// 🔥 LOOP USERS
 Object.entries(snap.val()).forEach(([phone,u])=>{
 
-html += `
-<div class="card">
-<b>${u.name || "User"}</b><br>
-📱 ${phone}<br>
-💰 ${u.balance || 0} FC<br>
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
+const pass = u.password || "-";
+const balance = u.balance || 0;
+const points = u.points || 0;
+const revenue = u.revenus || 0;
+const monetized = u.monetized ? "✅ Oui" : "❌ Non";
 
-<button onclick="addMoney('${phone}')">➕</button>
-<button onclick="delUser('${phone}')">❌</button>
+// 🔥 AVATAR
+const avatar = photo
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;height:50px;border-radius:50%;
+background:#00d2ff;display:flex;
+align-items:center;justify-content:center;
+color:black;font-weight:bold;">
+${name.substring(0,2).toUpperCase()}
 </div>`;
+
+// 🔥 CARD
+html += `
+<div class="card" style="
+background:rgba(255,255,255,0.03);
+padding:15px;
+border-radius:15px;
+margin-bottom:10px;
+border:1px solid rgba(255,255,255,0.05);
+">
+
+<div style="display:flex;align-items:center;gap:10px;">
+${avatar}
+<div>
+<b>${name}</b><br>
+<small style="opacity:0.6;">📱 ${phone}</small>
+</div>
+</div>
+
+<hr style="opacity:0.1;margin:10px 0;">
+
+<div style="line-height:1.6;">
+🔐 Mot de passe : <b>${pass}</b><br>
+💰 Solde : <b style="color:#00d2ff">${balance.toLocaleString()} FC</b><br>
+⭐ Points : <b>${points}</b><br>
+📈 Revenus : <b>${revenue.toLocaleString()} FC</b><br>
+💸 Monétisé : <b>${monetized}</b>
+</div>
+
+<div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
+
+<button onclick="addMoney('${phone}')" style="background:#00d2ff;">➕</button>
+<button onclick="removeMoney('${phone}')" style="background:#ff9800;">➖</button>
+<button onclick="sendMsg('${phone}')" style="background:#4caf50;">💬</button>
+<button onclick="delUser('${phone}')" style="background:#ff4d4d;">❌</button>
+
+</div>
+
+</div>
+`;
+
 });
 
+// 🔥 injecter en une fois
 box.innerHTML = html;
-});
 
+});
 // ================= RECHARGES =================
 onValue(ref(db,"demandes_recharges"), async snap=>{
 
