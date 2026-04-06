@@ -1,197 +1,223 @@
-// ================= FIREBASE =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// 🔥 CONFIG FIREBASE
 const firebaseConfig = {
-apiKey: "AIza...",
-authDomain: "starlink-investit.firebaseapp.com",
-databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
-projectId: "starlink-investit"
+  apiKey: "AIza...",
+  authDomain: "starlink-investit.firebaseapp.com",
+  databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
+  projectId: "starlink-investit"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ================= USER =================
-const user = localStorage.getItem("userPhone");
-if(!user){
-alert("❌ Connecte-toi");
-location.href = "index.html";
-}
-
 // ================= VARIABLES =================
 let selectedType = "";
 let selectedMode = "";
 let price = 0;
-let loading = false;
 
-const formZone = document.getElementById("formZone");
-const priceDisplay = document.getElementById("price");
-
-// ================= SELECT TYPE =================
-document.querySelectorAll("#typeSelect .item").forEach(el=>{
-el.onclick = ()=>{
-document.querySelectorAll("#typeSelect .item").forEach(i=>i.classList.remove("active"));
-el.classList.add("active");
-
-selectedType = el.dataset.type;
-renderForm(selectedType);
-updatePrice();
-};
+// ================= INIT =================
+window.addEventListener("DOMContentLoaded", () => {
+  initType();
+  initMode();
 });
 
-// ================= SELECT MODE =================
-document.querySelectorAll("#modeSelect .item").forEach(el=>{
-el.onclick = ()=>{
-document.querySelectorAll("#modeSelect .item").forEach(i=>i.classList.remove("active"));
-el.classList.add("active");
+// ================= TYPE =================
+function initType(){
+  const items = document.querySelectorAll("#typeSelect .item");
 
-selectedMode = el.dataset.mode;
-updatePrice();
-};
-});
+  items.forEach(el=>{
+    el.addEventListener("click", ()=>{
+      items.forEach(i=>i.classList.remove("active"));
+      el.classList.add("active");
 
-// ================= FORM =================
-function renderForm(type){
-
-let html = `
-<input id="name" placeholder="🎮 Nom du jeu">
-<input id="color" placeholder="🎨 Couleur">
-<textarea id="desc" placeholder="📝 Description"></textarea>
-`;
-
-if(type === "slot"){
-html += `<input id="theme" placeholder="🎰 Thème du slot">`;
+      selectedType = el.dataset.type;
+      loadForm(selectedType);
+      updatePrice();
+    });
+  });
 }
 
-if(type === "quiz"){
-html += `<input id="questions" placeholder="❓ Nombre de questions">`;
-}
+// ================= MODE =================
+function initMode(){
+  const items = document.querySelectorAll("#modeSelect .item");
 
-if(type === "arcade"){
-html += `<select id="style">
-<option>Voiture</option>
-<option>Tir</option>
-<option>Course</option>
-</select>`;
-}
+  items.forEach(el=>{
+    el.addEventListener("click", ()=>{
+      items.forEach(i=>i.classList.remove("active"));
+      el.classList.add("active");
 
-if(type === "memory"){
-html += `<input id="levels" placeholder="🧩 Niveaux">`;
-}
-
-if(type === "runner"){
-html += `<input id="speedGame" placeholder="🏃 Vitesse">`;
-}
-
-if(type === "combat"){
-html += `<input id="characters" placeholder="🥊 Personnages">`;
-}
-
-if(type === "puzzle"){
-html += `<input id="difficulty" placeholder="🧠 Difficulté">`;
-}
-
-if(type === "multiplayer"){
-html += `<input id="players" placeholder="🌐 Joueurs">`;
-}
-
-formZone.innerHTML = html;
+      selectedMode = el.dataset.mode;
+      updatePrice();
+    });
+  });
 }
 
 // ================= PRIX =================
 function updatePrice(){
 
-if(!selectedType || !selectedMode){
-priceDisplay.innerText = "💰 0 FC";
-return;
+  if(!selectedType || !selectedMode){
+    price = 0;
+  } else {
+
+    // base prix par type
+    const base = {
+      slot: 5000,
+      quiz: 4000,
+      arcade: 6000,
+      memory: 3500,
+      runner: 7000,
+      combat: 8000,
+      puzzle: 4500,
+      multiplayer: 12000
+    };
+
+    price = base[selectedType] || 4000;
+
+    // mode rapide
+    if(selectedMode === "rapide"){
+      price += 2000;
+    }
+  }
+
+  document.getElementById("price").innerText = price + " FC";
 }
 
-let base = 10000;
+// ================= FORM DYNAMIQUE =================
+function loadForm(type){
 
-if(selectedType === "quiz") base = 8000;
-if(selectedType === "memory") base = 8000;
-if(selectedType === "puzzle") base = 9000;
-if(selectedType === "slot") base = 10000;
-if(selectedType === "runner") base = 11000;
-if(selectedType === "arcade") base = 12000;
-if(selectedType === "combat") base = 13000;
-if(selectedType === "multiplayer") base = 15000;
+  const box = document.getElementById("formZone");
 
-price = selectedMode === "rapide" ? base + 4000 : base;
+  if(type === "slot"){
+    box.innerHTML = `
+    <input id="name" placeholder="Nom du jeu">
+    <textarea id="theme" placeholder="Thème du slot"></textarea>
+    `;
+  }
 
-priceDisplay.innerText = "💰 " + price + " FC";
+  else if(type === "quiz"){
+    box.innerHTML = `
+    <input id="name" placeholder="Nom du quiz">
+    <textarea id="questions" placeholder="Questions / réponses"></textarea>
+    `;
+  }
+
+  else if(type === "arcade"){
+    box.innerHTML = `
+    <input id="name" placeholder="Nom du jeu">
+    <textarea id="style" placeholder="Style du jeu"></textarea>
+    `;
+  }
+
+  else if(type === "multiplayer"){
+    box.innerHTML = `
+    <input id="name" placeholder="Nom du jeu">
+    <textarea id="server" placeholder="Type serveur / système multi"></textarea>
+    `;
+  }
+
+  else{
+    box.innerHTML = `
+    <input id="name" placeholder="Nom du jeu">
+    <textarea id="desc" placeholder="Description"></textarea>
+    `;
+  }
+}
+
+// ================= GET DATA =================
+function getFormData(){
+
+  const inputs = document.querySelectorAll("#formZone input, #formZone textarea");
+
+  let data = {};
+
+  inputs.forEach(el=>{
+    data[el.id] = el.value;
+  });
+
+  return data;
 }
 
 // ================= VALIDATION =================
+function validate(){
+
+  if(!selectedType){
+    alert("❌ Choisis un type de jeu");
+    return false;
+  }
+
+  if(!selectedMode){
+    alert("❌ Choisis un mode");
+    return false;
+  }
+
+  return true;
+}
+
+// ================= ENVOI =================
 window.valider = async ()=>{
 
-if(loading) return;
+  const btn = document.querySelector("button");
 
-if(!selectedType || !selectedMode){
-alert("❌ Choisir type + mode");
-return;
-}
+  if(!validate()) return;
 
-loading = true;
+  const user = localStorage.getItem("userPhone");
 
-try{
+  if(!user){
+    alert("❌ Connecte-toi");
+    return;
+  }
 
-const userRef = ref(db,"users/"+user);
-const snap = await get(userRef);
+  try{
 
-if(!snap.exists()){
-alert("❌ Utilisateur introuvable");
-loading = false;
-return;
-}
+    btn.disabled = true;
+    btn.innerText = "⏳ Envoi...";
 
-const balance = snap.val().balance || 0;
+    const extra = getFormData();
 
-if(balance < price){
-alert("❌ Solde insuffisant");
-loading = false;
-return;
-}
+    const data = {
+      service: "Mini Jeux",
+      type: selectedType,
+      mode: selectedMode,
+      ...extra,
+      price,
+      user,
+      status: "pending",
+      date: Date.now()
+    };
 
-// 💰 RETRAIT
-await update(userRef,{
-balance: balance - price,
-lastOrder: Date.now()
-});
+    // 🔥 ENVOI FIREBASE
+    await push(ref(db, "orders/pending/" + user), data);
 
-// 📦 DATA PRO
-let data = {
-service: "Mini Jeux",
-user: user,
-gameType: selectedType,
-mode: selectedMode,
-price: price,
-status: "pending",
-date: Date.now()
-};
+    // 🔔 MESSAGE USER
+    await push(ref(db, "messages/" + user), {
+      text: `🎮 Jeu commandé (${selectedType})`,
+      date: Date.now()
+    });
 
-// 🔥 ajouter champs dynamiques
-formZone.querySelectorAll("input, textarea, select").forEach(el=>{
-if(!el.id) return;
-data[el.id] = el.value || "";
-});
+    alert("✅ Commande envoyée");
 
-// 🔥 ID UNIQUE
-const id = Date.now();
+    // RESET
+    document.getElementById("formZone").innerHTML = "";
+    document.getElementById("price").innerText = "0 FC";
 
-// ✅ ENVOI ADMIN (FIX)
-await set(ref(db,"orders/pending/"+id), data);
+    selectedType = "";
+    selectedMode = "";
+    price = 0;
 
-console.log("✅ COMMANDE MINI :", data);
+    document.querySelectorAll(".item").forEach(el=>{
+      el.classList.remove("active");
+    });
 
-alert("✅ Commande envoyée !");
-location.href = "dashboard.html";
+  }catch(err){
 
-}catch(e){
-console.error(e);
-alert("❌ Erreur réseau");
-}
+    console.error(err);
+    alert("❌ Erreur");
 
-loading = false;
+  }finally{
+
+    btn.disabled = false;
+    btn.innerText = "🚀 Commander";
+  }
 };
