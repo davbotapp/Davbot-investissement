@@ -48,27 +48,27 @@ function loadForm(type){
   if(type === "fb_page"){
     box.innerHTML = `
       <input id="pageName" placeholder="Nom de la page Facebook">
-      <textarea id="scenario" placeholder="Messages automatiques (ex: bienvenue...)"></textarea>
+      <textarea id="scenario" placeholder="Description & info pour votre bot"></textarea>
     `;
   }
 
   else if(type === "fb_auto"){
     box.innerHTML = `
-      <input id="account" placeholder="Nom du compte Facebook">
+      <input id="account" placeholder="❌❌❌">
       <textarea id="actions" placeholder="Actions (like, commentaire, auto reply...)"></textarea>
     `;
   }
 
   else if(type === "wa"){
     box.innerHTML = `
-      <input id="number" placeholder="Numéro WhatsApp">
-      <textarea id="messages" placeholder="Messages automatiques"></textarea>
+      <input id="number" placeholder="Numéro WhatsApp du bot">
+      <textarea id="messages" placeholder="Description et info ( ex num admin , prefix...)"></textarea>
     `;
   }
 
   else if(type === "web"){
     box.innerHTML = `
-      <input id="site" placeholder="Lien du site">
+      <input id="site" placeholder="Nom du bot">
       <textarea id="features" placeholder="Fonctionnalités du bot"></textarea>
     `;
   }
