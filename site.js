@@ -1,161 +1,161 @@
-// ================= FIREBASE =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// ================= CONFIG =================
+// 🔥 CONFIG FIREBASE
 const firebaseConfig = {
-    apiKey: "AIza...",
-    authDomain: "starlink-investit.firebaseapp.com",
-    databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
-    projectId: "starlink-investit"
+  apiKey: "AIza...",
+  authDomain: "starlink-investit.firebaseapp.com",
+  databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
+  projectId: "starlink-investit"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ================= USER =================
-const user = localStorage.getItem("userPhone");
-if(!user){
-    alert("❌ Connecte-toi");
-    location.href = "index.html";
-}
-
 // ================= VARIABLES =================
 let selectedType = "";
 let price = 35000;
-let speed = "lent";
-let loading = false;
 
-// ================= CONVERT IMAGE =================
-const toBase64 = file => new Promise((resolve,reject)=>{
+// ================= INIT =================
+window.addEventListener("DOMContentLoaded", () => {
+  initTypes();
+  initSpeed();
+});
+
+// ================= TYPE =================
+function initTypes(){
+  const items = document.querySelectorAll("#types .type-item");
+
+  items.forEach(el=>{
+    el.addEventListener("click", ()=>{
+      items.forEach(i=>i.classList.remove("active"));
+      el.classList.add("active");
+      selectedType = el.innerText.trim();
+    });
+  });
+}
+
+// ================= SPEED =================
+function initSpeed(){
+  const speeds = document.querySelectorAll("#speed .type-item");
+
+  speeds.forEach(el=>{
+    el.addEventListener("click", ()=>{
+      speeds.forEach(s=>s.classList.remove("active"));
+      el.classList.add("active");
+
+      price = Number(el.dataset.price || 35000);
+      document.getElementById("price").innerText = price + " FC";
+    });
+  });
+}
+
+// ================= IMAGE BASE64 =================
+function toBase64(file){
+  return new Promise((resolve)=>{
+    if(!file) return resolve("");
+
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
+    reader.onload = ()=> resolve(reader.result);
     reader.readAsDataURL(file);
-});
-
-// ================= TYPE SITE =================
-document.querySelectorAll("#types .type-item").forEach(el=>{
-    el.onclick = ()=>{
-        document.querySelectorAll("#types .type-item")
-        .forEach(i=>i.classList.remove("active"));
-
-        el.classList.add("active");
-        selectedType = el.innerText.trim();
-    }
-});
-
-// ================= VITESSE =================
-document.querySelectorAll("#speed .type-item").forEach(el=>{
-    el.onclick = ()=>{
-        document.querySelectorAll("#speed .type-item").forEach(i=>{
-            i.classList.remove("active");
-            i.style.transform = "scale(1)";
-        });
-
-        el.classList.add("active");
-        el.style.transform = "scale(1.05)";
-
-        price = parseInt(el.dataset.price);
-        speed = price >= 40000 ? "rapide" : "lent";
-
-        const priceEl = document.getElementById("price");
-        priceEl.innerText = "💰 " + price + " FC";
-
-        priceEl.style.transform = "scale(1.2)";
-        setTimeout(()=>{
-            priceEl.style.transform = "scale(1)";
-        },200);
-    }
-});
+  });
+}
 
 // ================= VALIDATION =================
+function validate(name, type){
+  if(!name){
+    alert("❌ Nom du site requis");
+    return false;
+  }
+
+  if(!type){
+    alert("❌ Choisis un type de site");
+    return false;
+  }
+
+  return true;
+}
+
+// ================= ENVOI =================
 window.valider = async ()=>{
 
-if(loading) return;
+  const btn = document.querySelector("button");
 
-const name = document.getElementById("name").value.trim();
-const desc = document.getElementById("desc").value.trim();
-const color = document.getElementById("color").value.trim();
-const importance = document.getElementById("importance").value.trim();
-const features = document.getElementById("features").value.trim();
-const imageFile = document.getElementById("image").files[0];
+  const name = document.getElementById("name").value.trim();
+  const color = document.getElementById("color").value.trim();
+  const importance = document.getElementById("importance").value.trim();
+  const desc = document.getElementById("desc").value.trim();
+  const features = document.getElementById("features").value.trim();
 
-// 🔒 VALIDATION
-if(!name || !desc){
-    alert("❌ Remplis nom + description");
+  const imageFile = document.getElementById("image").files[0];
+
+  // 🔒 VALIDATION
+  if(!validate(name, selectedType)) return;
+
+  // 🔥 USER (IMPORTANT POUR ADMIN)
+  const user = localStorage.getItem("userPhone");
+
+  if(!user){
+    alert("❌ Connecte-toi");
     return;
-}
+  }
 
-if(!selectedType){
-    alert("❌ Choisis un type de site");
-    return;
-}
+  try{
 
-loading = true;
+    // UI loading
+    btn.disabled = true;
+    btn.innerText = "⏳ Envoi...";
 
-try{
+    // 🔥 IMAGE
+    const image = await toBase64(imageFile);
 
-    const userRef = ref(db,"users/"+user);
-    const snap = await get(userRef);
-
-    if(!snap.exists()){
-        alert("❌ Utilisateur introuvable");
-        loading = false;
-        return;
-    }
-
-    const balance = snap.val().balance || 0;
-
-    if(balance < price){
-        alert("❌ Solde insuffisant");
-        loading = false;
-        return;
-    }
-
-    // 💰 RETRAIT
-    await update(userRef,{
-        balance: balance - price,
-        lastOrder: Date.now()
-    });
-
-    // 📸 IMAGE BASE64
-    let imageBase64 = null;
-    if(imageFile){
-        imageBase64 = await toBase64(imageFile);
-    }
-
-    // 📦 DATA PROPRE
+    // 🔥 DATA (COMPATIBLE ADMIN)
     const data = {
-        service: "Site Web Pro",
-        user: user,
-        name: name,
-        type: selectedType,
-        color: color || "",
-        importance: importance || "",
-        desc: desc,
-        features: features || "",
-        image: imageBase64,
-        price: price,
-        speed: speed,
-        status: "pending",
-        date: Date.now()
+      service: "Site Web Pro",
+      name,
+      type: selectedType,
+      color,
+      importance,
+      desc,
+      features,
+      image,
+      price,
+      user,
+      status: "pending",
+      date: Date.now()
     };
 
-    const id = Date.now();
+    // 🔥 PUSH FIREBASE
+    await push(ref(db, "orders/pending/" + user), data);
 
-    // 🔥 IMPORTANT (FIX ADMIN)
-    await set(ref(db,"orders/pending/"+id), data);
+    // 🔔 MESSAGE UTILISATEUR
+    await push(ref(db, "messages/" + user), {
+      text: `🌐 Commande site envoyée\n💻 ${name}`,
+      date: Date.now()
+    });
 
-    console.log("✅ COMMANDE SITE :", data);
+    alert("✅ Commande envoyée");
 
-    alert("✅ Commande envoyée !");
-    location.href = "dashboard.html";
+    // 🔄 RESET
+    document.querySelectorAll("input, textarea").forEach(el=>el.value="");
 
-}catch(e){
-    console.error(e);
-    alert("❌ Erreur réseau");
-}
+    selectedType = "";
+    price = 35000;
+    document.getElementById("price").innerText = "35000 FC";
 
-loading = false;
+    document.querySelectorAll(".type-item").forEach(el=>{
+      el.classList.remove("active");
+    });
+
+  }catch(err){
+
+    console.error(err);
+    alert("❌ Erreur lors de l'envoi");
+
+  }finally{
+
+    btn.disabled = false;
+    btn.innerText = "🚀 Commander";
+  }
+
 };
