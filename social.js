@@ -88,7 +88,8 @@ function updatePrice(){
 
   const base = prices[plan]?.[selectedType] || 0;
 
-  price = Math.floor((qty / 1000) * base);
+  // 🔥 prix sécurisé
+  price = parseInt(Math.floor((qty / 1000) * base));
 
   document.getElementById("price").innerText = price + " FC";
 }
@@ -127,18 +128,22 @@ window.valider = async ()=>{
 
   const userRef = ref(db,"users/"+userPhone);
 
-  // 🔥 TRANSACTION (ANTI PERTE ARGENT)
+  // ================= 🔥 TRANSACTION =================
   const result = await runTransaction(userRef, (data)=>{
 
     if(data === null) return;
 
-    const balance = data.balance || 0;
+    const balance = parseInt(data.balance) || 0;
+    const prix = parseInt(price) || 0;
 
-    if(balance < price){
-      return;
+    console.log("BALANCE:", balance);
+    console.log("PRIX:", prix);
+
+    if(balance < prix){
+      return; // ❌ stop
     }
 
-    data.balance = balance - price;
+    data.balance = balance - prix;
 
     return data;
   });
@@ -148,7 +153,7 @@ window.valider = async ()=>{
     return;
   }
 
-  // 📦 COMMANDE
+  // ================= 📦 COMMANDE =================
   const order = {
     service: "Réseaux Sociaux",
     platform: selectedPlatform,
@@ -164,7 +169,7 @@ window.valider = async ()=>{
 
   await push(ref(db,"orders/pending/"+userPhone), order);
 
-  // 💬 MESSAGE
+  // ================= 💬 MESSAGE =================
   await push(ref(db,"messages/"+userPhone),{
     text:`🚀 Commande envoyée
 📱 ${selectedPlatform}
@@ -176,7 +181,7 @@ window.valider = async ()=>{
 
   alert("✅ Commande envoyée");
 
-  // RESET
+  // ================= RESET =================
   document.getElementById("nombre").value = "";
   document.getElementById("link").value = "";
   document.getElementById("price").innerText = "0 FC";
