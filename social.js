@@ -70,19 +70,19 @@ function updatePrice(){
     cheap: {
       Likes: 2900,
       Vues: 1000,
-      Followers: 10000,
+      Followers: 12550,
       "Membre Groupe": 4000,
       "Membre Chaîne": 6000,
       "Membre Canal": 5000
     },
 
     premium: {
-      Likes: 4000,
-      Vues: 1250,
-      Followers: 12000,
-      "Membre Groupe": 4000,
-      "Membre Chaîne": 6000,
-      "Membre Canal": 5000
+      Likes: 4250,
+      Vues: 1450,
+      Followers: 18000,
+      "Membre Groupe": 4600,
+      "Membre Chaîne": 6700,
+      "Membre Canal": 5800
     }
   };
 
