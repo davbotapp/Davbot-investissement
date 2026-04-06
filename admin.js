@@ -513,44 +513,228 @@ ${details || "Aucun détail"}
 }
 
 });
+// ================= 💰 MONÉTISATION =================
+onValue(ref(db,"demandes_monetisation"), async snap=>{
+
+const box = document.getElementById("monetisations");
+if(!box) return;
+
+box.innerHTML = "";
+
+if(!snap.exists()){
+box.innerHTML = "<small>Aucune demande</small>";
+return;
+}
+
+for(const [id,m] of Object.entries(snap.val())){
+
+// 🔒 seulement pending
+if(m.status && m.status !== "pending") continue;
+
+// 🔥 récupérer user
+const userSnap = await get(ref(db,"users/"+m.user));
+const u = userSnap.val() || {};
+
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
+const phone = m.user;
+
+// 🔥 date
+const date = m.date ? new Date(m.date).toLocaleString() : "Non défini";
+
+// 🔥 statut
+const status = m.status || "pending";
+const statusColor = status === "pending" ? "orange" :
+                    status === "approved" ? "green" : "red";
+
+// 🔥 avatar
+const avatar = photo
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;height:50px;border-radius:50%;
+background:#00d2ff;display:flex;align-items:center;
+justify-content:center;color:black;font-weight:bold;">
+${name.substring(0,2)}
+</div>`;
+
+// 🔥 détails dynamiques + images
+let details = "";
+
+Object.entries(m).forEach(([key,value])=>{
+
+if(["user","status","date"].includes(key)) return;
+
+// 🖼️ IMAGE
+if(typeof value === "string" && value.startsWith("data:image")){
+details += `
+📸 ${key} :<br>
+<img src="${value}" style="width:100%;border-radius:10px;margin-top:5px;">
+<br>
+<a href="${value}" download="preuve.png">
+<button style="margin-top:5px;">⬇️ Télécharger</button>
+</a><br><br>
+`;
+}else{
+details += `<b>${key}</b> : ${value}<br>`;
+}
+
+});
+
+// ================= UI =================
+box.innerHTML += `
+<div class="card">
+
+<div style="display:flex;align-items:center;gap:10px;">
+${avatar}
+<div>
+<b>${name}</b><br>
+📱 ${phone}
+</div>
+</div>
+
+<hr>
+
+💰 Demande de monétisation<br>
+💵 Montant payé : <b>${m.amount || 2500} FC</b><br>
+📅 Date : <b>${date}</b><br>
+📌 Statut : <b style="color:${statusColor};">${status}</b><br>
+🆔 <small>${id}</small>
+
+<div class="details" style="margin-top:10px;">
+${details || "Aucun détail"}
+</div>
+
+<div style="margin-top:10px;display:flex;gap:5px;">
+<button class="ok" onclick="valMonet('${id}','${phone}')">
+✅ Approuver
+</button>
+
+<button class="no" onclick="refMonet('${id}','${phone}')">
+❌ Refuser
+</button>
+</div>
+
+</div>
+`;
+
+}
+
+});
 
 
+// ================= ACTIONS =================
+// ================= LOGGER =================
+async function logAction(type,data){
+await push(ref(db,"admin_logs"),{
+type,
+...data,
+date:Date.now()
+});
+}
 
-// ================= ACTION RECHARGE =================
+// ================= VALID RECHARGE =================
 window.valRecharge = async(id,user,amount)=>{
 
-if(lock(id)) return;
+if(lock(id)) return alert("⏳ Traitement...");
 
 try{
 
-if(amount <= 0) return alert("Montant invalide");
+// 🔒 Vérifications
+if(!user || amount <= 0){
+unlock(id);
+return alert("❌ Données invalides");
+}
 
 const rRef = ref(db,"demandes_recharges/"+id);
 const check = await get(rRef);
 
-if(!check.exists()) return alert("Déjà traité");
+if(!check.exists()){
+unlock(id);
+return alert("⚠️ Déjà traité");
+}
 
+// 🔥 USER
 const userRef = ref(db,"users/"+user);
 const snap = await get(userRef);
 
+if(!snap.exists()){
+unlock(id);
+return alert("❌ Utilisateur introuvable");
+}
+
 const bal = snap.val().balance || 0;
+const newBal = bal + amount;
 
-await update(userRef,{
-balance: bal + amount
-});
+// 💰 UPDATE
+await update(userRef,{ balance:newBal });
 
+// 📦 ARCHIVE
 await set(ref(db,"recharges_validées/"+id),{
-user, amount, date:Date.now()
-});
-
-await remove(rRef);
-
-await push(ref(db,"messages/"+user),{
-text:`+${amount} FC`,
+user,amount,
+oldBalance:bal,
+newBalance:newBal,
+status:"approved",
 date:Date.now()
 });
 
-alert("Validé");
+// 🗑️ DELETE
+await remove(rRef);
+
+// 📩 MESSAGE USER
+await push(ref(db,"messages/"+user),{
+text:`✅ Recharge validée\n💰 +${amount} FC`,
+date:Date.now(),
+read:false
+});
+
+// 📊 LOG ADMIN
+await logAction("recharge_validée",{user,amount});
+
+alert("✅ Recharge validée");
+
+}catch(e){
+console.error(e);
+alert("❌ Erreur système");
+}
+
+unlock(id);
+};
+
+// ================= REFUSE RECHARGE =================
+window.refRecharge = async(id,user,amount)=>{
+
+if(lock(id)) return alert("⏳ Traitement...");
+
+try{
+
+const rRef = ref(db,"demandes_recharges/"+id);
+const check = await get(rRef);
+
+if(!check.exists()){
+unlock(id);
+return alert("⚠️ Déjà traité");
+}
+
+// 📦 ARCHIVE REFUS
+await set(ref(db,"recharges_refusées/"+id),{
+user,amount,
+status:"refused",
+date:Date.now()
+});
+
+// 🗑️ DELETE
+await remove(rRef);
+
+// 📩 MESSAGE
+await push(ref(db,"messages/"+user),{
+text:`❌ Recharge refusée\n💰 ${amount} FC`,
+date:Date.now()
+});
+
+// 📊 LOG
+await logAction("recharge_refusée",{user,amount});
+
+alert("❌ Recharge refusée");
 
 }catch(e){
 console.error(e);
@@ -560,79 +744,120 @@ alert("Erreur");
 unlock(id);
 };
 
-// ================= REFUSE =================
-window.refRecharge = async(id,user,amount)=>{
-
-if(lock(id)) return;
-
-try{
-
-await set(ref(db,"recharges_refusées/"+id),{
-user,amount,date:Date.now()
-});
-
-await remove(ref(db,"demandes_recharges/"+id));
-
-alert("Refusé");
-
-}catch(e){
-alert("Erreur");
-}
-
-unlock(id);
-};
-
-
-// ================= VALID CMD =================
+// ================= VALID COMMAND =================
 window.valCmd = async(user,id)=>{
 
-if(lock(id)) return;
+if(lock(id)) return alert("⏳ Traitement...");
 
 try{
 
-const snap = await get(ref(db,"orders/pending/"+user+"/"+id));
+const refCmd = ref(db,"orders/pending/"+user+"/"+id);
+const snap = await get(refCmd);
+
+if(!snap.exists()){
+unlock(id);
+return alert("⚠️ Déjà traité");
+}
+
 const data = snap.val();
 
+// 📦 ARCHIVE
 await set(ref(db,"orders/validated/"+user+"/"+id),{
-...data,status:"ok"
+...data,
+status:"approved",
+dateValidated:Date.now()
 });
 
-await remove(ref(db,"orders/pending/"+user+"/"+id));
+// 🗑️ DELETE
+await remove(refCmd);
 
-alert("Commande validée");
+// 📩 MESSAGE
+await push(ref(db,"messages/"+user),{
+text:`✅ Commande validée\n📦 ${data.service}`,
+date:Date.now()
+});
+
+// 📊 LOG
+await logAction("commande_validée",{user,price:data.price});
+
+alert("✅ Commande validée");
 
 }catch(e){
+console.error(e);
 alert("Erreur");
 }
 
 unlock(id);
 };
 
-// ================= REF CMD =================
+// ================= REFUSE COMMAND =================
 window.refCmd = async(user,id,price)=>{
 
-if(lock(id)) return;
+if(lock(id)) return alert("⏳ Traitement...");
 
 try{
 
-const uRef = ref(db,"users/"+user);
-const snap = await get(uRef);
+// 🔒 Vérif
+if(price < 0){
+unlock(id);
+return alert("❌ Prix invalide");
+}
 
-await update(uRef,{
-balance: (snap.val().balance || 0) + price
+// 🔥 REF CMD
+const refCmd = ref(db,"orders/pending/"+user+"/"+id);
+const snap = await get(refCmd);
+
+if(!snap.exists()){
+unlock(id);
+return alert("⚠️ Déjà traité");
+}
+
+// 🔥 USER
+const userRef = ref(db,"users/"+user);
+const userSnap = await get(userRef);
+
+if(!userSnap.exists()){
+unlock(id);
+return alert("❌ User introuvable");
+}
+
+const bal = userSnap.val().balance || 0;
+const newBal = bal + price;
+
+// 💰 REMBOURSEMENT
+await update(userRef,{ balance:newBal });
+
+// 📦 ARCHIVE
+await set(ref(db,"orders/cancelled/"+user+"/"+id),{
+...(snap.val()),
+status:"refused",
+price,
+oldBalance:bal,
+newBalance:newBal,
+dateCancelled:Date.now()
 });
 
-await remove(ref(db,"orders/pending/"+user+"/"+id));
+// 🗑️ DELETE
+await remove(refCmd);
 
-alert("Refusé + remboursé");
+// 📩 MESSAGE
+await push(ref(db,"messages/"+user),{
+text:`❌ Commande refusée\n💰 ${price} FC remboursé`,
+date:Date.now()
+});
+
+// 📊 LOG
+await logAction("commande_refusée",{user,price});
+
+alert("❌ Refusée + remboursée");
 
 }catch(e){
+console.error(e);
 alert("Erreur");
 }
 
 unlock(id);
 };
-
 // ================= 📩 MESSAGE ADMIN → USER (VERSION PRO) =================
 window.sendMsg = async () => {
 
