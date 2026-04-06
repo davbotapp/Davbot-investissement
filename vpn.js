@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, get, update, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// ================= 🔥 CONFIG FIREBASE =================
+// ================= 🔥 CONFIG =================
 const firebaseConfig = {
     apiKey: "AIza...",
     authDomain: "starlink-investit.firebaseapp.com",
@@ -33,7 +33,6 @@ document.querySelectorAll(".vpn-item").forEach(item=>{
         .forEach(i=>i.classList.remove("active"));
 
         item.classList.add("active");
-
         selectedVpn = item.dataset.vpn;
     };
 });
@@ -53,7 +52,7 @@ document.querySelectorAll(".option").forEach(opt=>{
     };
 });
 
-// ================= 💰 ANIMATION PRIX =================
+// ================= 💰 ANIMATION =================
 function animatePrice(value){
 
     const el = document.getElementById("price");
@@ -74,10 +73,12 @@ function animatePrice(value){
     step();
 }
 
-// ================= ✅ VALIDATION =================
+// ================= 🚀 COMMANDER =================
 window.valider = async ()=>{
 
     if(loading) return;
+
+    const btn = document.querySelector("button");
 
     const reseau = document.getElementById("reseau").value.trim();
     const vpnName = document.getElementById("vpnName").value.trim();
@@ -104,70 +105,78 @@ window.valider = async ()=>{
         return;
     }
 
-    loading = true;
-
     try{
 
-        // 🔍 Vérifier utilisateur
+        loading = true;
+        btn.disabled = true;
+        btn.innerText = "⏳ Traitement...";
+
+        // ================= 🔍 CHECK USER =================
         const userRef = ref(db,"users/"+user);
         const snap = await get(userRef);
 
         if(!snap.exists()){
             alert("❌ Utilisateur introuvable");
-            loading = false;
             return;
         }
 
-        const balance = snap.val().balance || 0;
+        const dataUser = snap.val();
+        const balance = dataUser.balance || 0;
 
-        // 💰 Vérifier solde
+        // ❌ PAS D'ARGENT
         if(balance < selectedPrice){
             alert("❌ Solde insuffisant");
-            loading = false;
             return;
         }
 
-        // 💸 RETRAIT
+        // ================= 💸 DÉBIT =================
         await update(userRef,{
             balance: balance - selectedPrice,
             lastOrder: Date.now()
         });
 
-        // 📦 DATA PROPRE
-        const id = Date.now();
-
+        // ================= 📦 COMMANDE =================
         const data = {
             service: "VPN",
-            user: user,
             vpnType: selectedVpn,
-            reseau: reseau,
-            vpnName: vpnName,
-            config: config || null,
             plan: selectedPlan,
+
+            // ✅ IMPORTANT POUR ADMIN
+            details: {
+                reseau,
+                vpnName,
+                config
+            },
+
             price: selectedPrice,
+            user,
             status: "pending",
             date: Date.now()
         };
 
-        // 🔥 STRUCTURE CORRECTE
-        await set(ref(db,"orders/pending/"+user+"/"+id), data);
+        await push(ref(db,"orders/pending/"+user), data);
 
-        // 📩 MESSAGE USER
-        await set(ref(db,"messages/"+user+"/"+id),{
-            text: `📦 Commande VPN envoyée\n💰 ${selectedPrice} FC`,
+        // ================= 💬 MESSAGE =================
+        await push(ref(db,"messages/"+user),{
+            text: `🔐 VPN commandé\n📡 ${selectedVpn}\n💰 ${selectedPrice} FC`,
             date: Date.now()
         });
 
-        alert("✅ Commande envoyée avec succès");
+        alert("✅ Commande envoyée");
 
-        // 🔄 RESET
+        // ================= RESET =================
         selectedPlan = "";
         selectedPrice = 0;
+
         document.getElementById("price").innerText = "0 FC";
 
-        setTimeout(()=>{
-            location.href = "dashboard.html";
-        }, 800);
+        document.querySelectorAll(".option, .vpn-item").forEach(el=>{
+            el.classList.remove("active");
+        });
+
+        document.querySelectorAll("input, textarea").forEach(el=>{
+            el.value = "";
+        });
 
     }catch(e){
         console.error(e);
@@ -175,4 +184,6 @@ window.valider = async ()=>{
     }
 
     loading = false;
+    btn.disabled = false;
+    btn.innerText = "🚀 Commander";
 };
