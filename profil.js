@@ -298,8 +298,80 @@ document.getElementById("sendBtn").onclick = async ()=>{
 
     alert("✅ Message envoyé à l'admin");
 };
+// ================= 🤖 DAVBOT AI =================
+const API_URL = "https://arychauhann.onrender.com/api/gemini-proxy2";
+
+const botBox = document.getElementById("botBox");
+const botInput = document.getElementById("botInput");
+
+// 📤 envoyer message
+document.getElementById("botSend").onclick = async ()=>{
+
+    const question = botInput.value.trim();
+    if(!question) return;
+
+    addMsg("👤", question);
+    botInput.value = "";
+
+    try{
+
+        const res = await fetch(API_URL,{
+            method:"POST",
+            headers:{ "Content-Type":"application/json" },
+            body: JSON.stringify({
+                message: `
+Tu es Davbot Assistant.
+
+Tu réponds uniquement sur la plateforme Davbot.
+
+Infos importantes:
+- Créé par Ir David Mpongo
+- Recharge: 243982697753
+
+Fonction:
+- Expliquer comment gagner de l'argent
+- Expliquer parrainage
+- Expliquer outils (APK, site, VPN, boost)
+- Expliquer monétisation
+
+Interdit:
+- Ne parle pas d'autres sujets
+- Ne donne pas d'infos hors plateforme
+
+Question:
+${question}
+                `
+            })
+        });
+
+        const data = await res.json();
+
+        const reply = data.reply || "⚠️ Erreur réponse";
+
+        addMsg("🤖", reply);
+
+    }catch(e){
+        addMsg("🤖", "❌ Erreur connexion");
+    }
+};
+
+// 📥 afficher message
+function addMsg(sender, text){
+    botBox.innerHTML += `
+        <div style="
+        background:#111;
+        padding:10px;
+        border-radius:10px;
+        margin-top:8px;">
+        <b>${sender}</b><br>${text}
+        </div>
+    `;
+
+    botBox.scrollTop = botBox.scrollHeight;
+        }
 
 // ================= LOGOUT =================
+
 document.getElementById("logout").onclick = ()=>{
     if(confirm("Se déconnecter ?")){
         localStorage.clear();
