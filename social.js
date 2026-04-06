@@ -3,7 +3,7 @@ import {
   getDatabase, ref, push, get, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// 🔥 CONFIG FIREBASE
+// 🔥 CONFIG
 const firebaseConfig = {
   apiKey:"AIza...",
   authDomain:"starlink-investit.firebaseapp.com",
@@ -14,41 +14,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ================= SESSION AUTO =================
-let user = JSON.parse(localStorage.getItem("user"));
+// ================= USER =================
+const userPhone = localStorage.getItem("userPhone");
 
-async function initUser(){
-
-  if(!user){
-
-    const phone = prompt("📱 Entre ton numéro");
-
-    if(!phone){
-      alert("❌ Numéro requis");
-      return;
-    }
-
-    const snap = await get(ref(db,"users/"+phone));
-
-    if(!snap.exists()){
-      alert("❌ Compte introuvable");
-      return;
-    }
-
-    user = {
-      phone: phone,
-      name: snap.val().name || "Utilisateur"
-    };
-
-    localStorage.setItem("user", JSON.stringify(user));
-
-    alert("✅ Bienvenue " + user.name);
-  }
-
+if(!userPhone){
+  alert("❌ Connecte-toi d'abord");
+  window.location.href = "index.html";
 }
-
-// 🔥 lancer au chargement
-initUser();
 
 // ================= VARIABLES =================
 let selectedPlatform = "";
@@ -124,7 +96,7 @@ function updatePrice(){
 // ================= 🚀 COMMANDER =================
 window.valider = async ()=>{
 
-  if(!user || !user.phone){
+  if(!userPhone){
     alert("❌ Connecte-toi");
     return;
   }
@@ -153,9 +125,9 @@ window.valider = async ()=>{
     return;
   }
 
-  const userRef = ref(db,"users/"+user.phone);
+  const userRef = ref(db,"users/"+userPhone);
 
-  // 🔥 TRANSACTION SÉCURISÉE
+  // 🔥 TRANSACTION (ANTI PERTE ARGENT)
   const result = await runTransaction(userRef, (data)=>{
 
     if(data === null) return;
@@ -185,15 +157,15 @@ window.valider = async ()=>{
     link: link,
     plan: plan,
     price: price,
-    user: user.phone,
+    user: userPhone,
     status: "pending",
     date: Date.now()
   };
 
-  await push(ref(db,"orders/pending/"+user.phone), order);
+  await push(ref(db,"orders/pending/"+userPhone), order);
 
   // 💬 MESSAGE
-  await push(ref(db,"messages/"+user.phone),{
+  await push(ref(db,"messages/"+userPhone),{
     text:`🚀 Commande envoyée
 📱 ${selectedPlatform}
 📊 ${selectedType}
@@ -204,7 +176,7 @@ window.valider = async ()=>{
 
   alert("✅ Commande envoyée");
 
-  // 🔄 RESET
+  // RESET
   document.getElementById("nombre").value = "";
   document.getElementById("link").value = "";
   document.getElementById("price").innerText = "0 FC";
