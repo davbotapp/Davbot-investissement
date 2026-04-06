@@ -294,21 +294,37 @@ for(const [user, cmds] of Object.entries(snap.val())){
         }
 
         if(c.service === "Mini Jeux"){
-            details += `
-            🎮 Jeu : ${c.name || "-"}<br>
-            ⚡ Mode : ${c.mode || "-"}<br>
-            `;
-        }
+
+    const d = c.details || {};
+
+    details += `
+    🎮 Jeu : ${d.name || c.type || "-"}<br>
+    ⚡ Mode : ${c.mode || "-"}<br>
+
+    ${
+        Object.entries(d)
+        .filter(([k]) => k !== "name")
+        .map(([k,v])=>`🔹 ${k} : ${v}<br>`)
+        .join("") || ""
+    }
+    `;
+}
 
         if(c.service === "IA Bot"){
-            details += `
-            🤖 Type : ${c.botType || "-"}<br>
-            📌 Infos :<br>
-            ${Object.entries(c)
-                .filter(([k]) => !["service","price","date","user","status"].includes(k))
-                .map(([k,v])=>`${k} : ${v}<br>`).join("")}
-            `;
-        }
+
+    const d = c.details || {};
+
+    details += `
+    🤖 Type : ${c.botType || "-"}<br>
+    📌 Infos :<br>
+
+    ${
+        Object.entries(d)
+        .map(([k,v])=>`🔹 ${k} : ${v}<br>`)
+        .join("") || "Aucune info"
+    }
+    `;
+}
 
         if(c.service === "Réseaux Sociaux"){
             details += `
@@ -320,12 +336,17 @@ for(const [user, cmds] of Object.entries(snap.val())){
         }
 
         if(c.service === "VPN"){
-            details += `
-            🔐 VPN : ${c.vpnType || "-"}<br>
-            📡 Réseau : ${c.reseau || "-"}<br>
-            📦 Plan : ${c.plan || "-"}<br>
-            `;
-        }
+
+    const d = c.details || {};
+
+    details += `
+    🔐 VPN : ${c.vpnType || "-"}<br>
+    📡 Réseau : ${d.reseau || "-"}<br>
+    🏷️ Nom : ${d.vpnName || "-"}<br>
+    ⚙️ Config : ${d.config || "-"}<br>
+    📦 Plan : ${c.plan || "-"}<br>
+    `;
+}
 
         // ================= IMAGES =================
         Object.entries(c).forEach(([k,v])=>{
