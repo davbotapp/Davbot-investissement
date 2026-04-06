@@ -311,119 +311,216 @@ document.getElementById("logout").onclick = ()=>{
         // ================= 🤖 BOT DAVBOT =================
 // ================= 🤖 DAVBOT ASSISTANT =================
 
-const API_URL = "https://arychauhann.onrender.com/api/gemini-proxy2";
+const API_URL="https://arychauhann.onrender.com/api/gemini-proxy2";
 
 const chatBox = document.getElementById("chatBox");
 const chatInput = document.getElementById("chatInput");
 
-// message initial
-addBotMessage("👋 Bonjour ! Je suis Davbot.\nJe peux vous aider sur le site.\n\n💡 Posez une question !");
+// 💬 afficher message
+function addMsg(text, type){
+    const div = document.createElement("div");
 
-// ================= ENVOYER MESSAGE =================
-window.sendBot = async () => {
+    div.style.marginTop = "8px";
+    div.style.padding = "10px";
+    div.style.borderRadius = "10px";
+    div.style.fontSize = "13px";
+
+    if(type === "user"){
+        div.style.background = "#111";
+        div.innerHTML = "<b>👤 Vous :</b><br>"+text;
+    }else{
+        div.style.background = "#0d1625";
+        div.innerHTML = "<b>🤖 Davbot :</b><br>"+text;
+    }
+
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// 🧠 PROMPT ULTRA INTELLIGENT
+function buildPrompt(userText){
+
+return `
+Tu es Davbot, assistant officiel du site créé par Ir David Mpongo.
+
+🎯 OBJECTIF :
+Aider l'utilisateur à comprendre le site, réussir et le convaincre de recharger pour gagner de l'argent.
+
+========================
+🧠 TON RÔLE
+========================
+Tu es :
+
+• Un expert du site  
+• Un vendeur intelligent  
+• Un guide professionnel  
+• Un assistant rassurant  
+
+Tu dois toujours :
+
+✔ Expliquer clairement  
+✔ Guider étape par étape  
+✔ Donner confiance  
+✔ Encourager à agir  
+
+========================
+🛠️ SERVICES DU SITE
+========================
+
+1. 📱 Création APK  
+→ Crée une application mobile  
+→ Idéal pour business ou projet  
+→ Peut générer de l'argent  
+
+2. 🌐 Création de site  
+→ Permet d'avoir un site web  
+→ Vendre en ligne  
+→ Lancer un business  
+
+3. 🚀 Booster compte  
+→ Augmente visibilité  
+→ Plus de clients / audience  
+→ Utile pour business  
+
+4. 🔐 VPN fichier  
+→ Sécurise connexion  
+→ Accès à plus de services  
+→ Protection en ligne  
+
+👉 Tu dois expliquer chaque service clairement si demandé.
+
+========================
+💰 TYPES DE SERVICE
+========================
+
+🔥 Rapide (premium)
+• 20 minutes à 24h  
+• Plus cher  
+• Résultat rapide  
+
+💸 Lent (économique)
+• 4h à 96h  
+• Moins cher  
+• Nécessite patience  
+
+👉 Important :
+
+Si service lent :
+"Vous devez patienter ⏳ car le traitement est plus lent"
+
+========================
+📲 RECHARGE
+========================
+
+Numéro : 243 982697753
+
+Étapes :
+
+1. Envoyer argent  
+2. Aller dans "Recharger"  
+3. Confirmer paiement  
+
+========================
+🧭 COMMENT GAGNER
+========================
+
+1. Créer compte  
+2. Recharger  
+3. Acheter service  
+4. Lancer commande  
+5. Attendre  
+6. Gagner  
+
+========================
+😌 RASSURER
+========================
+
+Toujours dire :
+
+• "Votre commande est en cours ⏳"  
+• "Tout est automatique"  
+• "Les résultats arrivent progressivement"  
+• "C’est normal si ça prend du temps"  
+
+========================
+💡 STRATÉGIE VENTE
+========================
+
+Si utilisateur hésite :
+
+• Propose petit montant  
+• Explique avantages  
+• Compare rapide vs lent  
+
+Exemple :
+
+"Tu peux commencer avec un petit montant pour tester 👍"
+
+========================
+🚀 INCITER
+========================
+
+Toujours finir par :
+
+• "Tu peux commencer dès maintenant 🔥"  
+• "Recharge ton compte pour accéder aux services 💰"  
+• "N’attends pas 🚀"  
+
+========================
+❗ RÈGLES
+========================
+
+Tu ne dois jamais :
+
+• décourager  
+• compliquer  
+• répondre vaguement  
+
+Tu dois toujours :
+
+✔ motiver  
+✔ convaincre  
+✔ simplifier  
+
+========================
+QUESTION :
+${userText}
+
+RÉPONSE DAVBOT :
+`;
+}
+
+// 🚀 ENVOYER MESSAGE
+window.sendBot = async ()=>{
 
     const text = chatInput.value.trim();
     if(!text) return;
 
-    addUserMessage(text);
+    addMsg(text,"user");
     chatInput.value = "";
 
     try{
 
         const prompt = encodeURIComponent(buildPrompt(text));
 
-        const res = await fetch(`${API_URL}?prompt=${prompt}`);
+        const res = await fetch(API_URL+"?prompt="+prompt);
         const data = await res.json();
 
-        const reply =
-            data.result ||
-            data.reply ||
-            data.response ||
-            "❌ Erreur de réponse";
+        const reply = data.result || data.response || data.reply || "Réponse indisponible";
 
-        addBotMessage(reply);
+        addMsg(reply,"bot");
 
     }catch(e){
-        addBotMessage("⚠️ Serveur indisponible");
+        addMsg("⚠️ Erreur serveur","bot");
     }
 };
 
-// ================= PROMPT PERSONNALISÉ =================
-function buildPrompt(userText){
-
-    return `
-Tu es Davbot, assistant officiel du site créé par Ir David Mpongo.
-
-Tu réponds UNIQUEMENT sur ce site.
-
-Tu dois expliquer clairement :
-
-- comment utiliser le site
-- comment faire les parrainages
-- comment gagner de l'argent
-- comment activer la monétisation
-- comment recharger (numéro : 243 982697753)
-
-Tu dois être simple, clair et précis.
-
-Question :
-${userText}
-
-Réponse :
-`;
-}
-
-// ================= UI MESSAGES =================
-
-function addUserMessage(text){
-    chatBox.innerHTML += `
-    <div style="
-        text-align:right;
-        margin-top:10px;
-    ">
-        <div style="
-            display:inline-block;
-            background:#00d2ff;
-            color:black;
-            padding:10px;
-            border-radius:10px;
-            max-width:80%;
-        ">
-            ${text}
-        </div>
-    </div>
-    `;
-    scrollChat();
-}
-
-function addBotMessage(text){
-    chatBox.innerHTML += `
-    <div style="
-        text-align:left;
-        margin-top:10px;
-    ">
-        <div style="
-            display:inline-block;
-            background:#111;
-            padding:10px;
-            border-radius:10px;
-            border-left:3px solid #00d2ff;
-            max-width:80%;
-        ">
-            ${text}
-        </div>
-    </div>
-    `;
-    scrollChat();
-}
-
-function scrollChat(){
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// ================= ENTER KEY =================
-chatInput.addEventListener("keydown", e=>{
-    if(e.key === "Enter"){
-        sendBot();
-    }
+// ⌨️ ENTER
+chatInput.addEventListener("keydown",e=>{
+    if(e.key==="Enter") sendBot();
 });
+
+// 🔥 message automatique
+setTimeout(()=>{
+    addMsg("👋 Bienvenue ! Je peux t'aider à gagner de l'argent avec les outils du site 💰","bot");
+},1000);
