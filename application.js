@@ -1,163 +1,163 @@
-// ================= FIREBASE =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, get, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// ================= CONFIG =================
+// 🔥 CONFIG FIREBASE
 const firebaseConfig = {
-    apiKey: "AIza...",
-    authDomain: "starlink-investit.firebaseapp.com",
-    databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
-    projectId: "starlink-investit"
+  apiKey: "AIza...",
+  authDomain: "starlink-investit.firebaseapp.com",
+  databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
+  projectId: "starlink-investit"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ================= USER =================
-const user = localStorage.getItem("userPhone");
-if(!user){
-    alert("❌ Connecte-toi");
-    window.location.href = "index.html";
-}
-
 // ================= VARIABLES =================
 let selectedType = "";
 let price = 45000;
-let loading = false;
 
-// ================= CONVERT IMAGE =================
-const toBase64 = file => new Promise((resolve,reject)=>{
+// ================= INIT =================
+window.addEventListener("DOMContentLoaded", () => {
+  initTypes();
+  initSpeed();
+});
+
+// ================= TYPES =================
+function initTypes(){
+  const items = document.querySelectorAll(".type-item");
+
+  items.forEach(el=>{
+    el.addEventListener("click", ()=>{
+      items.forEach(i=>i.classList.remove("active"));
+      el.classList.add("active");
+      selectedType = el.innerText.trim();
+    });
+  });
+}
+
+// ================= SPEED =================
+function initSpeed(){
+  const speeds = document.querySelectorAll("#speed div");
+
+  speeds.forEach(el=>{
+    el.addEventListener("click", ()=>{
+      speeds.forEach(s=>s.classList.remove("active"));
+      el.classList.add("active");
+
+      price = Number(el.dataset.price || 45000);
+      document.getElementById("price").innerText = price + " FC";
+    });
+  });
+}
+
+// ================= BASE64 IMAGE =================
+function toBase64(file){
+  return new Promise((resolve)=>{
+    if(!file) return resolve("");
+
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
+
+    reader.onload = ()=> resolve(reader.result);
     reader.readAsDataURL(file);
-});
-
-// ================= TYPE APP =================
-document.querySelectorAll(".type-item").forEach(el=>{
-    el.onclick = ()=>{
-        document.querySelectorAll(".type-item").forEach(i=>{
-            i.classList.remove("active");
-        });
-
-        el.classList.add("active");
-        selectedType = el.innerText.trim();
-    };
-});
-
-// ================= VITESSE =================
-document.querySelectorAll("#speed div").forEach(el=>{
-    el.onclick = ()=>{
-        document.querySelectorAll("#speed div").forEach(i=>{
-            i.classList.remove("active");
-            i.style.transform = "scale(1)";
-        });
-
-        el.classList.add("active");
-        el.style.transform = "scale(1.05)";
-
-        price = parseInt(el.dataset.price);
-
-        const priceEl = document.getElementById("price");
-        priceEl.innerText = price + " FC";
-
-        // animation
-        priceEl.style.transform = "scale(1.2)";
-        setTimeout(()=>{
-            priceEl.style.transform = "scale(1)";
-        },200);
-    };
-});
+  });
+}
 
 // ================= VALIDATION =================
+function validate(name, type){
+  if(!name){
+    alert("❌ Nom requis");
+    return false;
+  }
+
+  if(!type){
+    alert("❌ Choisis un type");
+    return false;
+  }
+
+  return true;
+}
+
+// ================= ENVOI =================
 window.valider = async ()=>{
 
-if(loading) return;
+  const btn = document.querySelector("button");
 
-const name = document.getElementById("name").value.trim();
-const desc = document.getElementById("desc").value.trim();
-const theme = document.getElementById("theme").value.trim();
-const color = document.getElementById("color").value.trim();
+  const name = document.getElementById("name").value.trim();
+  const theme = document.getElementById("theme").value.trim();
+  const color = document.getElementById("color").value.trim();
+  const desc = document.getElementById("desc").value.trim();
 
-const iconFile = document.getElementById("icon").files[0];
-const pubFile = document.getElementById("pub").files[0];
+  const iconFile = document.getElementById("icon").files[0];
+  const pubFile = document.getElementById("pub").files[0];
 
-// 🔒 VALIDATION
-if(!name || !desc){
-    alert("❌ Remplis nom + description");
+  // 🔒 VALIDATION
+  if(!validate(name, selectedType)) return;
+
+  // 🔥 USER (IMPORTANT POUR ADMIN)
+  const user = localStorage.getItem("userPhone");
+
+  if(!user){
+    alert("❌ Connecte-toi");
     return;
-}
+  }
 
-if(!selectedType){
-    alert("❌ Choisis un type");
-    return;
-}
+  try{
 
-loading = true;
+    // UI loading
+    btn.disabled = true;
+    btn.innerText = "⏳ Envoi...";
 
-try{
+    // 🔥 CONVERT IMAGES
+    const icon = await toBase64(iconFile);
+    const pub = await toBase64(pubFile);
 
-    const userRef = ref(db,"users/"+user);
-    const snap = await get(userRef);
-
-    if(!snap.exists()){
-        alert("❌ Utilisateur introuvable");
-        loading = false;
-        return;
-    }
-
-    const balance = snap.val().balance || 0;
-
-    if(balance < price){
-        alert("❌ Solde insuffisant");
-        loading = false;
-        return;
-    }
-
-    // 💰 RETRAIT
-    await update(userRef,{
-        balance: balance - price,
-        lastOrder: Date.now()
-    });
-
-    // 📸 CONVERTIR IMAGES
-    let iconBase64 = null;
-    let pubBase64 = null;
-
-    if(iconFile) iconBase64 = await toBase64(iconFile);
-    if(pubFile) pubBase64 = await toBase64(pubFile);
-
-    // 📦 DATA COMMANDE
+    // 🔥 DATA (FORMAT ADMIN COMPATIBLE)
     const data = {
-        service: "Application",
-        user: user,
-        name: name,
-        type: selectedType,
-        theme: theme || "",
-        color: color || "",
-        desc: desc,
-        icon: iconBase64,
-        pub: pubBase64,
-        price: price,
-        speed: price >= 55000 ? "rapide" : "lent",
-        status: "pending",
-        date: Date.now()
+      service: "Application",
+      name,
+      type: selectedType,
+      theme,
+      color,
+      desc,
+      icon,
+      pub,
+      price,
+      user,
+      status: "pending",
+      date: Date.now()
     };
 
-    const id = Date.now();
+    // 🔥 PUSH
+    await push(ref(db, "orders/pending/" + user), data);
 
-    // 🔥 SAUVEGARDE CORRECTE (IMPORTANT)
-    await set(ref(db,"orders/pending/"+id), data);
+    // 🔔 MESSAGE USER
+    await push(ref(db, "messages/" + user), {
+      text: `📦 Nouvelle commande envoyée\n📱 ${name}`,
+      date: Date.now()
+    });
 
-    console.log("✅ COMMANDE ENVOYÉE :", data);
+    alert("✅ Commande envoyée");
 
-    alert("✅ Commande envoyée avec succès !");
-    window.location.href = "dashboard.html";
+    // 🔄 RESET
+    document.querySelectorAll("input, textarea").forEach(el=>el.value="");
 
-}catch(e){
-    console.error(e);
-    alert("❌ Erreur réseau");
-}
+    selectedType = "";
+    price = 45000;
+    document.getElementById("price").innerText = "45000 FC";
 
-loading = false;
+    document.querySelectorAll(".type-item").forEach(el=>{
+      el.classList.remove("active");
+    });
+
+  }catch(err){
+
+    console.error(err);
+    alert("❌ Erreur");
+
+  }finally{
+
+    btn.disabled = false;
+    btn.innerText = "🚀 Commander";
+  }
+
 };
