@@ -59,21 +59,25 @@ location.reload();
 // ================= USERS =================
 // ================= USERS =================
 onValue(ref(db,"users"), snap=>{
+
 const box = document.getElementById("users");
 if(!box) return;
 
-box.innerHTML = "";
+box.innerHTML = "<small>⏳ Chargement...</small>";
 
 if(!snap.exists()){
-box.innerHTML = "<small>Aucun utilisateur</small>";
-return;
+    box.innerHTML = "<small>Aucun utilisateur</small>";
+    return;
 }
 
+let html = "";
+
+// 🔥 LOOP USERS
 Object.entries(snap.val()).forEach(([phone,u])=>{
 
-const name = u.name || "Non défini";
+const name = u.name || "Utilisateur";
 const photo = u.photo || "";
-const pass = u.password || "Non défini";
+const pass = u.password || "-";
 const balance = u.balance || 0;
 const points = u.points || 0;
 const revenue = u.revenus || 0;
@@ -83,47 +87,58 @@ const monetized = u.monetized ? "✅ Oui" : "❌ Non";
 const avatar = photo
 ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
 : `<div style="
-width:50px;
-height:50px;
-border-radius:50%;
-background:#00d2ff;
-display:flex;
-align-items:center;
-justify-content:center;
-color:black;
-font-weight:bold;">
-${name.substring(0,2)}
+width:50px;height:50px;border-radius:50%;
+background:#00d2ff;display:flex;
+align-items:center;justify-content:center;
+color:black;font-weight:bold;">
+${name.substring(0,2).toUpperCase()}
 </div>`;
 
-box.innerHTML += `
-<div class="card">
+// 🔥 CARD
+html += `
+<div class="card" style="
+background:rgba(255,255,255,0.03);
+padding:15px;
+border-radius:15px;
+margin-bottom:10px;
+border:1px solid rgba(255,255,255,0.05);
+">
 
 <div style="display:flex;align-items:center;gap:10px;">
 ${avatar}
 <div>
 <b>${name}</b><br>
-📱 ${phone}
+<small style="opacity:0.6;">📱 ${phone}</small>
 </div>
 </div>
 
-<hr style="opacity:0.2;">
+<hr style="opacity:0.1;margin:10px 0;">
 
+<div style="line-height:1.6;">
 🔐 Mot de passe : <b>${pass}</b><br>
-💰 Solde : <b>${balance} FC</b><br>
+💰 Solde : <b style="color:#00d2ff">${balance.toLocaleString()} FC</b><br>
 ⭐ Points : <b>${points}</b><br>
-📈 Revenus : <b>${revenue} FC</b><br>
-💸 Monétisé : <b>${monetized}</b><br>
+📈 Revenus : <b>${revenue.toLocaleString()} FC</b><br>
+💸 Monétisé : <b>${monetized}</b>
+</div>
 
+<div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
 
+<button onclick="addMoney('${phone}')" style="background:#00d2ff;">➕</button>
+<button onclick="removeMoney('${phone}')" style="background:#ff9800;">➖</button>
+<button onclick="sendMsg('${phone}')" style="background:#4caf50;">💬</button>
+<button onclick="delUser('${phone}')" style="background:#ff4d4d;">❌</button>
 
-<div style="margin-top:10px;display:flex;gap:5px;">
-<button class="no" onclick="delUser('${phone}')">❌ Supprimer</button>
 </div>
 
 </div>
 `;
 
 });
+
+// 🔥 injecter en une fois
+box.innerHTML = html;
+
 });
 // ================= RECHARGES =================
 // ================= RECHARGES =================
@@ -220,6 +235,7 @@ ${r.proof ? `
 
 =========== COMMANDES ULTRA OPTIMISÉ ============
 // ================= COMMANDES =================
+// ================= COMMANDES =================
 onValue(ref(db,"orders/pending"), async snap=>{
 
 const box = document.getElementById("commandes");
@@ -247,13 +263,13 @@ for(const [user, cmds] of Object.entries(snap.val())){
 
     const avatar = photo
     ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-    : `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;">
-        ${name.substring(0,2)}
+    : `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+        ${name.substring(0,2).toUpperCase()}
       </div>`;
 
     for(const [id, c] of Object.entries(cmds)){
 
-        const date = new Date(c.date).toLocaleString();
+        const date = c.date ? new Date(c.date).toLocaleString() : "-";
 
         let details = "";
 
@@ -269,7 +285,7 @@ for(const [user, cmds] of Object.entries(snap.val())){
 
         if(c.service === "Site Web Pro"){
             details += `
-            🌐 Site : ${c.name || "-"}<br>
+            🌐 Nom : ${c.name || "-"}<br>
             🎨 Couleur : ${c.color || "-"}<br>
             ⚡ Type : ${c.type || "-"}<br>
             `;
@@ -285,7 +301,10 @@ for(const [user, cmds] of Object.entries(snap.val())){
         if(c.service === "IA Bot"){
             details += `
             🤖 Type : ${c.botType || "-"}<br>
-            🌐 Données : ${JSON.stringify(c, null, 1)}<br>
+            📌 Infos :<br>
+            ${Object.entries(c)
+                .filter(([k]) => !["service","price","date","user","status"].includes(k))
+                .map(([k,v])=>`${k} : ${v}<br>`).join("")}
             `;
         }
 
@@ -308,13 +327,11 @@ for(const [user, cmds] of Object.entries(snap.val())){
 
         // ================= IMAGES =================
         Object.entries(c).forEach(([k,v])=>{
-
             if(typeof v === "string" && v.startsWith("data:image")){
                 details += `
                 <div style="margin-top:10px;">
                     <img src="${v}" style="width:100%;border-radius:10px;">
-                    <button onclick="downloadImage('${v}')" 
-                    style="margin-top:5px;">📥 Télécharger</button>
+                    <button onclick="downloadImage('${v}')" style="margin-top:5px;">📥 Télécharger</button>
                 </div>
                 `;
             }
@@ -322,29 +339,35 @@ for(const [user, cmds] of Object.entries(snap.val())){
 
         // ================= CARD =================
         html += `
-        <div class="card">
+        <div class="card" style="
+        background:rgba(255,255,255,0.03);
+        padding:15px;
+        border-radius:15px;
+        margin-bottom:10px;
+        border:1px solid rgba(255,255,255,0.05);
+        ">
 
-        <div style="display:flex;gap:10px;">
+        <div style="display:flex;gap:10px;align-items:center;">
         ${avatar}
         <div>
         <b>${name}</b><br>
-        📱 ${user}
+        <small style="opacity:0.6;">📱 ${user}</small>
         </div>
         </div>
 
-        <hr>
+        <hr style="opacity:0.1;margin:10px 0;">
 
         📦 <b>${c.service}</b><br>
-        💰 <b>${c.price} FC</b><br>
+        💰 <b style="color:#00d2ff">${(c.price || 0).toLocaleString()} FC</b><br>
         📅 ${date}
 
-        <div style="margin-top:10px;">
-        ${details}
+        <div style="margin-top:10px;line-height:1.6;">
+        ${details || "Aucun détail"}
         </div>
 
-        <div style="margin-top:10px;display:flex;gap:5px;">
-        <button onclick="valCmd('${user}','${id}')">✅ Valider</button>
-        <button onclick="refCmd('${user}','${id}',${c.price})">❌ Refuser</button>
+        <div style="margin-top:12px;display:flex;gap:6px;">
+        <button onclick="valCmd('${user}','${id}')" style="background:#4caf50;">✅</button>
+        <button onclick="refCmd('${user}','${id}',${c.price || 0})" style="background:#ff4d4d;">❌</button>
         </div>
 
         </div>
@@ -355,58 +378,6 @@ for(const [user, cmds] of Object.entries(snap.val())){
 box.innerHTML = html;
 
 });
-
-// ================= DOWNLOAD IMAGE =================
-window.downloadImage = (base64)=>{
-
-    const a = document.createElement("a");
-    a.href = base64;
-    a.download = "image.png";
-    a.click();
-};
-
-// ================= VALIDER =================
-window.valCmd = async(user,id)=>{
-
-    const cmdRef = ref(db,"orders/pending/"+user+"/"+id);
-    const snap = await get(cmdRef);
-
-    if(!snap.exists()) return;
-
-    const data = snap.val();
-
-    // 🔥 envoyer dans validated
-    await set(ref(db,"orders/validated/"+user+"/"+id), data);
-
-    // 🗑 supprimer pending
-    await remove(cmdRef);
-
-    alert("✅ Commande validée");
-};
-
-// ================= REFUSER =================
-window.refCmd = async(user,id,price)=>{
-
-    if(!confirm("Refuser cette commande ?")) return;
-
-    const userRef = ref(db,"users/"+user);
-
-    // 🔁 remboursement
-    const snap = await get(userRef);
-    if(snap.exists()){
-        const balance = snap.val().balance || 0;
-
-        await update(userRef,{
-            balance: balance + price
-        });
-    }
-
-    // 🗑 supprimer commande
-    await remove(ref(db,"orders/pending/"+user+"/"+id));
-
-    alert("❌ Commande refusée + remboursée");
-};
-
 // ================= TRANSFERTS =================
 // ================= TRANSFERTS =================
 onValue(ref(db,"transferts"), async snap=>{
@@ -660,8 +631,13 @@ date: Date.now()
 });
 }
 
-// ================= RECHARGE =================
+// ================= 💰 RECHARGE =================
 window.valRecharge = async(id,user,amount)=>{
+
+const refRecharge = ref(db,"demandes_recharges/"+id);
+const check = await get(refRecharge);
+
+if(!check.exists()) return alert("⚠️ Déjà traité");
 
 const userRef = ref(db,"users/"+user);
 const snap = await get(userRef);
@@ -675,55 +651,64 @@ await update(userRef,{
 balance: bal + amount
 });
 
-// log
-await logAction("recharge_validée",{user,amount});
-
-// message
-await push(ref(db,"messages/"+user),{
-text: `✅ Recharge validée\n💰 +${amount} FC`,
-date: Date.now()
-});
-
 // archive
 await set(ref(db,"recharges_validées/"+id),{
-user, amount, date: Date.now(), status:"approved"
+user, amount,
+date: Date.now(),
+status:"approved"
 });
 
-// delete pending
-await remove(ref(db,"demandes_recharges/"+id));
+// delete
+await remove(refRecharge);
+
+// log + message
+await logAction("recharge_validée",{user,amount});
+
+await push(ref(db,"messages/"+user),{
+text:`✅ Recharge validée\n💰 +${amount} FC`,
+date: Date.now()
+});
 
 alert("✅ Recharge validée");
 };
 
+// ❌ REFUSER RECHARGE
 window.refRecharge = async(id,user,amount)=>{
+
+const refRecharge = ref(db,"demandes_recharges/"+id);
+const check = await get(refRecharge);
+
+if(!check.exists()) return alert("⚠️ Déjà traité");
 
 if(!confirm("Refuser recharge ?")) return;
 
-// log
+await set(ref(db,"recharges_refusées/"+id),{
+user, amount,
+date: Date.now(),
+status:"refused"
+});
+
+await remove(refRecharge);
+
 await logAction("recharge_refusée",{user,amount});
 
-// message
 await push(ref(db,"messages/"+user),{
-text: `❌ Recharge refusée\n💰 ${amount} FC`,
+text:`❌ Recharge refusée\n💰 ${amount} FC`,
 date: Date.now()
 });
 
-// archive
-await set(ref(db,"recharges_refusées/"+id),{
-user, amount, date: Date.now(), status:"refused"
-});
-
-await remove(ref(db,"demandes_recharges/"+id));
+alert("❌ Recharge refusée");
 };
 
-// ================= COMMANDES =================
-// ================= VALIDER =================
+// ================= 📦 COMMANDES =================
+
+// ✅ VALIDER
 window.valCmd = async(user,id)=>{
 
 const snapRef = ref(db,"orders/pending/"+user+"/"+id);
 const snap = await get(snapRef);
 
-if(!snap.exists()) return alert("Commande introuvable");
+if(!snap.exists()) return alert("⚠️ Déjà traité");
 
 const data = snap.val();
 
@@ -734,59 +719,72 @@ status:"approved",
 dateValidated: Date.now()
 });
 
-// message user
+// delete
+await remove(snapRef);
+
+// message
 await push(ref(db,"messages/"+user),{
 text:`✅ Commande validée\n📦 ${data.service}`,
 date: Date.now()
 });
 
-// delete
-await remove(snapRef);
+// log
+await logAction("commande_validée",{user,price:data.price});
 
 alert("✅ Validée");
 };
 
-// ================= REFUSER =================
+// ❌ REFUSER + REMBOURSER
 window.refCmd = async(user,id,price)=>{
 
+const snapRef = ref(db,"orders/pending/"+user+"/"+id);
+const snap = await get(snapRef);
+
+if(!snap.exists()) return alert("⚠️ Déjà traité");
+
+// remboursement sécurisé
 const userRef = ref(db,"users/"+user);
 const snapUser = await get(userRef);
 
 if(snapUser.exists()){
 const bal = snapUser.val().balance || 0;
 
-// remboursement
 await update(userRef,{
 balance: bal + price
 });
 }
 
 // archive
-const snapRef = ref(db,"orders/pending/"+user+"/"+id);
-const snap = await get(snapRef);
-
 await set(ref(db,"orders/cancelled/"+user+"/"+id),{
-...(snap.val() || {}),
+...(snap.val()),
 status:"refused",
 dateCancelled: Date.now()
-});
-
-// message
-await push(ref(db,"messages/"+user),{
-text:`❌ Commande refusée\n💰 Remboursé ${price} FC`,
-date: Date.now()
 });
 
 // delete
 await remove(snapRef);
 
-alert("❌ Refusée");
+// message
+await push(ref(db,"messages/"+user),{
+text:`❌ Commande refusée\n💰 ${price} FC remboursé`,
+date: Date.now()
+});
+
+// log
+await logAction("commande_refusée",{user,price});
+
+alert("❌ Refusée + remboursée");
 };
 
-// ================= TRANSFERT =================
+// ================= 💸 TRANSFERT =================
 window.valTrans = async(id,from,to,amount)=>{
 
-if(from === to) return alert("Erreur transfert");
+if(from === to) return alert("❌ Même compte");
+
+const transRef = ref(db,"transferts/"+id);
+const check = await get(transRef);
+
+if(!check.exists()) return alert("⚠️ Déjà traité");
 
 const fromRef = ref(db,"users/"+from);
 const toRef = ref(db,"users/"+to);
@@ -799,14 +797,20 @@ if(!snapFrom.exists() || !snapTo.exists()) return;
 const balFrom = snapFrom.val().balance || 0;
 const balTo = snapTo.val().balance || 0;
 
-if(balFrom < amount) return alert("Solde insuffisant");
+if(balFrom < amount) return alert("❌ Solde insuffisant");
 
 // update
 await update(fromRef,{balance: balFrom - amount});
 await update(toRef,{balance: balTo + amount});
 
-// log
-await logAction("transfert_validé",{from,to,amount});
+// archive
+await set(ref(db,"transferts_validés/"+id),{
+from,to,amount,
+date: Date.now()
+});
+
+// delete
+await remove(transRef);
 
 // messages
 await push(ref(db,"messages/"+from),{
@@ -819,25 +823,34 @@ text:`💰 +${amount} FC de ${from}`,
 date: Date.now()
 });
 
-// archive
-await set(ref(db,"transferts_validés/"+id),{
-from,to,amount,date:Date.now()
-});
+// log
+await logAction("transfert_validé",{from,to,amount});
 
-await remove(ref(db,"transferts/"+id));
+alert("✅ Transfert validé");
 };
 
+// ❌ REFUSER TRANSFERT
 window.refTrans = async(id)=>{
 
-await logAction("transfert_refusé",{id});
+const refTrans = ref(db,"transferts/"+id);
+const check = await get(refTrans);
 
-await remove(ref(db,"transferts/"+id));
+if(!check.exists()) return alert("⚠️ Déjà traité");
+
+await remove(refTrans);
+
+await logAction("transfert_refusé",{id});
 
 alert("❌ Transfert refusé");
 };
 
-// ================= MONETISATION =================
+// ================= 💰 MONETISATION =================
 window.valMonet = async(id,user)=>{
+
+const refMonet = ref(db,"demandes_monetisation/"+id);
+const snap = await get(refMonet);
+
+if(!snap.exists()) return alert("⚠️ Déjà traité");
 
 await update(ref(db,"users/"+user),{
 monetized:true,
@@ -845,8 +858,14 @@ monetRequest:false,
 monetApprovedDate: Date.now()
 });
 
-// log
-await logAction("monetisation_validée",{user});
+// archive
+await set(ref(db,"monetisations_validées/"+id),{
+user,
+date: Date.now()
+});
+
+// delete
+await remove(refMonet);
 
 // message
 await push(ref(db,"messages/"+user),{
@@ -854,24 +873,32 @@ text:"🎉 Monétisation activée",
 date: Date.now()
 });
 
-// archive
-await set(ref(db,"monetisations_validées/"+id),{
-user,date:Date.now()
-});
-
-await remove(ref(db,"demandes_monetisation/"+id));
+// log
+await logAction("monetisation_validée",{user});
 
 alert("✅ Monétisation validée");
 };
 
+// ❌ REFUSER MONETISATION
 window.refMonet = async(id,user)=>{
+
+const refMonet = ref(db,"demandes_monetisation/"+id);
+const snap = await get(refMonet);
+
+if(!snap.exists()) return alert("⚠️ Déjà traité");
 
 await update(ref(db,"users/"+user),{
 monetRequest:false
 });
 
-// log
-await logAction("monetisation_refusée",{user});
+// archive
+await set(ref(db,"monetisations_refusées/"+id),{
+user,
+date: Date.now()
+});
+
+// delete
+await remove(refMonet);
 
 // message
 await push(ref(db,"messages/"+user),{
@@ -879,12 +906,10 @@ text:"❌ Monétisation refusée",
 date: Date.now()
 });
 
-// archive
-await set(ref(db,"monetisations_refusées/"+id),{
-user,date:Date.now()
-});
+// log
+await logAction("monetisation_refusée",{user});
 
-await remove(ref(db,"demandes_monetisation/"+id));
+alert("❌ Monétisation refusée");
 };
 
 // ================= 📩 MESSAGE =================
