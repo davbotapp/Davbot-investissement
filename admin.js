@@ -620,12 +620,13 @@ ${details || "Aucun détail"}
 });
 // ================= ACTIONS =================
 // =====================================================
-// 🔥🔥🔥        ACTIONS ADMIN (VERSION PRO)        🔥🔥🔥
+// 🔥🔥🔥        ACTIONS ADMIN (VERSION PRO MAX)      🔥🔥🔥
 // =====================================================
 
 
+
 // =====================================================
-// 📊 LOGGER GLOBAL (historique admin)
+// 📊 LOGGER GLOBAL (Historique Admin)
 // =====================================================
 async function logAction(type, data){
     await push(ref(db,"admin_logs"),{
@@ -641,7 +642,7 @@ async function logAction(type, data){
 // 💰 RECHARGES UTILISATEURS
 // =====================================================
 
-// ✅ VALIDER RECHARGE
+// ================= ✅ VALIDER =================
 window.valRecharge = async(id,user,amount)=>{
 
     const refRecharge = ref(db,"demandes_recharges/"+id);
@@ -656,19 +657,20 @@ window.valRecharge = async(id,user,amount)=>{
 
     const bal = snap.val().balance || 0;
 
-    // ➕ Ajouter argent
+    // ➕ Crédit utilisateur
     await update(userRef,{
         balance: bal + amount
     });
 
     // 📦 Archive
     await set(ref(db,"recharges_validées/"+id),{
-        user, amount,
-        date: Date.now(),
-        status:"approved"
+        user,
+        amount,
+        status:"approved",
+        date: Date.now()
     });
 
-    // 🗑️ Supprimer demande
+    // 🗑️ Suppression
     await remove(refRecharge);
 
     // 🧠 Log + message
@@ -683,7 +685,8 @@ window.valRecharge = async(id,user,amount)=>{
 };
 
 
-// ❌ REFUSER RECHARGE
+
+// ================= ❌ REFUSER =================
 window.refRecharge = async(id,user,amount)=>{
 
     const refRecharge = ref(db,"demandes_recharges/"+id);
@@ -694,9 +697,10 @@ window.refRecharge = async(id,user,amount)=>{
     if(!confirm("Refuser cette recharge ?")) return;
 
     await set(ref(db,"recharges_refusées/"+id),{
-        user, amount,
-        date: Date.now(),
-        status:"refused"
+        user,
+        amount,
+        status:"refused",
+        date: Date.now()
     });
 
     await remove(refRecharge);
@@ -717,7 +721,7 @@ window.refRecharge = async(id,user,amount)=>{
 // 📦 COMMANDES UTILISATEURS
 // =====================================================
 
-// ✅ VALIDER COMMANDE
+// ================= ✅ VALIDER =================
 window.valCmd = async(user,id)=>{
 
     const snapRef = ref(db,"orders/pending/"+user+"/"+id);
@@ -734,7 +738,7 @@ window.valCmd = async(user,id)=>{
         dateValidated: Date.now()
     });
 
-    // 🗑️ Supprimer
+    // 🗑️ Suppression
     await remove(snapRef);
 
     // 📩 Message
@@ -749,7 +753,8 @@ window.valCmd = async(user,id)=>{
 };
 
 
-// ❌ REFUSER + REMBOURSER
+
+// ================= ❌ REFUSER + 💸 REMBOURSER =================
 window.refCmd = async(user,id,price)=>{
 
     const snapRef = ref(db,"orders/pending/"+user+"/"+id);
@@ -757,7 +762,6 @@ window.refCmd = async(user,id,price)=>{
 
     if(!snap.exists()) return alert("⚠️ Déjà traité");
 
-    // 💸 Remboursement
     const userRef = ref(db,"users/"+user);
     const snapUser = await get(userRef);
 
@@ -769,7 +773,6 @@ window.refCmd = async(user,id,price)=>{
         });
     }
 
-    // 📦 Archive
     await set(ref(db,"orders/cancelled/"+user+"/"+id),{
         ...(snap.val()),
         status:"refused",
@@ -785,16 +788,16 @@ window.refCmd = async(user,id,price)=>{
 
     await logAction("commande_refusée",{user,price});
 
-    alert("❌ Commande refusée + remboursée");
+    alert("❌ Refusée + remboursée");
 };
 
 
 
 // =====================================================
-// 💸 TRANSFERTS ENTRE UTILISATEURS
+// 💸 TRANSFERTS UTILISATEURS
 // =====================================================
 
-// ✅ VALIDER TRANSFERT
+// ================= ✅ VALIDER =================
 window.valTrans = async(id,from,to,amount)=>{
 
     if(from === to) return alert("❌ Même compte");
@@ -817,13 +820,15 @@ window.valTrans = async(id,from,to,amount)=>{
 
     if(balFrom < amount) return alert("❌ Solde insuffisant");
 
-    // 💰 Update soldes
+    // 💰 Update
     await update(fromRef,{balance: balFrom - amount});
     await update(toRef,{balance: balTo + amount});
 
     // 📦 Archive
     await set(ref(db,"transferts_validés/"+id),{
-        from,to,amount,
+        from,
+        to,
+        amount,
         date: Date.now()
     });
 
@@ -846,7 +851,8 @@ window.valTrans = async(id,from,to,amount)=>{
 };
 
 
-// ❌ REFUSER TRANSFERT
+
+// ================= ❌ REFUSER =================
 window.refTrans = async(id)=>{
 
     const refTrans = ref(db,"transferts/"+id);
@@ -867,7 +873,7 @@ window.refTrans = async(id)=>{
 // 💰 MONÉTISATION UTILISATEUR
 // =====================================================
 
-// ✅ ACTIVER MONÉTISATION
+// ================= ✅ ACTIVER =================
 window.valMonet = async(id,user)=>{
 
     const refMonet = ref(db,"demandes_monetisation/"+id);
@@ -899,7 +905,8 @@ window.valMonet = async(id,user)=>{
 };
 
 
-// ❌ REFUSER MONÉTISATION
+
+// ================= ❌ REFUSER =================
 window.refMonet = async(id,user)=>{
 
     const refMonet = ref(db,"demandes_monetisation/"+id);
