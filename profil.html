@@ -212,7 +212,33 @@ textarea{
     <a href="dashboard.html"><i class="fa-solid fa-chart-simple"></i> Dashboard</a>
     <a href="equipe.html"><i class="fa-solid fa-users"></i> Équipe</a>
 </div>
+<!-- 🤖 ASSISTANT BOT -->
+<div class="card">
+    <h3><i class="fa-solid fa-robot"></i> Assistant Davbot</h3>
 
+    <div id="chatBox" style="
+        height:220px;
+        overflow-y:auto;
+        background:#0d1625;
+        padding:10px;
+        border-radius:12px;
+        margin-top:10px;
+    "></div>
+
+    <input id="chatInput" placeholder="Écrire au bot..." style="
+        width:100%;
+        padding:12px;
+        margin-top:10px;
+        border:none;
+        border-radius:12px;
+        background:#0d1625;
+        color:white;
+    ">
+
+    <button onclick="sendBot()" class="sendBtn">
+        <i class="fa-solid fa-paper-plane"></i> Envoyer
+    </button>
+</div>
 <!-- MESSAGES -->
 <div class="card">
     <h3>📩 Messages Admin</h3>
