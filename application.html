@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Création Application</title>
+<title>Création Application SaaS</title>
+
+<!-- ICONS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
 :root{
@@ -15,34 +18,64 @@
 body{
     margin:0;
     font-family:'Segoe UI',sans-serif;
-    background: var(--dark);
+    background: radial-gradient(circle at top, #0b1c2c, #050a14);
     color:white;
 }
 
+/* ===== ANIMATION ===== */
+@keyframes fadeUp{
+    from{opacity:0; transform:translateY(30px);}
+    to{opacity:1; transform:translateY(0);}
+}
+
+/* ===== LAYOUT ===== */
 .overlay{
-    background:rgba(5,10,20,0.95);
     min-height:100vh;
     padding:20px;
 }
 
 .header{
     text-align:center;
-    margin-bottom:20px;
+    margin-bottom:30px;
+    animation:fadeUp 0.6s ease;
 }
 
 .header h2{
+    font-size:28px;
     color:var(--blue);
 }
 
+.header p{
+    opacity:0.7;
+}
+
+/* ===== CARD ===== */
 .card{
+    max-width:600px;
+    margin:auto;
     background:var(--glass);
     border-radius:20px;
-    padding:20px;
+    padding:25px;
+    backdrop-filter:blur(15px);
+    border:1px solid rgba(0,210,255,0.2);
+    animation:fadeUp 0.8s ease;
+}
+
+/* ===== INPUT ===== */
+.input-box{
+    position:relative;
+}
+
+.input-box i{
+    position:absolute;
+    left:12px;
+    top:14px;
+    opacity:0.6;
 }
 
 input, textarea{
     width:100%;
-    padding:12px;
+    padding:12px 12px 12px 35px;
     margin:8px 0;
     border-radius:10px;
     border:none;
@@ -50,36 +83,61 @@ input, textarea{
     color:white;
 }
 
+/* ===== TYPES ===== */
 .types{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:10px;
+    margin-top:10px;
 }
 
 .type-item{
-    padding:10px;
+    padding:12px;
     text-align:center;
-    border-radius:10px;
-    background:rgba(255,255,255,0.08);
+    border-radius:12px;
+    background:rgba(255,255,255,0.05);
     cursor:pointer;
+    transition:0.3s;
+}
+
+.type-item i{
+    display:block;
+    margin-bottom:5px;
+}
+
+.type-item:hover{
+    transform:scale(1.05);
 }
 
 .type-item.active{
     background:var(--blue);
     color:black;
+    font-weight:bold;
 }
 
+/* ===== FILE ===== */
+.file{
+    border:1px dashed var(--blue);
+    padding:15px;
+    text-align:center;
+    border-radius:10px;
+    margin-top:10px;
+    cursor:pointer;
+}
+
+/* ===== SPEED ===== */
 .speed{
     display:flex;
     gap:10px;
+    margin-top:10px;
 }
 
 .speed div{
     flex:1;
-    padding:10px;
+    padding:12px;
     text-align:center;
     border-radius:10px;
-    background:rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.05);
     cursor:pointer;
 }
 
@@ -88,20 +146,29 @@ input, textarea{
     color:black;
 }
 
+/* ===== PRICE ===== */
 .price{
     text-align:center;
-    font-size:22px;
+    font-size:24px;
     color:var(--blue);
+    margin-top:15px;
 }
 
+/* ===== BUTTON ===== */
 button{
     width:100%;
     padding:15px;
     border:none;
-    border-radius:10px;
-    background:var(--blue);
+    border-radius:12px;
+    background:linear-gradient(90deg,#00d2ff,#3a7bd5);
     font-weight:bold;
     cursor:pointer;
+    margin-top:15px;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.05);
 }
 </style>
 </head>
@@ -111,32 +178,53 @@ button{
 <div class="overlay">
 
 <div class="header">
-<h2>📱 Création Application</h2>
-<p>Crée ton app comme un pro 🚀</p>
+<h2><i class="fa-solid fa-mobile-screen"></i> Création Application</h2>
+<p>Crée ton app comme une startup 🚀</p>
 </div>
 
 <div class="card">
 
+<div class="input-box">
+<i class="fa-solid fa-rocket"></i>
 <input id="name" placeholder="Nom de l'application">
-
-<div class="types" id="types">
-<div class="type-item">E-commerce</div>
-<div class="type-item">Réseau Social</div>
-<div class="type-item">Jeu</div>
-<div class="type-item">Business</div>
-<div class="type-item">Streaming</div>
-<div class="type-item">Autre</div>
 </div>
 
+<!-- TYPES -->
+<div class="types">
+<div class="type-item"><i class="fa-solid fa-cart-shopping"></i>E-commerce</div>
+<div class="type-item"><i class="fa-solid fa-users"></i>Réseau Social</div>
+<div class="type-item"><i class="fa-solid fa-gamepad"></i>Jeu</div>
+<div class="type-item"><i class="fa-solid fa-briefcase"></i>Business</div>
+<div class="type-item"><i class="fa-solid fa-film"></i>Streaming</div>
+<div class="type-item"><i class="fa-solid fa-layer-group"></i>Autre</div>
+</div>
+
+<div class="input-box">
+<i class="fa-solid fa-palette"></i>
 <input id="theme" placeholder="Thème">
-<input id="color" placeholder="Couleur">
+</div>
 
+<div class="input-box">
+<i class="fa-solid fa-fill-drip"></i>
+<input id="color" placeholder="Couleur principale">
+</div>
+
+<div class="input-box">
+<i class="fa-solid fa-align-left"></i>
 <textarea id="desc" placeholder="Description"></textarea>
+</div>
 
+<div class="file">
+<i class="fa-solid fa-image"></i> Icône App
 <input type="file" id="icon">
-<input type="file" id="pub">
+</div>
 
-<h3>⚡ Traitement</h3>
+<div class="file">
+<i class="fa-solid fa-photo-film"></i> Image Publicitaire
+<input type="file" id="pub">
+</div>
+
+<h3><i class="fa-solid fa-bolt"></i> Traitement</h3>
 
 <div class="speed" id="speed">
 <div data-price="45000" class="active">🐢 Lent</div>
@@ -145,7 +233,9 @@ button{
 
 <div class="price" id="price">45000 FC</div>
 
-<button onclick="valider()">🚀 Commander</button>
+<button onclick="valider()">
+<i class="fa-solid fa-paper-plane"></i> Commander
+</button>
 
 </div>
 
