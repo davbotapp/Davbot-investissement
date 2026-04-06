@@ -298,77 +298,6 @@ document.getElementById("sendBtn").onclick = async ()=>{
 
     alert("✅ Message envoyé à l'admin");
 };
-// ================= 🤖 DAVBOT AI =================
-const API_URL = "https://arychauhann.onrender.com/api/gemini-proxy2";
-
-const botBox = document.getElementById("botBox");
-const botInput = document.getElementById("botInput");
-
-// 📤 envoyer message
-document.getElementById("botSend").onclick = async ()=>{
-
-    const question = botInput.value.trim();
-    if(!question) return;
-
-    addMsg("👤", question);
-    botInput.value = "";
-
-    try{
-
-        const res = await fetch(API_URL,{
-            method:"POST",
-            headers:{ "Content-Type":"application/json" },
-            body: JSON.stringify({
-                message: `
-Tu es Davbot Assistant.
-
-Tu réponds uniquement sur la plateforme Davbot.
-
-Infos importantes:
-- Créé par Ir David Mpongo
-- Recharge: 243982697753
-
-Fonction:
-- Expliquer comment gagner de l'argent
-- Expliquer parrainage
-- Expliquer outils (APK, site, VPN, boost)
-- Expliquer monétisation
-
-Interdit:
-- Ne parle pas d'autres sujets
-- Ne donne pas d'infos hors plateforme
-
-Question:
-${question}
-                `
-            })
-        });
-
-        const data = await res.json();
-
-        const reply = data.reply || "⚠️ Erreur réponse";
-
-        addMsg("🤖", reply);
-
-    }catch(e){
-        addMsg("🤖", "❌ Erreur connexion");
-    }
-};
-
-// 📥 afficher message
-function addMsg(sender, text){
-    botBox.innerHTML += `
-        <div style="
-        background:#111;
-        padding:10px;
-        border-radius:10px;
-        margin-top:8px;">
-        <b>${sender}</b><br>${text}
-        </div>
-    `;
-
-    botBox.scrollTop = botBox.scrollHeight;
-        }
 
 // ================= LOGOUT =================
 
@@ -376,5 +305,107 @@ document.getElementById("logout").onclick = ()=>{
     if(confirm("Se déconnecter ?")){
         localStorage.clear();
         window.location.href = "index.html";
+    }
+};
+
+        // ================= 🤖 BOT DAVBOT =================
+
+const API_URL = "https://arychauhann.onrender.com/api/gemini-proxy2";
+
+const chatBox = document.getElementById("chatBox");
+const chatInput = document.getElementById("chatInput");
+
+// 💬 Ajouter message
+function addMessage(text, sender = "bot"){
+    if(!chatBox) return;
+
+    const div = document.createElement("div");
+
+    div.style.marginBottom = "10px";
+    div.style.padding = "10px";
+    div.style.borderRadius = "10px";
+    div.style.fontSize = "14px";
+
+    if(sender === "user"){
+        div.style.background = "#00d2ff";
+        div.style.color = "black";
+        div.style.textAlign = "right";
+    } else {
+        div.style.background = "#111";
+        div.style.borderLeft = "3px solid #00d2ff";
+    }
+
+    div.innerText = text;
+
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// 👋 Message automatique
+setTimeout(()=>{
+    addMessage("👋 Bonjour ! Je suis Davbot Assistant.\nJe peux vous aider sur le site.\n\n💡 Posez une question !");
+}, 800);
+
+// 🚀 ENVOYER MESSAGE
+window.sendBot = async ()=>{
+
+    const message = chatInput.value.trim();
+    if(!message) return;
+
+    addMessage(message, "user");
+    chatInput.value = "";
+
+    addMessage("⏳ Davbot réfléchit...");
+
+    try{
+
+        const response = await fetch(API_URL,{
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body: JSON.stringify({
+                message: `
+Tu es Davbot Assistant du site Davbot créé par Ir David Mpongo.
+
+Tu aides uniquement sur :
+- Fonctionnement du site
+- Création APK, site, bot
+- Booster réseaux sociaux
+- VPN fichiers
+- Comment gagner de l'argent
+- Parrainage
+- Monétisation (30 jours + 2500 FC)
+- Recharge compte : 243 982697753
+
+Tu réponds :
+- Simple
+- Court
+- Professionnel
+- Clair
+
+Question utilisateur : ${message}
+                `
+            })
+        });
+
+        const data = await response.json();
+
+        // ❌ supprimer message attente
+        if(chatBox.lastChild){
+            chatBox.removeChild(chatBox.lastChild);
+        }
+
+        const reply = data.reply || "❌ Réponse indisponible";
+
+        addMessage(reply, "bot");
+
+    }catch(e){
+
+        if(chatBox.lastChild){
+            chatBox.removeChild(chatBox.lastChild);
+        }
+
+        addMessage("❌ Erreur connexion au serveur", "bot");
     }
 };
