@@ -6,75 +6,122 @@
 <title>Davbot - Dashboard</title>
 
 <style>
-:root { --blue:#00d2ff; --dark:#050a14; --green:#4caf50; --red:#f44336; }
+:root{
+--blue:#00d2ff;
+--dark:#050a14;
+--green:#4caf50;
+--red:#f44336;
+--orange:#ff9800;
+}
 
 body{
-    margin:0;
-    font-family:'Segoe UI', sans-serif;
-    background: var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
-    background-size: cover;
-    color:white;
+margin:0;
+font-family:'Segoe UI', sans-serif;
+background: var(--dark);
+color:white;
 }
 
 .overlay{
-    background: rgba(0,0,0,0.7);
-    min-height:100vh;
-    padding:20px;
+padding:15px;
+padding-bottom:80px;
 }
 
+/* CARD */
 .card{
-    background: rgba(0,0,0,0.85);
-    border:1px solid var(--blue);
-    border-radius:20px;
-    padding:20px;
-    margin-top:15px;
-    backdrop-filter: blur(15px);
+background:rgba(255,255,255,0.03);
+border:1px solid rgba(255,255,255,0.08);
+border-radius:15px;
+padding:15px;
+margin-top:12px;
+backdrop-filter:blur(10px);
 }
 
+/* FLEX */
 .flex{
-    display:flex;
-    justify-content:space-between;
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:10px;
 }
 
+/* BTN */
 .btn{
-    width:100%;
-    padding:14px;
-    background:var(--green);
-    border:none;
-    border-radius:10px;
-    margin-top:10px;
-    font-weight:bold;
-    cursor:pointer;
+width:100%;
+padding:12px;
+border:none;
+border-radius:10px;
+margin-top:10px;
+font-weight:bold;
+cursor:pointer;
+background:var(--green);
+color:white;
 }
 
+/* ORDERS */
 .order{
-    background:rgba(255,255,255,0.05);
-    padding:12px;
-    border-radius:12px;
-    margin-top:10px;
-    font-size:14px;
+background:rgba(255,255,255,0.04);
+padding:10px;
+border-radius:10px;
+margin-top:8px;
+font-size:13px;
 }
 
-.pending{border-left:5px solid orange;}
-.valid{border-left:5px solid var(--green);}
-.cancel{border-left:5px solid var(--red);}
+.pending{border-left:4px solid orange;}
+.valid{border-left:4px solid var(--green);}
+.cancel{border-left:4px solid var(--red);}
 
+/* NAVBAR */
 .navbar{
-    position:fixed;
-    bottom:0;
-    width:100%;
-    background: rgba(0,0,0,0.9);
-    display:flex;
-    justify-content:space-around;
-    padding:12px;
+position:fixed;
+bottom:0;
+width:100%;
+background:rgba(0,0,0,0.95);
+display:flex;
+justify-content:space-around;
+padding:10px;
+border-top:1px solid rgba(255,255,255,0.1);
 }
 
 .navbar a{
-    color:white;
-    text-decoration:none;
-    font-size:12px;
-    text-align:center;
+color:white;
+text-decoration:none;
+font-size:12px;
+text-align:center;
+opacity:0.8;
 }
+
+.navbar a:hover{
+opacity:1;
+}
+
+/* BADGES */
+.badge{
+padding:5px 10px;
+border-radius:8px;
+font-size:12px;
+font-weight:bold;
+}
+
+.badge-cheap{
+background:rgba(255,152,0,0.2);
+color:orange;
+}
+
+.badge-fast{
+background:rgba(76,175,80,0.2);
+color:#4caf50;
+}
+
+/* NOTIF */
+.notice{
+background:rgba(255,152,0,0.1);
+border:1px solid orange;
+padding:12px;
+border-radius:10px;
+font-size:13px;
+margin-top:10px;
+}
+
 </style>
 </head>
 
@@ -82,58 +129,83 @@ body{
 
 <div class="overlay">
 
-<h2>Bienvenue 👋</h2>
+<h2>👋 Bienvenue</h2>
 
-<!-- SOLDE -->
+<!-- 💰 SOLDE -->
 <div class="card flex">
-    <div>
-        💰 Solde FC<br>
-        <b id="balance">0</b>
-    </div>
+<div>
+💰 Solde<br>
+<b id="balance">0</b> FC
+</div>
 </div>
 
-<!-- POINTS -->
+<!-- 🎯 POINTS -->
 <div class="card">
-    🎯 Points : <b id="points">0</b><br>
-    💱 = <b id="pointsFC">0</b> FC
-    <button class="btn" id="convertBtn">Convertir en FC</button>
+🎯 Points : <b id="points">0</b><br>
+💱 Valeur : <b id="pointsFC">0</b> FC
+
+<button class="btn" id="convertBtn">
+💸 Convertir mes points
+</button>
 </div>
-    <!-- 📊 TABLEAU DE BORD -->
+
+<!-- 📊 STATS -->
 <div class="card">
-    <h3>📊 Tableau de bord</h3>
+<h3>📊 Statistiques</h3>
 
-    <div class="flex">
-        <div>
-            📈 Total gagné<br>
-            <b id="totalGain">0</b> FC
-        </div>
-
-        <div>
-            📉 Total dépensé<br>
-            <b id="totalDepense">0</b> FC
-        </div>
-    </div>
-
-    <hr style="opacity:0.2;margin:10px 0;">
-
-    💼 Évolution du solde<br>
-    <b id="evolution">0</b> FC
+<div class="flex">
+<div>
+📈 Gagné<br>
+<b id="totalGain">0</b> FC
 </div>
 
-<!-- MESSAGE -->
-<p style="text-align:center;color:#ff9800;margin-top:10px;">
-⚠️ Si la commande n'est pas effectuée, remboursement automatique de votre argent
-</p>
+<div>
+📉 Dépensé<br>
+<b id="totalDepense">0</b> FC
+</div>
+</div>
 
-<!-- COMMANDES -->
-<h3>📦 Mes commandes</h3>
+<hr style="opacity:0.2;margin:10px 0;">
+
+💼 Évolution<br>
+<b id="evolution">0</b> FC
+</div>
+
+<!-- ⚠️ REMBOURSEMENT -->
+<div class="notice">
+⚠️ <b>Garantie remboursement</b><br>
+Si votre commande n'est pas exécutée, votre argent est automatiquement remboursé.
+</div>
+
+<!-- 🚀 TYPES DE PRIX -->
+<div class="card">
+<h3>🚀 Nos offres</h3>
+
+<div class="flex">
+<div>
+<span class="badge badge-cheap">💸 Moins cher</span><br>
+⏱ 4h → 48h<br>
+💰 Prix réduit
+</div>
+
+<div>
+<span class="badge badge-fast">⚡ Meilleur prix</span><br>
+⏱ 0 → 4h<br>
+🔥 Livraison rapide
+</div>
+</div>
+</div>
+
+<!-- 📦 COMMANDES -->
+<h3 style="margin-top:15px;">📦 Mes commandes</h3>
 <div id="orders"></div>
 
 </div>
-<p>•</p>
+
+<!-- NAVBAR -->
 <nav class="navbar">
 <a href="dashboard.html">📊<br>Dash</a>
-<a href="service.html">📡<br>Shop</a>
+<a href="service.html">🛒<br>Services</a>
 <a href="profil.html">👤<br>Profil</a>
 </nav>
 
