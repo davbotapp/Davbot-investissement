@@ -309,103 +309,116 @@ document.getElementById("logout").onclick = ()=>{
 };
 
         // ================= 🤖 BOT DAVBOT =================
-
+// ================= 🤖 BOT DAVBOT =================
 const API_URL = "https://arychauhann.onrender.com/api/gemini-proxy2";
 
-const chatBox = document.getElementById("chatBox");
-const chatInput = document.getElementById("chatInput");
+window.sendBot = async () => {
 
-// 💬 Ajouter message
-function addMessage(text, sender = "bot"){
-    if(!chatBox) return;
+    const input = document.getElementById("chatInput");
+    const chatBox = document.getElementById("chatBox");
 
-    const div = document.createElement("div");
+    const msg = input.value.trim();
 
-    div.style.marginBottom = "10px";
-    div.style.padding = "10px";
-    div.style.borderRadius = "10px";
-    div.style.fontSize = "14px";
+    if(!msg) return;
 
-    if(sender === "user"){
-        div.style.background = "#00d2ff";
-        div.style.color = "black";
-        div.style.textAlign = "right";
-    } else {
-        div.style.background = "#111";
-        div.style.borderLeft = "3px solid #00d2ff";
-    }
+    // afficher message user
+    chatBox.innerHTML += `
+        <div style="margin-bottom:10px;text-align:right;">
+            <div style="
+                display:inline-block;
+                background:#00d2ff;
+                color:black;
+                padding:10px;
+                border-radius:10px;
+                max-width:80%;
+            ">
+                ${msg}
+            </div>
+        </div>
+    `;
 
-    div.innerText = text;
+    input.value = "";
 
-    chatBox.appendChild(div);
+    // message loading
+    const loadingId = Date.now();
+
+    chatBox.innerHTML += `
+        <div id="load${loadingId}" style="margin-bottom:10px;">
+            <div style="
+                display:inline-block;
+                background:#111;
+                padding:10px;
+                border-radius:10px;
+            ">
+                ⏳ Davbot réfléchit...
+            </div>
+        </div>
+    `;
+
     chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// 👋 Message automatique
-setTimeout(()=>{
-    addMessage("👋 Bonjour ! Je suis Davbot Assistant.\nJe peux vous aider sur le site.\n\n💡 Posez une question !");
-}, 800);
-
-// 🚀 ENVOYER MESSAGE
-window.sendBot = async ()=>{
-
-    const message = chatInput.value.trim();
-    if(!message) return;
-
-    addMessage(message, "user");
-    chatInput.value = "";
-
-    addMessage("⏳ Davbot réfléchit...");
 
     try{
 
-        const response = await fetch(API_URL,{
+        const res = await fetch(API_URL,{
             method:"POST",
             headers:{
                 "Content-Type":"application/json"
             },
             body: JSON.stringify({
                 message: `
-Tu es Davbot Assistant du site Davbot créé par Ir David Mpongo.
+Tu es Davbot Assistant.
 
-Tu aides uniquement sur :
-- Fonctionnement du site
-- Création APK, site, bot
-- Booster réseaux sociaux
-- VPN fichiers
+Tu aides uniquement sur ce site créé par Ir David Mpongo.
+
+Tu expliques :
 - Comment gagner de l'argent
-- Parrainage
-- Monétisation (30 jours + 2500 FC)
-- Recharge compte : 243 982697753
+- Comment parrainer
+- Comment activer la monétisation
+- Comment utiliser les outils (APK, sites, bot, VPN, etc)
+- Le numéro de recharge : 243982697753
 
-Tu réponds :
-- Simple
-- Court
-- Professionnel
-- Clair
+Réponds clairement et simplement.
 
-Question utilisateur : ${message}
+Question: ${msg}
                 `
             })
         });
 
-        const data = await response.json();
+        const data = await res.json();
 
-        // ❌ supprimer message attente
-        if(chatBox.lastChild){
-            chatBox.removeChild(chatBox.lastChild);
-        }
+        // supprimer loading
+        document.getElementById("load"+loadingId).remove();
 
-        const reply = data.reply || "❌ Réponse indisponible";
+        const reply = data.reply || "❌ Erreur de réponse";
 
-        addMessage(reply, "bot");
+        // afficher réponse bot
+        chatBox.innerHTML += `
+            <div style="margin-bottom:10px;">
+                <div style="
+                    display:inline-block;
+                    background:#0d1625;
+                    padding:10px;
+                    border-radius:10px;
+                    border-left:3px solid #00d2ff;
+                    max-width:80%;
+                ">
+                    🤖 ${reply}
+                </div>
+            </div>
+        `;
 
-    }catch(e){
+    }catch(err){
 
-        if(chatBox.lastChild){
-            chatBox.removeChild(chatBox.lastChild);
-        }
+        console.error(err);
 
-        addMessage("❌ Erreur connexion au serveur", "bot");
+        document.getElementById("load"+loadingId).remove();
+
+        chatBox.innerHTML += `
+            <div style="color:red;margin-top:10px;">
+                ❌ Erreur connexion API
+            </div>
+        `;
     }
+
+    chatBox.scrollTop = chatBox.scrollHeight;
 };
