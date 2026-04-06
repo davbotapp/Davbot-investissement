@@ -62,26 +62,45 @@ body{
 }
 
 /* ===== INPUT ===== */
+/* ===== INPUT PRO ===== */
 .input-box{
     position:relative;
+    margin-bottom:10px;
 }
 
 .input-box i{
     position:absolute;
-    left:10px;
-    top:10px;
+    left:12px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:14px;
     opacity:0.6;
 }
 
-input, textarea{
+/* 🔥 INPUT COMPACT */
+input{
     width:100%;
-    padding:12px 12px 12px 35px;
-    margin:8px 0;
-    border-radius:10px;
+    padding:10px 12px 10px 32px;
+    height:40px;
+    border-radius:8px;
     border:none;
-    background:rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.06);
     color:white;
+    font-size:14px;
 }
+
+/* 🔥 TEXTAREA COMPACT */
+textarea{
+    width:100%;
+    padding:10px 12px 10px 32px;
+    height:80px; /* 🔥 réduit */
+    border-radius:8px;
+    border:none;
+    background:rgba(255,255,255,0.06);
+    color:white;
+    font-size:14px;
+    resize:none;
+                         }
 
 /* ===== TYPES ===== */
 .types{
