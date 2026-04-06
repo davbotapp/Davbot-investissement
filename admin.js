@@ -303,7 +303,7 @@ for(const [user, cmds] of Object.entries(snap.val())){
         if(c.service === "IA Bot"){
             details += `
             🤖 Type : ${c.botType || "-"}<br>
-            📌 details : ${c.details || "-"}<br>
+            📌 Infos :<br>
             ${Object.entries(c)
                 .filter(([k]) => !["service","price","date","user","status"].includes(k))
                 .map(([k,v])=>`${k} : ${v}<br>`).join("")}
