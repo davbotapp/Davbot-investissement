@@ -5,8 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profil - Davbot</title>
 
+<!-- 🔥 ICONS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <style>
-:root { --blue:#00d2ff; --dark:#050a14; }
+:root {
+    --blue:#00d2ff;
+    --dark:#050a14;
+    --glass: rgba(255,255,255,0.06);
+}
 
 body{
     margin:0;
@@ -17,32 +24,31 @@ body{
 }
 
 .overlay{
-    background:rgba(5,10,20,0.92);
+    background:linear-gradient(to bottom, rgba(5,10,20,0.95), rgba(5,10,20,0.85));
     min-height:100vh;
+    padding-bottom:80px;
 }
 
 /* HEADER */
 .header{
     text-align:center;
-    padding:25px;
-    border-bottom:1px solid var(--blue);
+    padding:30px 20px;
 }
 
 .avatar{
-    width:90px;
-    height:90px;
+    width:95px;
+    height:95px;
     border-radius:50%;
     object-fit:cover;
     border:2px solid var(--blue);
-    box-shadow:0 0 15px var(--blue);
+    box-shadow:0 0 20px var(--blue);
 }
 
-/* BADGE */
 .badge{
     display:inline-block;
-    margin-top:8px;
-    padding:5px 10px;
-    border-radius:8px;
+    margin-top:10px;
+    padding:6px 12px;
+    border-radius:10px;
     font-size:12px;
     background:#00ff88;
     color:black;
@@ -51,11 +57,18 @@ body{
 
 /* CARD */
 .card{
-    background:rgba(255,255,255,0.05);
+    background:var(--glass);
+    backdrop-filter: blur(12px);
     margin:15px;
-    padding:15px;
-    border-radius:15px;
-    border:1px solid rgba(0,210,255,0.2);
+    padding:18px;
+    border-radius:18px;
+    border:1px solid rgba(0,210,255,0.15);
+}
+
+/* STATS */
+.stat i{
+    color:var(--blue);
+    margin-right:6px;
 }
 
 /* MONET */
@@ -63,7 +76,7 @@ body{
     width:100%;
     padding:14px;
     border:none;
-    border-radius:10px;
+    border-radius:12px;
     font-weight:bold;
     cursor:pointer;
     margin-top:10px;
@@ -75,40 +88,48 @@ body{
 
 /* MENU */
 .menu a{
-    display:block;
+    display:flex;
+    align-items:center;
+    gap:10px;
     padding:14px;
     margin:10px 15px;
-    background:rgba(255,255,255,0.05);
+    background:var(--glass);
     border-radius:12px;
     text-decoration:none;
     color:white;
 }
 
-/* MESSAGES */
-.msg{
-    background:#111;
-    padding:10px;
-    border-radius:10px;
-    margin-top:10px;
+.menu i{
+    color:var(--blue);
 }
 
-/* SEND */
+/* MESSAGE */
+.msg{
+    background:#0d1625;
+    padding:12px;
+    border-radius:12px;
+    margin-top:10px;
+    border-left:3px solid var(--blue);
+}
+
+/* INPUT */
 textarea{
     width:100%;
-    padding:10px;
-    border-radius:10px;
+    padding:12px;
+    border-radius:12px;
     border:none;
-    background:#111;
+    background:#0d1625;
     color:white;
+    margin-top:10px;
 }
 
 .sendBtn{
     margin-top:10px;
     width:100%;
-    padding:12px;
+    padding:13px;
     border:none;
-    border-radius:10px;
-    background:#00d2ff;
+    border-radius:12px;
+    background:var(--blue);
     color:black;
     font-weight:bold;
 }
@@ -117,7 +138,7 @@ textarea{
 .logout-btn{
     display:block;
     padding:14px;
-    margin:10px 15px;
+    margin:15px;
     background:#f44336;
     border-radius:12px;
     text-align:center;
@@ -142,6 +163,12 @@ textarea{
     text-decoration:none;
     font-size:12px;
     opacity:0.6;
+    text-align:center;
+}
+
+.navbar i{
+    display:block;
+    font-size:18px;
 }
 
 .navbar a.active{
@@ -158,62 +185,64 @@ textarea{
 <!-- HEADER -->
 <div class="header">
     <img id="avatar" class="avatar" src="">
-    <h3 id="name">Nom utilisateur</h3>
-    <p id="phone">Numéro</p>
+    <h3 id="name">Utilisateur</h3>
+    <p id="phone">+243...</p>
 
-    <!-- BADGE -->
     <div id="badgeBox"></div>
 </div>
 
 <!-- STATS -->
-<div class="card">
-    💰 Solde : <b id="solde">0</b> FC<br><br>
-    📈 Revenus : <b id="revenus">0</b> FC<br><br>
-    ⭐ Points : <b id="points">0</b>
+<div class="card stat">
+    <p><i class="fa-solid fa-wallet"></i> Solde : <b id="solde">0</b> FC</p>
+    <p><i class="fa-solid fa-chart-line"></i> Revenus : <b id="revenus">0</b> FC</p>
+    <p><i class="fa-solid fa-star"></i> Points : <b id="points">0</b></p>
 </div>
 
-<!-- MONETISATION -->
+<!-- MONET -->
 <div class="card monet">
     <h3>💰 Monétisation</h3>
-
-    <button id="monetBtn" class="locked">
-        🔒 En attente (30 jours)
-    </button>
-
+    <button id="monetBtn" class="locked">🔒 En attente</button>
     <small id="monetInfo"></small>
 </div>
 
 <!-- MENU -->
 <div class="menu">
-    <a href="recharge.html">📥 Recharger</a>
-    <a href="transf.html">🔂 Transfert</a>
-    <a href="dashboard.html">📊 Dashboard</a>
-    <a href="equipe.html">👥 Équipe</a>
+    <a href="recharge.html"><i class="fa-solid fa-arrow-down"></i> Recharger</a>
+    <a href="transf.html"><i class="fa-solid fa-right-left"></i> Transfert</a>
+    <a href="dashboard.html"><i class="fa-solid fa-chart-simple"></i> Dashboard</a>
+    <a href="equipe.html"><i class="fa-solid fa-users"></i> Équipe</a>
 </div>
 
 <!-- MESSAGES -->
 <div class="card">
     <h3>📩 Messages Admin</h3>
-
     <div id="inbox"></div>
 
-    <!-- SEND -->
-    <textarea id="msgInput" placeholder="📨 Écrire à l'admin..."></textarea>
-    <button id="sendBtn" class="sendBtn">Envoyer 📩</button>
+    <textarea id="msgInput" placeholder="Écrire à l'admin..."></textarea>
+    <button id="sendBtn" class="sendBtn">Envoyer</button>
 </div>
 
 <!-- LOGOUT -->
 <a href="#" id="logout" class="logout-btn">🚪 Déconnexion</a>
 
 </div>
-    <p>•</p>
-    <p>•</p>
 
 <!-- NAVBAR -->
 <div class="navbar">
-    <a href="dashboard.html">📊<br>Dash</a>
-    <a href="service.html">🛒<br>Shop</a>
-    <a href="profil.html" class="active">👤<br>Profil</a>
+    <a href="dashboard.html">
+        <i class="fa-solid fa-chart-pie"></i>
+        Dash
+    </a>
+
+    <a href="service.html">
+        <i class="fa-solid fa-store"></i>
+        Shop
+    </a>
+
+    <a href="profil.html" class="active">
+        <i class="fa-solid fa-user"></i>
+        Profil
+    </a>
 </div>
 
 <script type="module" src="profil.js"></script>
