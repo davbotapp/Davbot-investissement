@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // 🔥 CONFIG
 const firebaseConfig = {
@@ -40,41 +40,41 @@ function initTypes(){
   });
 }
 
-// ================= FORM DYNAMIQUE =================
+// ================= FORM =================
 function loadForm(type){
 
   const box = document.getElementById("formZone");
 
   if(type === "fb_page"){
     box.innerHTML = `
-    <input id="pageName" placeholder="Nom de la page Facebook">
-    <textarea id="scenario" placeholder="Messages automatiques (ex: bienvenue...)"></textarea>
+      <input id="pageName" placeholder="Nom de la page Facebook">
+      <textarea id="scenario" placeholder="Messages automatiques"></textarea>
     `;
   }
 
   else if(type === "fb_auto"){
     box.innerHTML = `
-    <input id="account" placeholder="Nom du compte Facebook">
-    <textarea id="actions" placeholder="Actions (like, commentaire, auto reply...)"></textarea>
+      <input id="account" placeholder="Nom du compte Facebook">
+      <textarea id="actions" placeholder="Actions automatiques"></textarea>
     `;
   }
 
   else if(type === "wa"){
     box.innerHTML = `
-    <input id="number" placeholder="Numéro WhatsApp">
-    <textarea id="messages" placeholder="Messages automatiques"></textarea>
+      <input id="number" placeholder="Numéro WhatsApp">
+      <textarea id="messages" placeholder="Messages automatiques"></textarea>
     `;
   }
 
   else if(type === "web"){
     box.innerHTML = `
-    <input id="site" placeholder="Lien du site">
-    <textarea id="features" placeholder="Fonctionnalités du bot"></textarea>
+      <input id="site" placeholder="Lien du site">
+      <textarea id="features" placeholder="Fonctionnalités"></textarea>
     `;
   }
 }
 
-// ================= RÉCUP DATA =================
+// ================= DATA =================
 function getFormData(type){
 
   let data = {};
@@ -108,10 +108,14 @@ function validate(type){
     alert("❌ Choisis un type de bot");
     return false;
   }
+  if(price <= 0){
+    alert("❌ Prix invalide");
+    return false;
+  }
   return true;
 }
 
-// ================= ENVOI =================
+// ================= 🚀 COMMANDER =================
 window.valider = async ()=>{
 
   const btn = document.querySelector("button");
@@ -128,33 +132,54 @@ window.valider = async ()=>{
   try{
 
     btn.disabled = true;
-    btn.innerText = "⏳ Envoi...";
+    btn.innerText = "⏳ Traitement...";
+
+    // ================= 🔍 CHECK USER =================
+    const userRef = ref(db,"users/"+user);
+    const snap = await get(userRef);
+
+    if(!snap.exists()){
+      alert("❌ Compte introuvable");
+      return;
+    }
+
+    const userData = snap.val();
+    const balance = userData.balance || 0;
+
+    // ❌ PAS D'ARGENT
+    if(balance < price){
+      alert("❌ Solde insuffisant");
+      return;
+    }
+
+    // ================= 💸 DÉBIT =================
+    await update(userRef,{
+      balance: balance - price
+    });
 
     const extraData = getFormData(selectedType);
 
-    // 🔥 DATA ADMIN COMPATIBLE
+    // ================= 📦 COMMANDE =================
     const data = {
       service: "IA Bot",
       botType: selectedType,
       ...extraData,
       price,
-      user,
       status: "pending",
       date: Date.now()
     };
 
-    // 🔥 FIREBASE
-    await push(ref(db, "orders/pending/" + user), data);
+    await push(ref(db,"orders/pending/"+user), data);
 
-    // 🔔 MESSAGE USER
-    await push(ref(db, "messages/" + user), {
-      text: `🤖 Bot commandé (${selectedType})`,
+    // ================= 💬 MESSAGE =================
+    await push(ref(db,"messages/"+user), {
+      text: `🤖 Bot commandé (${selectedType})\n💰 ${price} FC`,
       date: Date.now()
     });
 
     alert("✅ Commande envoyée");
 
-    // RESET
+    // ================= RESET =================
     document.getElementById("formZone").innerHTML = "";
     document.getElementById("price").innerText = "0 FC";
 
@@ -166,10 +191,13 @@ window.valider = async ()=>{
     });
 
   }catch(err){
+
     console.error(err);
-    alert("❌ Erreur");
+    alert("❌ Erreur réseau");
+
   }finally{
+
     btn.disabled = false;
     btn.innerText = "🚀 Commander";
   }
-}
+};
