@@ -114,7 +114,7 @@ ${avatar}
 📈 Revenus : <b>${revenue} FC</b><br>
 💸 Monétisé : <b>${monetized}</b><br>
 
-${photo ? `<br>🖼️ Photo : <br><img src="${photo}" style="width:100%;border-radius:10px;">` : ""}
+
 
 <div style="margin-top:10px;display:flex;gap:5px;">
 <button class="no" onclick="delUser('${phone}')">❌ Supprimer</button>
@@ -218,9 +218,8 @@ ${r.proof ? `
 }
 });
 
+=========== COMMANDES ULTRA OPTIMISÉ ============
 // ================= COMMANDES =================
-// ================= COMMANDES FINAL FIX =================
-// ================= COMMANDES ULTRA OPTIMISÉ =================
 onValue(ref(db,"orders/pending"), async snap=>{
 
 const box = document.getElementById("commandes");
@@ -233,69 +232,95 @@ if(!snap.exists()){
     return;
 }
 
-// 🔥 récupérer TOUS les users en 1 seule fois (⚡ rapide)
+// 🔥 USERS
 const usersSnap = await get(ref(db,"users"));
 const usersData = usersSnap.exists() ? usersSnap.val() : {};
 
 let html = "";
 
-// 🔥 LOOP USERS
+// ================= LOOP =================
 for(const [user, cmds] of Object.entries(snap.val())){
 
     const u = usersData[user] || {};
-    const name = u.name || "⚠️ Inconnu";
+    const name = u.name || "Utilisateur";
     const photo = u.photo || "";
 
     const avatar = photo
     ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-    : `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
-    ${name.substring(0,2)}
-    </div>`;
+    : `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;">
+        ${name.substring(0,2)}
+      </div>`;
 
-    // 🔥 LOOP COMMANDES
     for(const [id, c] of Object.entries(cmds)){
 
-        const date = c.date ? new Date(c.date).toLocaleString() : "Non défini";
+        const date = new Date(c.date).toLocaleString();
 
         let details = "";
 
-        // 📱 APPLICATION
+        // ================= SERVICES =================
+
         if(c.service === "Application"){
             details += `
             📱 Nom : ${c.name || "-"}<br>
             🎨 Couleur : ${c.color || "-"}<br>
-            ⚡ Type : ${c.type || "-"}<br>`;
+            ⚡ Type : ${c.type || "-"}<br>
+            `;
         }
 
-        // 🌐 SITE WEB
         if(c.service === "Site Web Pro"){
             details += `
             🌐 Site : ${c.name || "-"}<br>
             🎨 Couleur : ${c.color || "-"}<br>
-            ⚡ Type : ${c.type || "-"}<br>`;
+            ⚡ Type : ${c.type || "-"}<br>
+            `;
         }
 
-        // 🎮 MINI JEUX
         if(c.service === "Mini Jeux"){
-            details += `🎮 Jeu : ${c.name || "-"}<br>`;
+            details += `
+            🎮 Jeu : ${c.name || "-"}<br>
+            ⚡ Mode : ${c.mode || "-"}<br>
+            `;
         }
 
-        // 📲 RÉSEAUX SOCIAUX
+        if(c.service === "IA Bot"){
+            details += `
+            🤖 Type : ${c.botType || "-"}<br>
+            🌐 Données : ${JSON.stringify(c, null, 1)}<br>
+            `;
+        }
+
         if(c.service === "Réseaux Sociaux"){
             details += `
             📱 Plateforme : ${c.platform || "-"}<br>
-            🔢 Quantité : ${c.quantity || 0}<br>`;
+            📊 Type : ${c.type || "-"}<br>
+            🔢 Quantité : ${c.quantity || 0}<br>
+            🔗 Lien : ${c.link || "-"}<br>
+            `;
         }
 
-        // 🔥 AUTO DETAILS
+        if(c.service === "VPN"){
+            details += `
+            🔐 VPN : ${c.vpnType || "-"}<br>
+            📡 Réseau : ${c.reseau || "-"}<br>
+            📦 Plan : ${c.plan || "-"}<br>
+            `;
+        }
+
+        // ================= IMAGES =================
         Object.entries(c).forEach(([k,v])=>{
-            if(["service","price","date"].includes(k)) return;
 
             if(typeof v === "string" && v.startsWith("data:image")){
-                details += `<img src="${v}" style="width:100%;border-radius:10px;"><br>`;
+                details += `
+                <div style="margin-top:10px;">
+                    <img src="${v}" style="width:100%;border-radius:10px;">
+                    <button onclick="downloadImage('${v}')" 
+                    style="margin-top:5px;">📥 Télécharger</button>
+                </div>
+                `;
             }
         });
 
+        // ================= CARD =================
         html += `
         <div class="card">
 
@@ -309,17 +334,17 @@ for(const [user, cmds] of Object.entries(snap.val())){
 
         <hr>
 
-        📦 <b>${c.service || "Service"}</b><br>
-        💰 <b>${c.price || 0} FC</b><br>
+        📦 <b>${c.service}</b><br>
+        💰 <b>${c.price} FC</b><br>
         📅 ${date}
 
         <div style="margin-top:10px;">
-        ${details || "Aucun détail"}
+        ${details}
         </div>
 
         <div style="margin-top:10px;display:flex;gap:5px;">
-        <button onclick="valCmd('${user}','${id}')">✅</button>
-        <button onclick="refCmd('${user}','${id}',${c.price || 0})">❌</button>
+        <button onclick="valCmd('${user}','${id}')">✅ Valider</button>
+        <button onclick="refCmd('${user}','${id}',${c.price})">❌ Refuser</button>
         </div>
 
         </div>
@@ -327,10 +352,61 @@ for(const [user, cmds] of Object.entries(snap.val())){
     }
 }
 
-// 🔥 injecter en une fois (⚡ ULTRA RAPIDE)
 box.innerHTML = html;
 
 });
+
+// ================= DOWNLOAD IMAGE =================
+window.downloadImage = (base64)=>{
+
+    const a = document.createElement("a");
+    a.href = base64;
+    a.download = "image.png";
+    a.click();
+};
+
+// ================= VALIDER =================
+window.valCmd = async(user,id)=>{
+
+    const cmdRef = ref(db,"orders/pending/"+user+"/"+id);
+    const snap = await get(cmdRef);
+
+    if(!snap.exists()) return;
+
+    const data = snap.val();
+
+    // 🔥 envoyer dans validated
+    await set(ref(db,"orders/validated/"+user+"/"+id), data);
+
+    // 🗑 supprimer pending
+    await remove(cmdRef);
+
+    alert("✅ Commande validée");
+};
+
+// ================= REFUSER =================
+window.refCmd = async(user,id,price)=>{
+
+    if(!confirm("Refuser cette commande ?")) return;
+
+    const userRef = ref(db,"users/"+user);
+
+    // 🔁 remboursement
+    const snap = await get(userRef);
+    if(snap.exists()){
+        const balance = snap.val().balance || 0;
+
+        await update(userRef,{
+            balance: balance + price
+        });
+    }
+
+    // 🗑 supprimer commande
+    await remove(ref(db,"orders/pending/"+user+"/"+id));
+
+    alert("❌ Commande refusée + remboursée");
+};
+
 // ================= TRANSFERTS =================
 // ================= TRANSFERTS =================
 onValue(ref(db,"transferts"), async snap=>{
