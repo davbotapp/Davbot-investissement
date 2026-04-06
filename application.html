@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Création Application - Davbot</title>
+<title>Création Application</title>
 
 <style>
 :root{
@@ -15,19 +15,16 @@
 body{
     margin:0;
     font-family:'Segoe UI',sans-serif;
-    background: var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
-    background-size:cover;
+    background: var(--dark);
     color:white;
 }
 
-/* overlay */
 .overlay{
-    background:rgba(5,10,20,0.9);
+    background:rgba(5,10,20,0.95);
     min-height:100vh;
     padding:20px;
 }
 
-/* header */
 .header{
     text-align:center;
     margin-bottom:20px;
@@ -35,32 +32,15 @@ body{
 
 .header h2{
     color:var(--blue);
-    animation: glow 2s infinite alternate;
 }
 
-@keyframes glow{
-    from{ text-shadow:0 0 5px var(--blue);}
-    to{ text-shadow:0 0 20px var(--blue);}
-}
-
-/* card */
 .card{
     background:var(--glass);
-    border:1px solid rgba(0,210,255,0.2);
     border-radius:20px;
     padding:20px;
-    margin-top:15px;
-    backdrop-filter:blur(10px);
-    animation: fadeUp 0.6s ease;
 }
 
-@keyframes fadeUp{
-    from{opacity:0; transform:translateY(20px);}
-    to{opacity:1; transform:translateY(0);}
-}
-
-/* inputs */
-input, select, textarea{
+input, textarea{
     width:100%;
     padding:12px;
     margin:8px 0;
@@ -70,16 +50,6 @@ input, select, textarea{
     color:white;
 }
 
-/* file */
-.file{
-    border:1px dashed var(--blue);
-    padding:15px;
-    text-align:center;
-    border-radius:10px;
-    cursor:pointer;
-}
-
-/* type grid */
 .types{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -97,10 +67,8 @@ input, select, textarea{
 .type-item.active{
     background:var(--blue);
     color:black;
-    font-weight:bold;
 }
 
-/* traitement */
 .speed{
     display:flex;
     gap:10px;
@@ -108,7 +76,7 @@ input, select, textarea{
 
 .speed div{
     flex:1;
-    padding:12px;
+    padding:10px;
     text-align:center;
     border-radius:10px;
     background:rgba(255,255,255,0.08);
@@ -120,15 +88,12 @@ input, select, textarea{
     color:black;
 }
 
-/* price */
 .price{
     text-align:center;
     font-size:22px;
     color:var(--blue);
-    margin-top:10px;
 }
 
-/* button */
 button{
     width:100%;
     padding:15px;
@@ -137,12 +102,6 @@ button{
     background:var(--blue);
     font-weight:bold;
     cursor:pointer;
-    margin-top:10px;
-    transition:0.3s;
-}
-
-button:hover{
-    transform:scale(1.05);
 }
 </style>
 </head>
@@ -158,9 +117,8 @@ button:hover{
 
 <div class="card">
 
-<input type="text" id="name" placeholder="Nom de l'application">
+<input id="name" placeholder="Nom de l'application">
 
-<!-- TYPES -->
 <div class="types" id="types">
 <div class="type-item">E-commerce</div>
 <div class="type-item">Réseau Social</div>
@@ -170,29 +128,19 @@ button:hover{
 <div class="type-item">Autre</div>
 </div>
 
-<input type="text" id="theme" placeholder="Thème (ex: sombre, clair)">
-<input type="text" id="color" placeholder="Couleur principale">
+<input id="theme" placeholder="Thème">
+<input id="color" placeholder="Couleur">
 
-<textarea id="desc" placeholder="Description complète de l'application"></textarea>
+<textarea id="desc" placeholder="Description"></textarea>
 
-<!-- ICON -->
-<div class="file">
-📸 Icône application
 <input type="file" id="icon">
-</div>
-
-<!-- PUB -->
-<div class="file">
-🖼️ Image publicitaire
 <input type="file" id="pub">
-</div>
 
-<!-- TRAITEMENT -->
 <h3>⚡ Traitement</h3>
 
 <div class="speed" id="speed">
-<div data-price="45000" class="active">🐢 Lent (45000 FC)</div>
-<div data-price="55000">⚡ Rapide (55000 FC)</div>
+<div data-price="45000" class="active">🐢 Lent</div>
+<div data-price="55000">⚡ Rapide</div>
 </div>
 
 <div class="price" id="price">45000 FC</div>
@@ -206,4 +154,4 @@ button:hover{
 <script type="module" src="application.js"></script>
 
 </body>
-    </html>
+</html>
