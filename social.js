@@ -14,6 +14,42 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// ================= SESSION AUTO =================
+let user = JSON.parse(localStorage.getItem("user"));
+
+async function initUser(){
+
+  if(!user){
+
+    const phone = prompt("📱 Entre ton numéro");
+
+    if(!phone){
+      alert("❌ Numéro requis");
+      return;
+    }
+
+    const snap = await get(ref(db,"users/"+phone));
+
+    if(!snap.exists()){
+      alert("❌ Compte introuvable");
+      return;
+    }
+
+    user = {
+      phone: phone,
+      name: snap.val().name || "Utilisateur"
+    };
+
+    localStorage.setItem("user", JSON.stringify(user));
+
+    alert("✅ Bienvenue " + user.name);
+  }
+
+}
+
+// 🔥 lancer au chargement
+initUser();
+
 // ================= VARIABLES =================
 let selectedPlatform = "";
 let selectedType = "Likes";
@@ -22,7 +58,6 @@ let price = 0;
 // ================= INIT =================
 window.addEventListener("DOMContentLoaded", ()=>{
 
-  // sélection plateforme
   document.querySelectorAll("#platforms .card").forEach(card=>{
     card.addEventListener("click", ()=>{
       document.querySelectorAll("#platforms .card")
@@ -35,7 +70,6 @@ window.addEventListener("DOMContentLoaded", ()=>{
     });
   });
 
-  // changement type
   document.getElementById("type").addEventListener("change", e=>{
     selectedType = e.target.value;
     updatePrice();
@@ -73,9 +107,9 @@ function updatePrice(){
       Likes: 4000,
       Vues: 1250,
       Followers: 12000,
-      "Membre Groupe": 4500,
-      "Membre Chaîne": 6500,
-      "Membre Canal": 5500
+      "Membre Groupe": 4000,
+      "Membre Chaîne": 6000,
+      "Membre Canal": 5000
     }
 
   };
@@ -89,8 +123,6 @@ function updatePrice(){
 
 // ================= 🚀 COMMANDER =================
 window.valider = async ()=>{
-
-  const user = JSON.parse(localStorage.getItem("user"));
 
   if(!user || !user.phone){
     alert("❌ Connecte-toi");
@@ -123,7 +155,7 @@ window.valider = async ()=>{
 
   const userRef = ref(db,"users/"+user.phone);
 
-  // 🔥 TRANSACTION SÉCURISÉE (ANTI-PERTE)
+  // 🔥 TRANSACTION SÉCURISÉE
   const result = await runTransaction(userRef, (data)=>{
 
     if(data === null) return;
@@ -131,7 +163,7 @@ window.valider = async ()=>{
     const balance = data.balance || 0;
 
     if(balance < price){
-      return; // stop
+      return;
     }
 
     data.balance = balance - price;
@@ -139,13 +171,12 @@ window.valider = async ()=>{
     return data;
   });
 
-  // ❌ échec
   if(!result.committed){
-    alert("❌ Solde insuffisant ou erreur");
+    alert("❌ Solde insuffisant");
     return;
   }
 
-  // ================= 📦 COMMANDE =================
+  // 📦 COMMANDE
   const order = {
     service: "Réseaux Sociaux",
     platform: selectedPlatform,
@@ -161,7 +192,7 @@ window.valider = async ()=>{
 
   await push(ref(db,"orders/pending/"+user.phone), order);
 
-  // ================= 💬 MESSAGE =================
+  // 💬 MESSAGE
   await push(ref(db,"messages/"+user.phone),{
     text:`🚀 Commande envoyée
 📱 ${selectedPlatform}
@@ -173,7 +204,7 @@ window.valider = async ()=>{
 
   alert("✅ Commande envoyée");
 
-  // ================= RESET =================
+  // 🔄 RESET
   document.getElementById("nombre").value = "";
   document.getElementById("link").value = "";
   document.getElementById("price").innerText = "0 FC";
