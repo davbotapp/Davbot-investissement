@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // 🔥 CONFIG FIREBASE
 const firebaseConfig = {
@@ -50,7 +50,7 @@ function initSpeed(){
   });
 }
 
-// ================= IMAGE BASE64 =================
+// ================= IMAGE =================
 function toBase64(file){
   return new Promise((resolve)=>{
     if(!file) return resolve("");
@@ -76,7 +76,7 @@ function validate(name, type){
   return true;
 }
 
-// ================= ENVOI =================
+// ================= 🚀 COMMANDER =================
 window.valider = async ()=>{
 
   const btn = document.querySelector("button");
@@ -89,10 +89,8 @@ window.valider = async ()=>{
 
   const imageFile = document.getElementById("image").files[0];
 
-  // 🔒 VALIDATION
   if(!validate(name, selectedType)) return;
 
-  // 🔥 USER (IMPORTANT POUR ADMIN)
   const user = localStorage.getItem("userPhone");
 
   if(!user){
@@ -102,14 +100,36 @@ window.valider = async ()=>{
 
   try{
 
-    // UI loading
     btn.disabled = true;
-    btn.innerText = "⏳ Envoi...";
+    btn.innerText = "⏳ Traitement...";
 
-    // 🔥 IMAGE
+    // ================= 🔍 CHECK USER =================
+    const userRef = ref(db,"users/"+user);
+    const snap = await get(userRef);
+
+    if(!snap.exists()){
+      alert("❌ Compte introuvable");
+      return;
+    }
+
+    const dataUser = snap.val();
+    const balance = dataUser.balance || 0;
+
+    // ❌ SOLDE INSUFFISANT
+    if(balance < price){
+      alert("❌ Solde insuffisant");
+      return;
+    }
+
+    // ================= 💸 DÉBIT =================
+    await update(userRef,{
+      balance: balance - price
+    });
+
+    // ================= 📸 IMAGE =================
     const image = await toBase64(imageFile);
 
-    // 🔥 DATA (COMPATIBLE ADMIN)
+    // ================= 📦 COMMANDE =================
     const data = {
       service: "Site Web Pro",
       name,
@@ -120,23 +140,21 @@ window.valider = async ()=>{
       features,
       image,
       price,
-      user,
       status: "pending",
       date: Date.now()
     };
 
-    // 🔥 PUSH FIREBASE
-    await push(ref(db, "orders/pending/" + user), data);
+    await push(ref(db,"orders/pending/"+user), data);
 
-    // 🔔 MESSAGE UTILISATEUR
-    await push(ref(db, "messages/" + user), {
-      text: `🌐 Commande site envoyée\n💻 ${name}`,
+    // ================= 💬 MESSAGE =================
+    await push(ref(db,"messages/"+user), {
+      text: `🌐 Commande site envoyée\n💻 ${name}\n💰 ${price} FC`,
       date: Date.now()
     });
 
     alert("✅ Commande envoyée");
 
-    // 🔄 RESET
+    // ================= RESET =================
     document.querySelectorAll("input, textarea").forEach(el=>el.value="");
 
     selectedType = "";
@@ -150,7 +168,7 @@ window.valider = async ()=>{
   }catch(err){
 
     console.error(err);
-    alert("❌ Erreur lors de l'envoi");
+    alert("❌ Erreur réseau");
 
   }finally{
 
