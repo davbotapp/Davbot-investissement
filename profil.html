@@ -175,6 +175,67 @@ textarea{
     opacity:1;
     color:var(--blue);
 }
+
+/* CHATBOT STYLES */
+#chatBox {
+    height: 250px;
+    overflow-y: auto;
+    background: #0d1625;
+    padding: 12px;
+    border-radius: 12px;
+    margin-top: 15px;
+    color: white;
+    font-size: 14px;
+}
+
+#chatBox div {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+#chatBox div.bot {
+    background: #111;
+    border-left: 3px solid var(--blue);
+}
+
+#chatBox div.user {
+    background: var(--blue);
+    color: black;
+    text-align: right;
+}
+
+#chatInput {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: #0d1625;
+    color: white;
+    margin-top: 10px;
+}
+
+.sendBtn {
+    margin-top: 10px;
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 12px;
+    background: var(--blue);
+    color: black;
+    font-weight: bold;
+}
+
+/* BUTTON STYLES FOR CHAT */
+button {
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+button:hover {
+    background-color: #ff9800;
+    }
 </style>
 </head>
 
