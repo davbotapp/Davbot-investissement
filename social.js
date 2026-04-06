@@ -1,14 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getDatabase, ref, push, get, runTransaction
+  getDatabase, ref, push, get, update
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // 🔥 CONFIG
 const firebaseConfig = {
-  apiKey:"AIza...",
-  authDomain:"starlink-investit.firebaseapp.com",
-  databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
-  projectId:"starlink-investit"
+  apiKey: "AIzaSyA24pBo8mBWiZssPtep--MMBdB7c8_Lu4U",
+  authDomain: "starlink-investit.firebaseapp.com",
+  databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
+  projectId: "starlink-investit"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -18,7 +18,7 @@ const db = getDatabase(app);
 const userPhone = localStorage.getItem("userPhone");
 
 if(!userPhone){
-  alert("❌ Connecte-toi d'abord");
+  alert("❌ Connecte-toi");
   window.location.href = "index.html";
 }
 
@@ -30,6 +30,7 @@ let price = 0;
 // ================= INIT =================
 window.addEventListener("DOMContentLoaded", ()=>{
 
+  // sélection plateforme
   document.querySelectorAll("#platforms .card").forEach(card=>{
     card.addEventListener("click", ()=>{
       document.querySelectorAll("#platforms .card")
@@ -42,6 +43,7 @@ window.addEventListener("DOMContentLoaded", ()=>{
     });
   });
 
+  // type
   document.getElementById("type").addEventListener("change", e=>{
     selectedType = e.target.value;
     updatePrice();
@@ -49,7 +51,6 @@ window.addEventListener("DOMContentLoaded", ()=>{
 
   document.getElementById("plan").addEventListener("change", updatePrice);
   document.getElementById("nombre").addEventListener("input", updatePrice);
-
 });
 
 // ================= 💰 PRIX =================
@@ -83,13 +84,11 @@ function updatePrice(){
       "Membre Chaîne": 6000,
       "Membre Canal": 5000
     }
-
   };
 
   const base = prices[plan]?.[selectedType] || 0;
 
-  // 🔥 prix sécurisé
-  price = parseInt(Math.floor((qty / 1000) * base));
+  price = Math.floor((qty / 1000) * base);
 
   document.getElementById("price").innerText = price + " FC";
 }
@@ -97,96 +96,84 @@ function updatePrice(){
 // ================= 🚀 COMMANDER =================
 window.valider = async ()=>{
 
-  if(!userPhone){
-    alert("❌ Connecte-toi");
-    return;
-  }
-
   const qty = parseInt(document.getElementById("nombre").value);
   const link = document.getElementById("link").value.trim();
   const plan = document.getElementById("plan").value;
 
   if(!selectedPlatform){
-    alert("❌ Choisis une plateforme");
-    return;
+    return alert("❌ Choisis une plateforme");
   }
 
   if(!qty || qty < 100){
-    alert("❌ Minimum 100");
-    return;
+    return alert("❌ Minimum 100");
   }
 
   if(!link){
-    alert("❌ Lien requis");
-    return;
+    return alert("❌ Lien requis");
   }
 
   if(price <= 0){
-    alert("❌ Prix invalide");
-    return;
+    return alert("❌ Prix invalide");
   }
 
-  const userRef = ref(db,"users/"+userPhone);
+  try{
 
-  // ================= 🔥 TRANSACTION =================
-  const result = await runTransaction(userRef, (data)=>{
+    const userRef = ref(db,"users/"+userPhone);
+    const snap = await get(userRef);
 
-    if(data === null) return;
-
-    const balance = parseInt(data.balance) || 0;
-    const prix = parseInt(price) || 0;
-
-    console.log("BALANCE:", balance);
-    console.log("PRIX:", prix);
-
-    if(balance < prix){
-      return; // ❌ stop
+    if(!snap.exists()){
+      return alert("❌ Compte introuvable");
     }
 
-    data.balance = balance - prix;
+    const balance = snap.val().balance || 0;
 
-    return data;
-  });
+    console.log("💰 Solde:", balance, "| Prix:", price);
 
-  if(!result.committed){
-    alert("❌ Solde insuffisant");
-    return;
+    // 🔥 FIX IMPORTANT
+    if(Number(balance) < Number(price)){
+      return alert("❌ Solde insuffisant");
+    }
+
+    // 💸 DEBIT
+    await update(userRef,{
+      balance: balance - price
+    });
+
+    // 📦 COMMANDE
+    const order = {
+      service: "Réseaux Sociaux",
+      platform: selectedPlatform,
+      type: selectedType,
+      quantity: qty,
+      link: link,
+      plan: plan,
+      price: price,
+      status: "pending",
+      date: Date.now()
+    };
+
+    await push(ref(db,"orders/pending/"+userPhone), order);
+
+    // 📩 MESSAGE
+    await push(ref(db,"messages/"+userPhone),{
+      text:`🚀 Commande envoyée\n📱 ${selectedPlatform}\n📊 ${selectedType}\n🔢 ${qty}\n💰 ${price} FC`,
+      date: Date.now(),
+      read:false
+    });
+
+    alert("✅ Commande envoyée");
+
+    // RESET
+    document.getElementById("nombre").value = "";
+    document.getElementById("link").value = "";
+    document.getElementById("price").innerText = "0 FC";
+
+    selectedPlatform = "";
+    document.querySelectorAll("#platforms .card")
+    .forEach(c=>c.classList.remove("active"));
+
+  }catch(e){
+    console.error(e);
+    alert("❌ Erreur réseau");
   }
-
-  // ================= 📦 COMMANDE =================
-  const order = {
-    service: "Réseaux Sociaux",
-    platform: selectedPlatform,
-    type: selectedType,
-    quantity: qty,
-    link: link,
-    plan: plan,
-    price: price,
-    user: userPhone,
-    status: "pending",
-    date: Date.now()
-  };
-
-  await push(ref(db,"orders/pending/"+userPhone), order);
-
-  // ================= 💬 MESSAGE =================
-  await push(ref(db,"messages/"+userPhone),{
-    text:`🚀 Commande envoyée
-📱 ${selectedPlatform}
-📊 ${selectedType}
-🔢 ${qty}
-💰 ${price} FC`,
-    date: Date.now()
-  });
-
-  alert("✅ Commande envoyée");
-
-  // ================= RESET =================
-  document.getElementById("nombre").value = "";
-  document.getElementById("link").value = "";
-  document.getElementById("price").innerText = "0 FC";
-
-  selectedPlatform = "";
-  document.querySelectorAll("#platforms .card")
-  .forEach(c=>c.classList.remove("active"));
 };
