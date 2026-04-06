@@ -5,97 +5,124 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Davbot Social</title>
 
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <style>
 :root{
 --blue:#6c5cff;
+--cyan:#00d2ff;
 --dark:#050a14;
 --glass:rgba(255,255,255,0.05);
 }
 
+/* BODY */
 body{
 margin:0;
 font-family:'Segoe UI',sans-serif;
-background:var(--dark);
+background: radial-gradient(circle at top,#0b1c2c,#050a14);
 color:white;
 }
 
 /* HEADER */
 .header{
 text-align:center;
-padding:20px;
-color:var(--blue);
-font-size:22px;
-font-weight:bold;
+padding:20px 10px;
+}
+
+.header h2{
+margin:0;
+color:var(--cyan);
+}
+
+.header p{
+opacity:0.6;
+font-size:13px;
+margin-top:5px;
 }
 
 /* GRID */
 .grid{
 display:grid;
 grid-template-columns:repeat(3,1fr);
-gap:12px;
-padding:15px;
+gap:10px;
+padding:10px;
 }
 
 /* CARD */
 .card{
 background:var(--glass);
-padding:15px;
-border-radius:15px;
+padding:12px;
+border-radius:12px;
 text-align:center;
 cursor:pointer;
 transition:0.3s;
-border:1px solid rgba(255,255,255,0.1);
+border:1px solid rgba(255,255,255,0.08);
+position:relative;
+overflow:hidden;
 }
 
 .card:hover{
-transform:scale(1.05);
+transform:translateY(-3px);
 }
 
 .card.active{
-box-shadow:0 0 20px var(--blue);
-border:1px solid var(--blue);
+border:1px solid var(--cyan);
+box-shadow:0 0 15px rgba(0,210,255,0.4);
 }
 
+/* ICON */
 .card img{
-width:40px;
-height:40px;
-margin-bottom:8px;
+width:32px;
+height:32px;
+margin-bottom:6px;
 }
 
+/* NAME */
 .name{
-font-size:13px;
+font-size:12px;
 }
 
 /* FORM */
 .form{
-padding:15px;
+padding:12px;
+max-width:500px;
+margin:auto;
 }
 
+/* INPUTS */
 select,input{
 width:100%;
-padding:12px;
-margin-top:10px;
+padding:10px;
+margin-top:8px;
 border:none;
-border-radius:10px;
-background:rgba(255,255,255,0.08);
+border-radius:8px;
+background:rgba(255,255,255,0.06);
 color:white;
+font-size:13px;
+outline:none;
+}
+
+/* INPUT FOCUS */
+select:focus,input:focus{
+box-shadow:0 0 10px var(--cyan);
 }
 
 /* PRICE */
 .price{
 text-align:center;
-font-size:26px;
-color:var(--blue);
-margin-top:15px;
+font-size:22px;
+color:var(--cyan);
+margin-top:12px;
 font-weight:bold;
+animation:fadeIn 0.5s;
 }
 
-/* BUTTON */
+/* BTN */
 button{
 width:100%;
-padding:15px;
-margin-top:15px;
-background:linear-gradient(45deg,#6c5cff,#00d2ff);
+padding:13px;
+margin-top:12px;
+background:linear-gradient(90deg,var(--blue),var(--cyan));
 border:none;
 border-radius:10px;
 font-weight:bold;
@@ -104,14 +131,23 @@ transition:0.3s;
 }
 
 button:hover{
-opacity:0.9;
+transform:scale(1.03);
+}
+
+/* ANIMATION */
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(10px);}
+to{opacity:1;transform:translateY(0);}
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">📲 Commande Réseaux Sociaux</div>
+<div class="header">
+<h2><i class="fa-solid fa-share-nodes"></i> Réseaux Sociaux</h2>
+<p>Boost tes réseaux en quelques secondes 🚀</p>
+</div>
 
 <!-- PLATEFORMES -->
 <div class="grid" id="platforms">
@@ -168,30 +204,29 @@ opacity:0.9;
 
 <select id="plan">
 <option value="cheap">💸 Moins cher</option>
-<option value="premium">🔥 Meilleur prix</option>
+<option value="premium">🔥 Premium rapide</option>
 </select>
 
 <select id="type">
-<option selected>Likes</option>
+<option>Likes</option>
 <option>Vues</option>
 <option>Followers</option>
-<option>Membre Groupe</option>
-<option>Membre Chaîne</option>
-<option>Membre Canal</option>
+<option>Membres Groupe</option>
+<option>Membres Chaîne</option>
+<option>Membres Canal</option>
 </select>
 
 <input type="number" id="nombre" placeholder="Quantité (ex: 1000)">
-
-<input type="text" id="link" placeholder="🔗 Lien">
+<input type="text" id="link" placeholder="🔗 Lien du profil ou post">
 
 <div class="price" id="price">0 FC</div>
 
-<!-- IMPORTANT : onclick -->
-<button onclick="valider()">🚀 Commander</button>
+<button onclick="valider()">
+<i class="fa-solid fa-paper-plane"></i> Commander
+</button>
 
 </div>
 
-<!-- JS -->
 <script type="module" src="social.js"></script>
 
 </body>
