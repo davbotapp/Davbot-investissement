@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-  getDatabase, ref, push, get, update
+  getDatabase, ref, push, get, runTransaction
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // 🔥 CONFIG FIREBASE
@@ -22,7 +22,7 @@ let price = 0;
 // ================= INIT =================
 window.addEventListener("DOMContentLoaded", ()=>{
 
-  // 🔥 sélection plateforme
+  // sélection plateforme
   document.querySelectorAll("#platforms .card").forEach(card=>{
     card.addEventListener("click", ()=>{
       document.querySelectorAll("#platforms .card")
@@ -35,7 +35,7 @@ window.addEventListener("DOMContentLoaded", ()=>{
     });
   });
 
-  // 🔥 changement type
+  // changement type
   document.getElementById("type").addEventListener("change", e=>{
     selectedType = e.target.value;
     updatePrice();
@@ -58,10 +58,8 @@ function updatePrice(){
     return;
   }
 
-  // 🔥 PRIX BUSINESS (par 1000)
   const prices = {
 
-    // 💸 MOINS CHER
     cheap: {
       Likes: 2900,
       Vues: 1000,
@@ -71,14 +69,13 @@ function updatePrice(){
       "Membre Canal": 5000
     },
 
-    // 🔥 PREMIUM
     premium: {
       Likes: 4000,
       Vues: 1250,
       Followers: 12000,
-      "Membre Groupe": 4000,
-      "Membre Chaîne": 6000,
-      "Membre Canal": 5000
+      "Membre Groupe": 4500,
+      "Membre Chaîne": 6500,
+      "Membre Canal": 5500
     }
 
   };
@@ -95,7 +92,7 @@ window.valider = async ()=>{
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  if(!user){
+  if(!user || !user.phone){
     alert("❌ Connecte-toi");
     return;
   }
@@ -124,28 +121,31 @@ window.valider = async ()=>{
     return;
   }
 
-  // 🔍 vérifier user
   const userRef = ref(db,"users/"+user.phone);
-  const snap = await get(userRef);
 
-  if(!snap.exists()){
-    alert("❌ Compte introuvable");
-    return;
-  }
+  // 🔥 TRANSACTION SÉCURISÉE (ANTI-PERTE)
+  const result = await runTransaction(userRef, (data)=>{
 
-  const balance = snap.val().balance || 0;
+    if(data === null) return;
 
-  if(balance < price){
-    alert("❌ Solde insuffisant");
-    return;
-  }
+    const balance = data.balance || 0;
 
-  // 💸 débit
-  await update(userRef,{
-    balance: balance - price
+    if(balance < price){
+      return; // stop
+    }
+
+    data.balance = balance - price;
+
+    return data;
   });
 
-  // 📦 commande
+  // ❌ échec
+  if(!result.committed){
+    alert("❌ Solde insuffisant ou erreur");
+    return;
+  }
+
+  // ================= 📦 COMMANDE =================
   const order = {
     service: "Réseaux Sociaux",
     platform: selectedPlatform,
@@ -161,15 +161,19 @@ window.valider = async ()=>{
 
   await push(ref(db,"orders/pending/"+user.phone), order);
 
-  // 💬 message
+  // ================= 💬 MESSAGE =================
   await push(ref(db,"messages/"+user.phone),{
-    text:`🚀 Commande envoyée\n📱 ${selectedPlatform}\n📊 ${selectedType}\n🔢 ${qty}\n💰 ${price} FC`,
+    text:`🚀 Commande envoyée
+📱 ${selectedPlatform}
+📊 ${selectedType}
+🔢 ${qty}
+💰 ${price} FC`,
     date: Date.now()
   });
 
   alert("✅ Commande envoyée");
 
-  // 🔄 reset
+  // ================= RESET =================
   document.getElementById("nombre").value = "";
   document.getElementById("link").value = "";
   document.getElementById("price").innerText = "0 FC";
