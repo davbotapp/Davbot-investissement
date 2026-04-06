@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mini Jeux - Davbot</title>
 
+<!-- ICONS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <style>
 :root{
     --blue:#00d2ff;
@@ -16,101 +19,133 @@
 body{
     margin:0;
     font-family:'Segoe UI',sans-serif;
-    background:var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
-    background-size:cover;
+    background: radial-gradient(circle at top, #0b1c2c, #050a14);
     color:white;
 }
 
+/* LAYOUT */
 .overlay{
-    background:rgba(5,10,20,0.9);
-    min-height:100vh;
-    padding:20px;
+    padding:15px;
 }
 
 /* HEADER */
-h2{
+.header{
     text-align:center;
-    color:var(--blue);
-    animation: glow 2s infinite alternate;
+    margin-bottom:15px;
 }
 
-@keyframes glow{
-    from{ text-shadow:0 0 5px var(--blue);}
-    to{ text-shadow:0 0 20px var(--blue);}
+.header h2{
+    color:var(--blue);
+}
+
+.header p{
+    opacity:0.6;
+    font-size:13px;
 }
 
 /* CARD */
 .card{
+    max-width:700px;
+    margin:auto;
     background:var(--glass);
-    padding:20px;
-    border-radius:20px;
-    margin-top:20px;
-    backdrop-filter: blur(10px);
+    padding:15px;
+    border-radius:15px;
+    backdrop-filter:blur(10px);
     border:1px solid rgba(0,210,255,0.2);
 }
 
-/* GRID */
-.grid{
+/* GAME GRID */
+.games{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:10px;
 }
 
-/* ITEMS */
-.item{
-    padding:12px;
+/* GAME ITEM */
+.game{
+    border-radius:12px;
+    overflow:hidden;
+    background:#111;
+    cursor:pointer;
+    transition:0.3s;
+    position:relative;
+}
+
+.game img{
+    width:100%;
+    height:90px;
+    object-fit:cover;
+    opacity:0.8;
+}
+
+.game span{
+    position:absolute;
+    bottom:5px;
+    left:8px;
+    font-size:13px;
+    font-weight:bold;
+}
+
+.game:hover{
+    transform:scale(1.05);
+}
+
+.game.active{
+    outline:2px solid var(--blue);
+}
+
+/* MODE */
+.modes{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+}
+
+.mode{
+    flex:1;
+    padding:10px;
     text-align:center;
     border-radius:10px;
     background:rgba(255,255,255,0.08);
     cursor:pointer;
-    transition:0.3s;
 }
 
-.item:hover{
-    transform:scale(1.05);
-}
-
-.item.active{
+.mode.active{
     background:var(--blue);
     color:black;
     font-weight:bold;
 }
 
 /* FORM */
-input, textarea, select{
+input, textarea{
     width:100%;
-    padding:12px;
-    margin:10px 0;
+    margin-top:8px;
+    padding:10px;
+    border-radius:8px;
     border:none;
-    border-radius:10px;
-    background:rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.06);
     color:white;
+    font-size:13px;
 }
 
 /* PRICE */
 .price{
     text-align:center;
-    font-size:22px;
+    margin-top:10px;
+    font-size:18px;
     color:var(--blue);
-    margin-top:15px;
-    animation: fadeIn 1s;
-}
-
-@keyframes fadeIn{
-    from{opacity:0;}
-    to{opacity:1;}
 }
 
 /* BUTTON */
 button{
     width:100%;
-    padding:15px;
-    background:linear-gradient(45deg,#00d2ff,#0077ff);
+    margin-top:10px;
+    padding:12px;
     border:none;
     border-radius:10px;
+    background:linear-gradient(90deg,#00d2ff,#3a7bd5);
     font-weight:bold;
     cursor:pointer;
-    margin-top:10px;
     transition:0.3s;
 }
 
@@ -124,37 +159,74 @@ button:hover{
 
 <div class="overlay">
 
-<h2>🎮 Création Mini Jeux</h2>
+<div class="header">
+<h2><i class="fa-solid fa-gamepad"></i> Mini Jeux</h2>
+<p>Choisis ton jeu et lance ton projet 🎮</p>
+</div>
 
 <div class="card">
 
-<!-- 🎮 TYPES -->
-<h3>🎮 Type de jeu</h3>
-<div class="grid" id="typeSelect">
-<div class="item" data-type="slot">🎰 Slot</div>
-<div class="item" data-type="quiz">🧠 Quiz</div>
-<div class="item" data-type="arcade">🕹️ Arcade</div>
-<div class="item" data-type="memory">🧩 Memory</div>
-<div class="item" data-type="runner">🏃 Runner</div>
-<div class="item" data-type="combat">🥊 Combat</div>
-<div class="item" data-type="puzzle">🧩 Puzzle</div>
-<div class="item" data-type="multiplayer">🌐 Multijoueur</div>
+<!-- 🎮 LISTE JEUX -->
+<div class="games" id="typeSelect">
+
+<div class="game" data-type="slot">
+<img src="https://picsum.photos/300/200?1">
+<span>🎰 Slot</span>
+</div>
+
+<div class="game" data-type="quiz">
+<img src="https://picsum.photos/300/200?2">
+<span>🧠 Quiz</span>
+</div>
+
+<div class="game" data-type="arcade">
+<img src="https://picsum.photos/300/200?3">
+<span>🕹️ Arcade</span>
+</div>
+
+<div class="game" data-type="memory">
+<img src="https://picsum.photos/300/200?4">
+<span>🧩 Memory</span>
+</div>
+
+<div class="game" data-type="runner">
+<img src="https://picsum.photos/300/200?5">
+<span>🏃 Runner</span>
+</div>
+
+<div class="game" data-type="combat">
+<img src="https://picsum.photos/300/200?6">
+<span>🥊 Combat</span>
+</div>
+
+<div class="game" data-type="puzzle">
+<img src="https://picsum.photos/300/200?7">
+<span>🧩 Puzzle</span>
+</div>
+
+<div class="game" data-type="multiplayer">
+<img src="https://picsum.photos/300/200?8">
+<span>🌐 Multi</span>
+</div>
+
 </div>
 
 <!-- ⚡ MODE -->
-<h3>⚡ Mode</h3>
-<div class="grid" id="modeSelect">
-<div class="item" data-mode="lent">🐢 Lent</div>
-<div class="item" data-mode="rapide">⚡ Rapide</div>
+<div class="modes" id="modeSelect">
+<div class="mode" data-mode="lent">🐢 Lent</div>
+<div class="mode" data-mode="rapide">⚡ Rapide</div>
 </div>
 
-<!-- 📋 FORM -->
+<!-- FORM -->
 <div id="formZone"></div>
 
-<!-- 💰 PRICE -->
-<div class="price" id="price">💰 0 FC</div>
+<!-- PRICE -->
+<div class="price" id="price">0 FC</div>
 
-<button onclick="valider()">🚀 Commander</button>
+<!-- BTN -->
+<button onclick="valider()">
+<i class="fa-solid fa-paper-plane"></i> Commander
+</button>
 
 </div>
 
@@ -163,4 +235,4 @@ button:hover{
 <script type="module" src="mini.js"></script>
 
 </body>
-</html>
+</html>m
