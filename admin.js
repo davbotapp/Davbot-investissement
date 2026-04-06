@@ -619,297 +619,313 @@ ${details || "Aucun détail"}
 
 });
 // ================= ACTIONS =================
+// =====================================================
+// 🔥🔥🔥        ACTIONS ADMIN (VERSION PRO)        🔥🔥🔥
+// =====================================================
 
-// ================= ACTIONS =================
 
-// 🔥 LOGGER GLOBAL
+// =====================================================
+// 📊 LOGGER GLOBAL (historique admin)
+// =====================================================
 async function logAction(type, data){
-await push(ref(db,"admin_logs"),{
-type,
-...data,
-date: Date.now()
-});
+    await push(ref(db,"admin_logs"),{
+        type,
+        ...data,
+        date: Date.now()
+    });
 }
 
-// ================= 💰 RECHARGE =================
+
+
+// =====================================================
+// 💰 RECHARGES UTILISATEURS
+// =====================================================
+
+// ✅ VALIDER RECHARGE
 window.valRecharge = async(id,user,amount)=>{
 
-const refRecharge = ref(db,"demandes_recharges/"+id);
-const check = await get(refRecharge);
+    const refRecharge = ref(db,"demandes_recharges/"+id);
+    const check = await get(refRecharge);
 
-if(!check.exists()) return alert("⚠️ Déjà traité");
+    if(!check.exists()) return alert("⚠️ Déjà traité");
 
-const userRef = ref(db,"users/"+user);
-const snap = await get(userRef);
+    const userRef = ref(db,"users/"+user);
+    const snap = await get(userRef);
 
-if(!snap.exists()) return alert("Utilisateur introuvable");
+    if(!snap.exists()) return alert("❌ Utilisateur introuvable");
 
-const bal = snap.val().balance || 0;
+    const bal = snap.val().balance || 0;
 
-// update solde
-await update(userRef,{
-balance: bal + amount
-});
+    // ➕ Ajouter argent
+    await update(userRef,{
+        balance: bal + amount
+    });
 
-// archive
-await set(ref(db,"recharges_validées/"+id),{
-user, amount,
-date: Date.now(),
-status:"approved"
-});
+    // 📦 Archive
+    await set(ref(db,"recharges_validées/"+id),{
+        user, amount,
+        date: Date.now(),
+        status:"approved"
+    });
 
-// delete
-await remove(refRecharge);
+    // 🗑️ Supprimer demande
+    await remove(refRecharge);
 
-// log + message
-await logAction("recharge_validée",{user,amount});
+    // 🧠 Log + message
+    await logAction("recharge_validée",{user,amount});
 
-await push(ref(db,"messages/"+user),{
-text:`✅ Recharge validée\n💰 +${amount} FC`,
-date: Date.now()
-});
+    await push(ref(db,"messages/"+user),{
+        text:`✅ Recharge validée\n💰 +${amount} FC`,
+        date: Date.now()
+    });
 
-alert("✅ Recharge validée");
+    alert("✅ Recharge validée");
 };
+
 
 // ❌ REFUSER RECHARGE
 window.refRecharge = async(id,user,amount)=>{
 
-const refRecharge = ref(db,"demandes_recharges/"+id);
-const check = await get(refRecharge);
+    const refRecharge = ref(db,"demandes_recharges/"+id);
+    const check = await get(refRecharge);
 
-if(!check.exists()) return alert("⚠️ Déjà traité");
+    if(!check.exists()) return alert("⚠️ Déjà traité");
 
-if(!confirm("Refuser recharge ?")) return;
+    if(!confirm("Refuser cette recharge ?")) return;
 
-await set(ref(db,"recharges_refusées/"+id),{
-user, amount,
-date: Date.now(),
-status:"refused"
-});
+    await set(ref(db,"recharges_refusées/"+id),{
+        user, amount,
+        date: Date.now(),
+        status:"refused"
+    });
 
-await remove(refRecharge);
+    await remove(refRecharge);
 
-await logAction("recharge_refusée",{user,amount});
+    await logAction("recharge_refusée",{user,amount});
 
-await push(ref(db,"messages/"+user),{
-text:`❌ Recharge refusée\n💰 ${amount} FC`,
-date: Date.now()
-});
+    await push(ref(db,"messages/"+user),{
+        text:`❌ Recharge refusée\n💰 ${amount} FC`,
+        date: Date.now()
+    });
 
-alert("❌ Recharge refusée");
+    alert("❌ Recharge refusée");
 };
 
-// ================= 📦 COMMANDES =================
 
-// ✅ VALIDER
+
+// =====================================================
+// 📦 COMMANDES UTILISATEURS
+// =====================================================
+
+// ✅ VALIDER COMMANDE
 window.valCmd = async(user,id)=>{
 
-const snapRef = ref(db,"orders/pending/"+user+"/"+id);
-const snap = await get(snapRef);
+    const snapRef = ref(db,"orders/pending/"+user+"/"+id);
+    const snap = await get(snapRef);
 
-if(!snap.exists()) return alert("⚠️ Déjà traité");
+    if(!snap.exists()) return alert("⚠️ Déjà traité");
 
-const data = snap.val();
+    const data = snap.val();
 
-// archive
-await set(ref(db,"orders/validated/"+user+"/"+id),{
-...data,
-status:"approved",
-dateValidated: Date.now()
-});
+    // 📦 Archive
+    await set(ref(db,"orders/validated/"+user+"/"+id),{
+        ...data,
+        status:"approved",
+        dateValidated: Date.now()
+    });
 
-// delete
-await remove(snapRef);
+    // 🗑️ Supprimer
+    await remove(snapRef);
 
-// message
-await push(ref(db,"messages/"+user),{
-text:`✅ Commande validée\n📦 ${data.service}`,
-date: Date.now()
-});
+    // 📩 Message
+    await push(ref(db,"messages/"+user),{
+        text:`✅ Commande validée\n📦 ${data.service}`,
+        date: Date.now()
+    });
 
-// log
-await logAction("commande_validée",{user,price:data.price});
+    await logAction("commande_validée",{user,price:data.price});
 
-alert("✅ Validée");
+    alert("✅ Commande validée");
 };
+
 
 // ❌ REFUSER + REMBOURSER
 window.refCmd = async(user,id,price)=>{
 
-const snapRef = ref(db,"orders/pending/"+user+"/"+id);
-const snap = await get(snapRef);
+    const snapRef = ref(db,"orders/pending/"+user+"/"+id);
+    const snap = await get(snapRef);
 
-if(!snap.exists()) return alert("⚠️ Déjà traité");
+    if(!snap.exists()) return alert("⚠️ Déjà traité");
 
-// remboursement sécurisé
-const userRef = ref(db,"users/"+user);
-const snapUser = await get(userRef);
+    // 💸 Remboursement
+    const userRef = ref(db,"users/"+user);
+    const snapUser = await get(userRef);
 
-if(snapUser.exists()){
-const bal = snapUser.val().balance || 0;
+    if(snapUser.exists()){
+        const bal = snapUser.val().balance || 0;
 
-await update(userRef,{
-balance: bal + price
-});
-}
+        await update(userRef,{
+            balance: bal + price
+        });
+    }
 
-// archive
-await set(ref(db,"orders/cancelled/"+user+"/"+id),{
-...(snap.val()),
-status:"refused",
-dateCancelled: Date.now()
-});
+    // 📦 Archive
+    await set(ref(db,"orders/cancelled/"+user+"/"+id),{
+        ...(snap.val()),
+        status:"refused",
+        dateCancelled: Date.now()
+    });
 
-// delete
-await remove(snapRef);
+    await remove(snapRef);
 
-// message
-await push(ref(db,"messages/"+user),{
-text:`❌ Commande refusée\n💰 ${price} FC remboursé`,
-date: Date.now()
-});
+    await push(ref(db,"messages/"+user),{
+        text:`❌ Commande refusée\n💰 ${price} FC remboursé`,
+        date: Date.now()
+    });
 
-// log
-await logAction("commande_refusée",{user,price});
+    await logAction("commande_refusée",{user,price});
 
-alert("❌ Refusée + remboursée");
+    alert("❌ Commande refusée + remboursée");
 };
 
-// ================= 💸 TRANSFERT =================
+
+
+// =====================================================
+// 💸 TRANSFERTS ENTRE UTILISATEURS
+// =====================================================
+
+// ✅ VALIDER TRANSFERT
 window.valTrans = async(id,from,to,amount)=>{
 
-if(from === to) return alert("❌ Même compte");
+    if(from === to) return alert("❌ Même compte");
 
-const transRef = ref(db,"transferts/"+id);
-const check = await get(transRef);
+    const transRef = ref(db,"transferts/"+id);
+    const check = await get(transRef);
 
-if(!check.exists()) return alert("⚠️ Déjà traité");
+    if(!check.exists()) return alert("⚠️ Déjà traité");
 
-const fromRef = ref(db,"users/"+from);
-const toRef = ref(db,"users/"+to);
+    const fromRef = ref(db,"users/"+from);
+    const toRef = ref(db,"users/"+to);
 
-const snapFrom = await get(fromRef);
-const snapTo = await get(toRef);
+    const snapFrom = await get(fromRef);
+    const snapTo = await get(toRef);
 
-if(!snapFrom.exists() || !snapTo.exists()) return;
+    if(!snapFrom.exists() || !snapTo.exists()) return;
 
-const balFrom = snapFrom.val().balance || 0;
-const balTo = snapTo.val().balance || 0;
+    const balFrom = snapFrom.val().balance || 0;
+    const balTo = snapTo.val().balance || 0;
 
-if(balFrom < amount) return alert("❌ Solde insuffisant");
+    if(balFrom < amount) return alert("❌ Solde insuffisant");
 
-// update
-await update(fromRef,{balance: balFrom - amount});
-await update(toRef,{balance: balTo + amount});
+    // 💰 Update soldes
+    await update(fromRef,{balance: balFrom - amount});
+    await update(toRef,{balance: balTo + amount});
 
-// archive
-await set(ref(db,"transferts_validés/"+id),{
-from,to,amount,
-date: Date.now()
-});
+    // 📦 Archive
+    await set(ref(db,"transferts_validés/"+id),{
+        from,to,amount,
+        date: Date.now()
+    });
 
-// delete
-await remove(transRef);
+    await remove(transRef);
 
-// messages
-await push(ref(db,"messages/"+from),{
-text:`💸 -${amount} FC vers ${to}`,
-date: Date.now()
-});
+    // 📩 Messages
+    await push(ref(db,"messages/"+from),{
+        text:`💸 -${amount} FC vers ${to}`,
+        date: Date.now()
+    });
 
-await push(ref(db,"messages/"+to),{
-text:`💰 +${amount} FC de ${from}`,
-date: Date.now()
-});
+    await push(ref(db,"messages/"+to),{
+        text:`💰 +${amount} FC de ${from}`,
+        date: Date.now()
+    });
 
-// log
-await logAction("transfert_validé",{from,to,amount});
+    await logAction("transfert_validé",{from,to,amount});
 
-alert("✅ Transfert validé");
+    alert("✅ Transfert validé");
 };
+
 
 // ❌ REFUSER TRANSFERT
 window.refTrans = async(id)=>{
 
-const refTrans = ref(db,"transferts/"+id);
-const check = await get(refTrans);
+    const refTrans = ref(db,"transferts/"+id);
+    const check = await get(refTrans);
 
-if(!check.exists()) return alert("⚠️ Déjà traité");
+    if(!check.exists()) return alert("⚠️ Déjà traité");
 
-await remove(refTrans);
+    await remove(refTrans);
 
-await logAction("transfert_refusé",{id});
+    await logAction("transfert_refusé",{id});
 
-alert("❌ Transfert refusé");
+    alert("❌ Transfert refusé");
 };
 
-// ================= 💰 MONETISATION =================
+
+
+// =====================================================
+// 💰 MONÉTISATION UTILISATEUR
+// =====================================================
+
+// ✅ ACTIVER MONÉTISATION
 window.valMonet = async(id,user)=>{
 
-const refMonet = ref(db,"demandes_monetisation/"+id);
-const snap = await get(refMonet);
+    const refMonet = ref(db,"demandes_monetisation/"+id);
+    const snap = await get(refMonet);
 
-if(!snap.exists()) return alert("⚠️ Déjà traité");
+    if(!snap.exists()) return alert("⚠️ Déjà traité");
 
-await update(ref(db,"users/"+user),{
-monetized:true,
-monetRequest:false,
-monetApprovedDate: Date.now()
-});
+    await update(ref(db,"users/"+user),{
+        monetized:true,
+        monetRequest:false,
+        monetApprovedDate: Date.now()
+    });
 
-// archive
-await set(ref(db,"monetisations_validées/"+id),{
-user,
-date: Date.now()
-});
+    await set(ref(db,"monetisations_validées/"+id),{
+        user,
+        date: Date.now()
+    });
 
-// delete
-await remove(refMonet);
+    await remove(refMonet);
 
-// message
-await push(ref(db,"messages/"+user),{
-text:"🎉 Monétisation activée",
-date: Date.now()
-});
+    await push(ref(db,"messages/"+user),{
+        text:"🎉 Monétisation activée",
+        date: Date.now()
+    });
 
-// log
-await logAction("monetisation_validée",{user});
+    await logAction("monetisation_validée",{user});
 
-alert("✅ Monétisation validée");
+    alert("✅ Monétisation activée");
 };
 
-// ❌ REFUSER MONETISATION
+
+// ❌ REFUSER MONÉTISATION
 window.refMonet = async(id,user)=>{
 
-const refMonet = ref(db,"demandes_monetisation/"+id);
-const snap = await get(refMonet);
+    const refMonet = ref(db,"demandes_monetisation/"+id);
+    const snap = await get(refMonet);
 
-if(!snap.exists()) return alert("⚠️ Déjà traité");
+    if(!snap.exists()) return alert("⚠️ Déjà traité");
 
-await update(ref(db,"users/"+user),{
-monetRequest:false
-});
+    await update(ref(db,"users/"+user),{
+        monetRequest:false
+    });
 
-// archive
-await set(ref(db,"monetisations_refusées/"+id),{
-user,
-date: Date.now()
-});
+    await set(ref(db,"monetisations_refusées/"+id),{
+        user,
+        date: Date.now()
+    });
 
-// delete
-await remove(refMonet);
+    await remove(refMonet);
 
-// message
-await push(ref(db,"messages/"+user),{
-text:"❌ Monétisation refusée",
-date: Date.now()
-});
+    await push(ref(db,"messages/"+user),{
+        text:"❌ Monétisation refusée",
+        date: Date.now()
+    });
 
-// log
-await logAction("monetisation_refusée",{user});
+    await logAction("monetisation_refusée",{user});
 
-alert("❌ Monétisation refusée");
+    alert("❌ Monétisation refusée");
 };
 
 // ================= 📩 MESSAGE =================
