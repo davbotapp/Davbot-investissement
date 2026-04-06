@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Création Site Web - Davbot</title>
+<title>Création Site Web Pro</title>
+
+<!-- ICONS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
 :root{
@@ -15,15 +18,14 @@
 body{
     margin:0;
     font-family:'Segoe UI',sans-serif;
-    background: var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
-    background-size:cover;
+    background: radial-gradient(circle at top, #0b1c2c, #050a14);
     color:white;
 }
 
+/* ===== LAYOUT ===== */
 .overlay{
-    background:rgba(5,10,20,0.9);
     min-height:100vh;
-    padding:20px;
+    padding:15px;
 }
 
 .header{
@@ -33,22 +35,24 @@ body{
 
 .header h2{
     color:var(--blue);
-    animation: glow 2s infinite alternate;
+    font-size:22px;
 }
 
-@keyframes glow{
-    from{ text-shadow:0 0 5px var(--blue);}
-    to{ text-shadow:0 0 20px var(--blue);}
+.header p{
+    opacity:0.7;
+    font-size:14px;
 }
 
-/* card */
+/* ===== CARD ===== */
 .card{
+    max-width:600px;
+    margin:auto;
     background:var(--glass);
-    border:1px solid rgba(0,210,255,0.2);
-    border-radius:20px;
-    padding:20px;
+    border-radius:15px;
+    padding:15px;
     backdrop-filter:blur(10px);
-    animation: fadeUp 0.6s ease;
+    border:1px solid rgba(0,210,255,0.2);
+    animation:fadeUp 0.5s ease;
 }
 
 @keyframes fadeUp{
@@ -56,30 +60,64 @@ body{
     to{opacity:1; transform:translateY(0);}
 }
 
-/* inputs */
-input, select, textarea{
-    width:100%;
-    padding:12px;
-    margin:8px 0;
-    border-radius:10px;
-    border:none;
-    background:rgba(255,255,255,0.08);
-    color:white;
+/* ===== INPUT PRO ===== */
+.input-box{
+    position:relative;
+    margin-bottom:8px;
 }
 
-/* types */
+.input-box i{
+    position:absolute;
+    left:10px;
+    top:50%;
+    transform:translateY(-50%);
+    font-size:13px;
+    opacity:0.6;
+}
+
+input{
+    width:100%;
+    height:38px;
+    padding:8px 10px 8px 30px;
+    border-radius:8px;
+    border:none;
+    background:rgba(255,255,255,0.06);
+    color:white;
+    font-size:13px;
+}
+
+textarea{
+    width:100%;
+    height:70px;
+    padding:8px 10px 8px 30px;
+    border-radius:8px;
+    border:none;
+    background:rgba(255,255,255,0.06);
+    color:white;
+    font-size:13px;
+    resize:none;
+}
+
+/* ===== TYPES ===== */
 .types{
     display:grid;
     grid-template-columns:1fr 1fr;
-    gap:10px;
+    gap:8px;
+    margin-top:8px;
 }
 
 .type-item{
     padding:10px;
     text-align:center;
     border-radius:10px;
-    background:rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.05);
     cursor:pointer;
+    transition:0.3s;
+    font-size:13px;
+}
+
+.type-item:hover{
+    transform:scale(1.05);
 }
 
 .type-item.active{
@@ -88,29 +126,31 @@ input, select, textarea{
     font-weight:bold;
 }
 
-/* price */
+/* ===== FILE ===== */
+.file{
+    border:1px dashed var(--blue);
+    padding:10px;
+    text-align:center;
+    border-radius:8px;
+    margin-top:8px;
+    font-size:13px;
+}
+
+/* ===== PRICE ===== */
 .price{
     text-align:center;
-    font-size:22px;
+    font-size:18px;
     color:var(--blue);
     margin-top:10px;
 }
 
-/* file */
-.file{
-    border:1px dashed var(--blue);
-    padding:15px;
-    text-align:center;
-    border-radius:10px;
-}
-
-/* button */
+/* ===== BUTTON ===== */
 button{
     width:100%;
-    padding:15px;
+    padding:12px;
     border:none;
     border-radius:10px;
-    background:var(--blue);
+    background:linear-gradient(90deg,#00d2ff,#3a7bd5);
     font-weight:bold;
     cursor:pointer;
     margin-top:10px;
@@ -128,47 +168,63 @@ button:hover{
 <div class="overlay">
 
 <div class="header">
-<h2>🌐 Création Site Web Pro</h2>
-<p>Crée ton site comme une vraie entreprise 🚀</p>
+<h2><i class="fa-solid fa-globe"></i> Création Site Web</h2>
+<p>Crée ton site comme une startup 🚀</p>
 </div>
 
 <div class="card">
 
-<input type="text" id="name" placeholder="Nom du site">
-
-<!-- TYPE SITE -->
-<div class="types" id="types">
-<div class="type-item">E-commerce</div>
-<div class="type-item">Entreprise</div>
-<div class="type-item">Blog</div>
-<div class="type-item">Portfolio</div>
-<div class="type-item">Landing Page</div>
-<div class="type-item">Autre</div>
+<div class="input-box">
+<i class="fa-solid fa-rocket"></i>
+<input id="name" placeholder="Nom du site">
 </div>
 
-<input type="text" id="color" placeholder="🎨 Couleur principale">
-<input type="text" id="importance" placeholder="⭐ Importance (Business, Startup...)">
+<!-- TYPE -->
+<div class="types" id="types">
+<div class="type-item"><i class="fa-solid fa-cart-shopping"></i> E-commerce</div>
+<div class="type-item"><i class="fa-solid fa-building"></i> Entreprise</div>
+<div class="type-item"><i class="fa-solid fa-blog"></i> Blog</div>
+<div class="type-item"><i class="fa-solid fa-user"></i> Portfolio</div>
+<div class="type-item"><i class="fa-solid fa-bolt"></i> Landing</div>
+<div class="type-item"><i class="fa-solid fa-layer-group"></i> Autre</div>
+</div>
 
-<textarea id="desc" placeholder="📝 Description du site"></textarea>
+<div class="input-box">
+<i class="fa-solid fa-palette"></i>
+<input id="color" placeholder="Couleur principale">
+</div>
 
-<!-- fonctionnalités -->
-<textarea id="features" placeholder="⚙️ Fonctionnalités (ex: paiement, login, admin...)"></textarea>
+<div class="input-box">
+<i class="fa-solid fa-star"></i>
+<input id="importance" placeholder="Importance (Business...)">
+</div>
 
-<!-- image -->
+<div class="input-box">
+<i class="fa-solid fa-align-left"></i>
+<textarea id="desc" placeholder="Description"></textarea>
+</div>
+
+<div class="input-box">
+<i class="fa-solid fa-gears"></i>
+<textarea id="features" placeholder="Fonctionnalités"></textarea>
+</div>
+
 <div class="file">
-🖼️ Image du projet
+<i class="fa-solid fa-image"></i> Image du projet
 <input type="file" id="image">
 </div>
 
-<!-- VITESSE -->
+<!-- SPEED -->
 <div class="types" id="speed">
-    <div class="type-item active" data-price="35000">🐢 Lent (35000 FC)</div>
-    <div class="type-item" data-price="40000">⚡ Rapide (40000 FC)</div>
+<div class="type-item active" data-price="35000">🐢 Lent</div>
+<div class="type-item" data-price="40000">⚡ Rapide</div>
 </div>
 
-<div class="price" id="price">💰 35000 FC</div>
+<div class="price" id="price">35000 FC</div>
 
-<button onclick="valider()">🚀 Commander</button>
+<button onclick="valider()">
+<i class="fa-solid fa-paper-plane"></i> Commander
+</button>
 
 </div>
 
