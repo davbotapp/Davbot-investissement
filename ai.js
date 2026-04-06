@@ -40,7 +40,7 @@ function initTypes(){
   });
 }
 
-// ================= FORM =================
+// ================= FORM DYNAMIQUE =================
 function loadForm(type){
 
   const box = document.getElementById("formZone");
@@ -48,14 +48,14 @@ function loadForm(type){
   if(type === "fb_page"){
     box.innerHTML = `
       <input id="pageName" placeholder="Nom de la page Facebook">
-      <textarea id="scenario" placeholder="Messages automatiques"></textarea>
+      <textarea id="scenario" placeholder="Messages automatiques (ex: bienvenue...)"></textarea>
     `;
   }
 
   else if(type === "fb_auto"){
     box.innerHTML = `
       <input id="account" placeholder="Nom du compte Facebook">
-      <textarea id="actions" placeholder="Actions automatiques"></textarea>
+      <textarea id="actions" placeholder="Actions (like, commentaire, auto reply...)"></textarea>
     `;
   }
 
@@ -69,34 +69,34 @@ function loadForm(type){
   else if(type === "web"){
     box.innerHTML = `
       <input id="site" placeholder="Lien du site">
-      <textarea id="features" placeholder="Fonctionnalités"></textarea>
+      <textarea id="features" placeholder="Fonctionnalités du bot"></textarea>
     `;
   }
 }
 
-// ================= DATA =================
+// ================= RÉCUP DATA =================
 function getFormData(type){
 
   let data = {};
 
   if(type === "fb_page"){
-    data.pageName = document.getElementById("pageName").value;
-    data.scenario = document.getElementById("scenario").value;
+    data.pageName = document.getElementById("pageName").value.trim();
+    data.scenario = document.getElementById("scenario").value.trim();
   }
 
   if(type === "fb_auto"){
-    data.account = document.getElementById("account").value;
-    data.actions = document.getElementById("actions").value;
+    data.account = document.getElementById("account").value.trim();
+    data.actions = document.getElementById("actions").value.trim();
   }
 
   if(type === "wa"){
-    data.number = document.getElementById("number").value;
-    data.messages = document.getElementById("messages").value;
+    data.number = document.getElementById("number").value.trim();
+    data.messages = document.getElementById("messages").value.trim();
   }
 
   if(type === "web"){
-    data.site = document.getElementById("site").value;
-    data.features = document.getElementById("features").value;
+    data.site = document.getElementById("site").value.trim();
+    data.features = document.getElementById("features").value.trim();
   }
 
   return data;
@@ -108,10 +108,12 @@ function validate(type){
     alert("❌ Choisis un type de bot");
     return false;
   }
+
   if(price <= 0){
     alert("❌ Prix invalide");
     return false;
   }
+
   return true;
 }
 
@@ -163,8 +165,9 @@ window.valider = async ()=>{
     const data = {
       service: "IA Bot",
       botType: selectedType,
-      ...extraData,
+      details: extraData, // ✅ STRUCTURE ADMIN
       price,
+      user,
       status: "pending",
       date: Date.now()
     };
@@ -173,7 +176,7 @@ window.valider = async ()=>{
 
     // ================= 💬 MESSAGE =================
     await push(ref(db,"messages/"+user), {
-      text: `🤖 Bot commandé (${selectedType})\n💰 ${price} FC`,
+      text: `🤖 Bot commandé\n📦 ${selectedType}\n💰 ${price} FC`,
       date: Date.now()
     });
 
