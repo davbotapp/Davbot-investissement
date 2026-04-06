@@ -36,32 +36,40 @@ onValue(ref(db, "users/" + user), (snap)=>{
 // ================= CONVERSION =================
 async function convertPoints(){
 
-    const snap = await get(ref(db, "users/" + user));
-    if(!snap.exists()) return;
+    try{
+        const snap = await get(ref(db, "users/" + user));
+        if(!snap.exists()) return;
 
-    const data = snap.val();
+        const data = snap.val();
 
-    let points = data.points || 0;
-    let balance = data.balance || 0;
+        let points = data.points || 0;
+        let balance = data.balance || 0;
 
-    if(points < 20){
-        alert("❌ Minimum 20 points requis");
-        return;
+        if(points < 20){
+            alert("❌ Minimum 20 points requis");
+            return;
+        }
+
+        const fc = Math.floor(points * 2.5);
+
+        await update(ref(db, "users/" + user), {
+            points: 0,
+            balance: balance + fc
+        });
+
+        alert("✅ +" + fc + " FC ajouté");
+
+    }catch(e){
+        console.error(e);
+        alert("❌ Erreur conversion");
     }
-
-    const fc = Math.floor(points * 2.5);
-
-    await update(ref(db, "users/" + user), {
-        points: 0,
-        balance: balance + fc
-    });
-
-    alert("✅ +" + fc + " FC ajouté");
 }
 
-// ==========================
-// 📊 TABLEAU DE BORD
-// ==========================
+// 🔥 BOUTON
+document.getElementById("convertBtn").onclick = convertPoints;
+
+
+// ================= 📊 STATS =================
 onValue(ref(db, "orders"), async (snap)=>{
     if(!snap.exists()) return;
 
@@ -72,11 +80,9 @@ onValue(ref(db, "orders"), async (snap)=>{
 
     ["validated","cancelled"].forEach(status=>{
 
-        if(!data[status]) return;
-        if(!data[status][user]) return;
+        if(!data[status] || !data[status][user]) return;
 
         Object.values(data[status][user]).forEach(cmd=>{
-
             const price = cmd.price || 0;
 
             if(status === "validated"){
@@ -84,35 +90,28 @@ onValue(ref(db, "orders"), async (snap)=>{
             }
 
             if(status === "cancelled"){
-                totalGain += price; // remboursement
+                totalGain += price;
             }
         });
 
     });
 
-    // 🔥 afficher
-    document.getElementById("totalGain").innerText =
-        totalGain.toLocaleString();
+    document.getElementById("totalGain").innerText = totalGain.toLocaleString();
+    document.getElementById("totalDepense").innerText = totalDepense.toLocaleString();
 
-    document.getElementById("totalDepense").innerText =
-        totalDepense.toLocaleString();
-
-    // 📊 évolution = balance actuel - dépense
     const userSnap = await get(ref(db,"users/"+user));
-    const balance = userSnap.val().balance || 0;
+    const balance = userSnap.val()?.balance || 0;
 
     document.getElementById("evolution").innerText =
         (balance - totalDepense).toLocaleString();
 });
-// 🔥 LIAISON BOUTON
-document.getElementById("convertBtn").onclick = convertPoints;
 
-// ================= COMMANDES =================
-// ================= COMMANDES =================
+
+// ================= 📦 COMMANDES =================
 const container = document.getElementById("orders");
 
 onValue(ref(db, "orders"), (snap)=>{
-    
+
     container.innerHTML = "";
 
     if(!snap.exists()){
@@ -122,31 +121,29 @@ onValue(ref(db, "orders"), (snap)=>{
 
     const data = snap.val();
 
-    // 🔥 fonction affichage
+    // 🔥 fonction affichage propre
     function show(status, css){
-        if(!data[status]) return;
-        if(!data[status][user]) return;
 
-        Object.values(data[status][user]).forEach(cmd=>{
+        if(!data[status] || !data[status][user]) return;
+
+        Object.values(data[status][user])
+        .sort((a,b)=> (b.date || 0) - (a.date || 0)) // 🔥 TRI RÉCENT
+        .forEach(cmd=>{
 
             container.innerHTML += `
                 <div class="order ${css}">
                     📦 <b>${cmd.service || "Service"}</b><br>
-                    💰 ${cmd.price || 0} FC<br>
-                    📅 ${cmd.date ? new Date(cmd.date).toLocaleString() : ""}<br>
+                    💰 ${Number(cmd.price || 0).toLocaleString()} FC<br>
+                    📅 ${cmd.date ? new Date(cmd.date).toLocaleString() : "-"}<br>
                     📌 ${status.toUpperCase()}
                 </div>
             `;
         });
     }
 
-    // ✅ ORDRE FORCÉ
-    show("pending", "pending");     // 1er
-    show("validated", "valid");     // 2ème
-    show("cancelled", "cancel");    // 3ème
-});
+    // 🔥 ORDRE IMPORTANT
+    show("pending", "pending");
+    show("validated", "valid");
+    show("cancelled", "cancel");
 
-// 🔥 LOAD
-loadOrders("orders/pending", "pending");
-loadOrders("orders/validated", "validated");
-loadOrders("orders/cancelled", "cancelled");
+});
