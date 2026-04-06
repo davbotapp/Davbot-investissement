@@ -5,14 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profil - Davbot</title>
 
-<!-- 🔥 ICONS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-:root {
+:root{
     --blue:#00d2ff;
     --dark:#050a14;
-    --glass: rgba(255,255,255,0.06);
+    --glass:rgba(255,255,255,0.06);
 }
 
 body{
@@ -26,7 +25,7 @@ body{
 .overlay{
     background:linear-gradient(to bottom, rgba(5,10,20,0.95), rgba(5,10,20,0.85));
     min-height:100vh;
-    padding-bottom:80px;
+    padding-bottom:90px;
 }
 
 /* HEADER */
@@ -39,7 +38,6 @@ body{
     width:95px;
     height:95px;
     border-radius:50%;
-    object-fit:cover;
     border:2px solid var(--blue);
     box-shadow:0 0 20px var(--blue);
 }
@@ -58,7 +56,7 @@ body{
 /* CARD */
 .card{
     background:var(--glass);
-    backdrop-filter: blur(12px);
+    backdrop-filter:blur(12px);
     margin:15px;
     padding:18px;
     border-radius:18px;
@@ -66,6 +64,9 @@ body{
 }
 
 /* STATS */
+.stat p{
+    margin:8px 0;
+}
 .stat i{
     color:var(--blue);
     margin-right:6px;
@@ -82,9 +83,9 @@ body{
     margin-top:10px;
 }
 
-.locked{ background:#555; }
-.active{ background:#00ff88; color:black; }
-.wait{ background:#ff9800; }
+.locked{background:#555;}
+.active{background:#00ff88;color:black;}
+.wait{background:#ff9800;}
 
 /* MENU */
 .menu a{
@@ -103,13 +104,24 @@ body{
     color:var(--blue);
 }
 
-/* MESSAGE */
-.msg{
+/* CHAT */
+.chat-box{
+    height:200px;
+    overflow-y:auto;
     background:#0d1625;
-    padding:12px;
+    padding:10px;
     border-radius:12px;
     margin-top:10px;
-    border-left:3px solid var(--blue);
+}
+
+.chat-input{
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border:none;
+    border-radius:12px;
+    background:#0d1625;
+    color:white;
 }
 
 /* INPUT */
@@ -123,6 +135,7 @@ textarea{
     margin-top:10px;
 }
 
+/* BUTTON */
 .sendBtn{
     margin-top:10px;
     width:100%;
@@ -144,6 +157,7 @@ textarea{
     text-align:center;
     color:white;
     font-weight:bold;
+    text-decoration:none;
 }
 
 /* NAVBAR */
@@ -187,14 +201,13 @@ textarea{
     <img id="avatar" class="avatar" src="">
     <h3 id="name">Utilisateur</h3>
     <p id="phone">+243...</p>
-
     <div id="badgeBox"></div>
 </div>
 
 <!-- STATS -->
 <div class="card stat">
-    <p><i class="fa-solid fa-wallet"></i> Solde : <b id="solde">0</b> FC</p>
-    <p><i class="fa-solid fa-chart-line"></i> Revenus : <b id="revenus">0</b> FC</p>
+    <p><i class="fa-solid fa-wallet"></i> Solde : <b id="solde">0 FC</b></p>
+    <p><i class="fa-solid fa-chart-line"></i> Revenus : <b id="revenus">0 FC</b></p>
     <p><i class="fa-solid fa-star"></i> Points : <b id="points">0</b></p>
 </div>
 
@@ -212,46 +225,32 @@ textarea{
     <a href="dashboard.html"><i class="fa-solid fa-chart-simple"></i> Dashboard</a>
     <a href="equipe.html"><i class="fa-solid fa-users"></i> Équipe</a>
 </div>
-<!-- 🤖 ASSISTANT BOT -->
+
+<!-- 🤖 ASSISTANT -->
 <div class="card">
     <h3><i class="fa-solid fa-robot"></i> Assistant Davbot</h3>
-    <p>si vous avez besoin d'aide </p>
-      <p>  vous avez un problème qui vous préoccupe n'hésitez pas</p>
+    <p>Besoin d’aide ? Discute avec l’assistant intelligent.</p>
 
-    <div id="chatBox" style="
-        height:200px;
-        overflow-y:auto;
-        background:#0d1625;
-        padding:10px;
-        border-radius:12px;
-        margin-top:10px;
-    "></div>
+    <div id="chatBox" class="chat-box"></div>
 
-    <input id="chatInput" placeholder="Écrire au bot..." style="
-        width:100%;
-        padding:10px;
-        margin-top:10px;
-        border:none;
-        border-radius:12px;
-        background:#0d1625;
-        color:white;
-    ">
+    <input id="chatInput" class="chat-input" placeholder="Écrire au bot...">
 
-    <button onclick="sendBot()" class="sendBtn">
+    <button class="sendBtn">
         <i class="fa-solid fa-paper-plane"></i> Envoyer
     </button>
 </div>
+
 <!-- MESSAGES -->
 <div class="card">
     <h3>📩 Messages Admin</h3>
     <div id="inbox"></div>
 
-    <textarea id="msgInput" placeholder="Écrire à l'admin..."></textarea>
-    <button id="sendBtn" class="sendBtn">Envoyer</button>
+    <textarea placeholder="Écrire à l'admin..."></textarea>
+    <button class="sendBtn">Envoyer</button>
 </div>
 
 <!-- LOGOUT -->
-<a href="#" id="logout" class="logout-btn">🚪 Déconnexion</a>
+<a href="#" class="logout-btn">🚪 Déconnexion</a>
 
 </div>
 
@@ -272,8 +271,6 @@ textarea{
         Profil
     </a>
 </div>
-
-<script type="module" src="profil.js"></script>
 
 </body>
 </html>
