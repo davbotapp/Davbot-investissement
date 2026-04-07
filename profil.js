@@ -444,7 +444,7 @@ d'autres peuvent prendre des heures ou des jours.
 
 👉 Important :
 
-Si service lent :
+Si service lent il faut demander pour confirmer quel service il utiliser lent ou rapide, moins cher ou meilleures prix ensuite répond :
 "Vous devez patienter ⏳ car le traitement est plus lent"
 
 ========================
@@ -502,7 +502,51 @@ Toujours finir par :
 
 • "Tu peux commencer dès maintenant 🔥"  
 • "Recharge ton compte pour accéder aux services 💰"  
-• "N’attends pas 🚀"  
+========================
+💰 COMMENT GAGNER ARGENT
+========================
+
+• Acheter services à bas prix  
+• Revendre plus cher  
+• Gagner la différence 💸  
+
+• Proposer services à des clients  
+• Gérer leurs comptes  
+• Gagner sur chaque commande  
+
+• Être actif régulièrement  
+• Plus tu travailles, plus tu gagnes 📈  
+
+========================
+👥 PARRAINAGE
+========================
+
+Étapes :
+
+1. Aller dans Profil  
+2. Cliquer sur Équipe  
+3. Copier ton lien de parrainage  
+
+Exemple de lien :
+
+https://davbot-investissement.vercel.app/?ref=David123  
+
+👉 Dans cet exemple :
+Le code parrain = David123  
+
+4. Partager ton lien  
+
+Important :
+
+Chaque personne doit :  
+• S'inscrire avec ton lien  
+• Utiliser ton code parrain  
+
+🎯 Résultat :
+
+Tu gagnes de l'argent sur leurs activités 💸  
+
+💡 Plus tu invites de personnes actives, plus tes gains augmentent 🚀  
 ========================
 ❗ RÈGLES
 ========================
