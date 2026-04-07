@@ -12,6 +12,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// 🔥 TAUX CONVERSION (MODIFIABLE FACILEMENT)
+const RATE = 4; // ✅ 1 point = 4 FC
+
 // 🔐 USER
 const user = localStorage.getItem("userPhone");
 
@@ -30,7 +33,9 @@ onValue(ref(db, "users/" + user), (snap)=>{
 
     document.getElementById("balance").innerText = balance.toLocaleString();
     document.getElementById("points").innerText = points;
-    document.getElementById("pointsFC").innerText = Math.floor(points * 2.5);
+
+    // 🔥 AFFICHAGE CONVERSION
+    document.getElementById("pointsFC").innerText = Math.floor(points * RATE);
 });
 
 // ================= CONVERSION =================
@@ -45,19 +50,20 @@ async function convertPoints(){
         let points = data.points || 0;
         let balance = data.balance || 0;
 
-        if(points < 20){
-            alert("❌ Minimum 20 points requis");
+        // 🔥 MINIMUM
+        if(points < 25){
+            alert("❌ Minimum 25 points requis");
             return;
         }
 
-        const fc = Math.floor(points * 2.5);
+        const fc = Math.floor(points * RATE);
 
         await update(ref(db, "users/" + user), {
             points: 0,
             balance: balance + fc
         });
 
-        alert("✅ +" + fc + " FC ajouté");
+        alert("✅ Conversion réussie : +" + fc + " FC");
 
     }catch(e){
         console.error(e);
@@ -121,13 +127,12 @@ onValue(ref(db, "orders"), (snap)=>{
 
     const data = snap.val();
 
-    // 🔥 fonction affichage propre
     function show(status, css){
 
         if(!data[status] || !data[status][user]) return;
 
         Object.values(data[status][user])
-        .sort((a,b)=> (b.date || 0) - (a.date || 0)) // 🔥 TRI RÉCENT
+        .sort((a,b)=> (b.date || 0) - (a.date || 0))
         .forEach(cmd=>{
 
             container.innerHTML += `
@@ -141,7 +146,6 @@ onValue(ref(db, "orders"), (snap)=>{
         });
     }
 
-    // 🔥 ORDRE IMPORTANT
     show("pending", "pending");
     show("validated", "valid");
     show("cancelled", "cancel");
