@@ -61,7 +61,7 @@ function loadForm(type){
 
   else if(type === "wa"){
     box.innerHTML = `
-      <input id="number" placeholder="Numéro WhatsApp du bot">
+      <input id="number" placeholder="Numéro WhatsApp du bot si vous avez pas mette "" ">
       <textarea id="messages" placeholder="Description et info ( ex num admin , prefix...)"></textarea>
     `;
   }
