@@ -79,7 +79,7 @@ function updatePrice(){
     premium: {
       Likes: 4250,
       Vues: 1450,
-      Followers: 18000,
+      Followers: 49000,
       "Membre Groupe": 4600,
       "Membre Chaîne": 6700,
       "Membre Canal": 5800
