@@ -129,17 +129,17 @@ export async function handleParrainage(newUserPhone, inviteCode){
     let points = parrain.data.points || 0;
 
     // 🎯 NIVEAUX
-    if(lvl1 < 10){
+    if(lvl1 < 20){
         lvl1++;
-        points += 8;
+        points += 4;
     }
     else if(lvl2 < 30){
         lvl2++;
-        points += 10;
+        points += 8;
     }
     else if(lvl3 < 50){
         lvl3++;
-        points += 15;
+        points += 12;
     }
 
     await update(ref(db, "users/" + parrain.phone), {
