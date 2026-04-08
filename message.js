@@ -1,123 +1,158 @@
 // ================= FIREBASE =================
-import { 
-getDatabase, ref, push, onValue, remove 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+getDatabase, ref, push, onValue, get, remove
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const db = getDatabase();
+const firebaseConfig = {
+apiKey:"AIza...",
+authDomain:"starlink-investit.firebaseapp.com",
+databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
+projectId:"starlink-investit"
+};
 
-// ================= USER =================
-const userPhone = localStorage.getItem("userPhone");
-const currentUser = JSON.parse(localStorage.getItem("user")) || {};
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-// ================= UI =================
-const sendBtn = document.getElementById("sendBtn");
-const input = document.getElementById("msgInput");
-const box = document.getElementById("chatBox");
+// ================= ENVOYER MESSAGE =================
+window.sendMsg = async ()=>{
 
-// ================= ✉️ ENVOYER MESSAGE =================
-sendBtn.onclick = async ()=>{
+const user = document.getElementById("target").value.trim();
+const text = document.getElementById("msg").value.trim();
+const file = document.getElementById("uploadFile").files[0];
 
-const text = input.value.trim();
-
-if(!text) return alert("Message vide");
+if(!user) return alert("❌ Numéro requis");
+if(!text && !file) return alert("❌ Message vide");
 
 try{
 
-await push(ref(db,"messages/"+userPhone),{
-text,
-from:"user",
-name: currentUser.name || "Utilisateur",
-phone: userPhone,
-photo: currentUser.photo || "",
-date: Date.now(),
+// 📸 IMAGE
+if(file){
+const reader = new FileReader();
+
+reader.onload = async ()=>{
+await push(ref(db,"messages/"+user),{
+text: text || "📷 Image",
+image: reader.result,
+from:"admin",
+date:Date.now(),
 read:false
 });
 
-input.value = "";
+alert("✅ Envoyé");
+};
+
+reader.readAsDataURL(file);
+
+}else{
+
+// 📩 TEXTE
+await push(ref(db,"messages/"+user),{
+text,
+from:"admin",
+date:Date.now(),
+read:false
+});
+
+alert("✅ Message envoyé");
+}
+
+document.getElementById("msg").value="";
+document.getElementById("uploadFile").value="";
 
 }catch(e){
 console.error(e);
-alert("❌ Erreur envoi");
+alert("❌ Erreur");
 }
-
 };
 
-// ================= 📥 LIRE MESSAGES =================
-onValue(ref(db,"messages/"+userPhone), snap=>{
+// ================= SUPPRIMER MESSAGE =================
+window.deleteMsg = async(user,id)=>{
+if(!confirm("Supprimer ce message ?")) return;
 
+await remove(ref(db,`messages/${user}/${id}`));
+};
+
+// ================= COPIER MESSAGE =================
+window.copyMsg = (text)=>{
+navigator.clipboard.writeText(text);
+alert("📋 Copié");
+};
+
+// ================= AFFICHAGE CHAT =================
+onValue(ref(db,"messages"), async snap=>{
+
+const box = document.getElementById("userMessages");
 if(!box) return;
 
-box.innerHTML = "";
+box.innerHTML = "⏳ Chargement...";
 
 if(!snap.exists()){
 box.innerHTML = "<small>Aucun message</small>";
 return;
 }
 
-const data = snap.val();
+let html = "";
 
-// 🔥 trier par date
-const messages = Object.entries(data).sort((a,b)=>a[1].date - b[1].date);
+for(const [user, msgs] of Object.entries(snap.val())){
 
-messages.forEach(([id,m])=>{
+// 🔥 récupérer nom user
+let name = user;
 
-const isMe = m.from === "user";
+try{
+const userSnap = await get(ref(db,"users/"+user));
+if(userSnap.exists()){
+name = userSnap.val().name || user;
+}
+}catch(e){}
 
-// 🎨 style
-const style = isMe 
-? "background:#00d2ff;color:black;align-self:flex-end;"
-: "background:#222;align-self:flex-start;";
+// 🔥 messages
+Object.entries(msgs).reverse().forEach(([id,m])=>{
 
-// 🧱 message
-box.innerHTML += `
+const date = m.date
+? new Date(m.date).toLocaleString()
+: "";
+
+// 🧠 style message
+const isAdmin = m.from === "admin";
+
+html += `
+<div class="card" style="margin-bottom:10px;">
+
+<div style="display:flex;justify-content:space-between;">
+<b>${name}</b> 📱 ${user}
+</div>
+
 <div style="
-margin:5px;
+margin-top:8px;
 padding:10px;
 border-radius:10px;
-max-width:75%;
-${style}
+background:${isAdmin ? '#003b4d' : '#111'};
 ">
 
-<div>${m.text}</div>
+${isAdmin ? "🛡️ ADMIN" : "👤 USER"} : ${m.text || ""}
 
-<small style="opacity:0.6;">
-${new Date(m.date).toLocaleTimeString()}
-</small>
-
-<div style="margin-top:5px;display:flex;gap:5px;">
-
-<button onclick="copyMsg('${m.text}')">📋</button>
-
-${isMe ? `<button onclick="deleteMsg('${id}')">🗑️</button>` : ""}
+${m.image ? `<img src="${m.image}" style="width:100%;margin-top:5px;border-radius:10px;">` : ""}
 
 </div>
+
+<div style="display:flex;gap:5px;margin-top:5px;">
+
+<button onclick="copyMsg(\`${m.text || ''}\`)" style="background:#4caf50;">📋</button>
+
+<button onclick="deleteMsg('${user}','${id}')" style="background:#f44336;">🗑️</button>
+
+</div>
+
+<small style="opacity:0.6;">${date}</small>
 
 </div>
 `;
 
 });
 
-// 🔽 scroll auto
-box.scrollTop = box.scrollHeight;
-
-});
-
-// ================= 🗑️ SUPPRIMER =================
-window.deleteMsg = async(id)=>{
-
-if(!confirm("Supprimer ce message ?")) return;
-
-try{
-await remove(ref(db,"messages/"+userPhone+"/"+id));
-}catch(e){
-console.error(e);
-alert("Erreur suppression");
 }
 
-};
+box.innerHTML = html;
 
-// ================= 📋 COPIER =================
-window.copyMsg = (text)=>{
-navigator.clipboard.writeText(text);
-alert("📋 Copié !");
-};
+});
