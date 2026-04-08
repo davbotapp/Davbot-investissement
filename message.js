@@ -4,6 +4,7 @@ import {
 getDatabase, ref, push, onValue, get, remove
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// ================= CONFIG =================
 const firebaseConfig = {
 apiKey:"AIza...",
 authDomain:"starlink-investit.firebaseapp.com",
@@ -14,7 +15,7 @@ projectId:"starlink-investit"
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ================= ENVOYER MESSAGE =================
+// ================= ENVOYER MESSAGE (ADMIN → USER) =================
 window.sendMsg = async ()=>{
 
 const user = document.getElementById("target").value.trim();
@@ -34,12 +35,12 @@ reader.onload = async ()=>{
 await push(ref(db,"messages/"+user),{
 text: text || "📷 Image",
 image: reader.result,
-from:"admin",
+from:"admin", // 🔥 IMPORTANT
 date:Date.now(),
 read:false
 });
 
-alert("✅ Envoyé");
+alert("✅ Image envoyée");
 };
 
 reader.readAsDataURL(file);
@@ -49,7 +50,7 @@ reader.readAsDataURL(file);
 // 📩 TEXTE
 await push(ref(db,"messages/"+user),{
 text,
-from:"admin",
+from:"admin", // 🔥 IMPORTANT
 date:Date.now(),
 read:false
 });
@@ -57,6 +58,7 @@ read:false
 alert("✅ Message envoyé");
 }
 
+// reset
 document.getElementById("msg").value="";
 document.getElementById("uploadFile").value="";
 
@@ -64,6 +66,7 @@ document.getElementById("uploadFile").value="";
 console.error(e);
 alert("❌ Erreur");
 }
+
 };
 
 // ================= SUPPRIMER MESSAGE =================
@@ -75,11 +78,14 @@ await remove(ref(db,`messages/${user}/${id}`));
 
 // ================= COPIER MESSAGE =================
 window.copyMsg = (text)=>{
-navigator.clipboard.writeText(text);
-alert("📋 Copié");
+if(!text) return alert("Vide");
+
+navigator.clipboard.writeText(text)
+.then(()=> alert("📋 Copié"))
+.catch(()=> alert(text));
 };
 
-// ================= AFFICHAGE CHAT =================
+// ================= AFFICHAGE CHAT ADMIN =================
 onValue(ref(db,"messages"), async snap=>{
 
 const box = document.getElementById("userMessages");
@@ -94,11 +100,12 @@ return;
 
 let html = "";
 
+// 🔥 LOOP USERS
 for(const [user, msgs] of Object.entries(snap.val())){
 
-// 🔥 récupérer nom user
 let name = user;
 
+// 🔥 récupérer nom utilisateur
 try{
 const userSnap = await get(ref(db,"users/"+user));
 if(userSnap.exists()){
@@ -106,14 +113,9 @@ name = userSnap.val().name || user;
 }
 }catch(e){}
 
-// 🔥 messages
+// 🔥 LOOP MESSAGES
 Object.entries(msgs).reverse().forEach(([id,m])=>{
 
-const date = m.date
-? new Date(m.date).toLocaleString()
-: "";
-
-// 🧠 style message
 const isAdmin = m.from === "admin";
 
 html += `
@@ -138,13 +140,15 @@ ${m.image ? `<img src="${m.image}" style="width:100%;margin-top:5px;border-radiu
 
 <div style="display:flex;gap:5px;margin-top:5px;">
 
-<button onclick="copyMsg(\`${m.text || ''}\`)" style="background:#4caf50;">📋</button>
+<button onclick="copyMsg(\`${m.text || ""}\`)" style="background:#4caf50;">📋</button>
 
 <button onclick="deleteMsg('${user}','${id}')" style="background:#f44336;">🗑️</button>
 
 </div>
 
-<small style="opacity:0.6;">${date}</small>
+<small style="opacity:0.6;">
+${m.date ? new Date(m.date).toLocaleString() : ""}
+</small>
 
 </div>
 `;
