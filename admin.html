@@ -17,11 +17,14 @@
 --glass:rgba(255,255,255,0.05);
 }
 
-*{box-sizing:border-box;}
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI', sans-serif;
+}
 
 body{
-margin:0;
-font-family:'Segoe UI', sans-serif;
 background:var(--dark);
 color:white;
 }
@@ -48,12 +51,6 @@ background:#020617;
 position:sticky;
 top:0;
 z-index:10;
-}
-
-.header-title{
-display:flex;
-align-items:center;
-gap:10px;
 }
 
 /* CONTAINER */
@@ -83,14 +80,6 @@ transition:0.3s;
 .card:hover{
 border-color:var(--blue);
 box-shadow:0 0 15px rgba(0,210,255,0.2);
-}
-
-/* TITLE */
-.card h3{
-display:flex;
-align-items:center;
-gap:8px;
-margin-bottom:10px;
 }
 
 /* LIST */
@@ -125,6 +114,7 @@ button:hover{opacity:0.85;}
 .mainBtn{
 width:100%;
 background:var(--blue);
+color:black;
 }
 
 .broadcastBtn{
@@ -134,6 +124,7 @@ color:black;
 
 .logout{
 background:var(--red);
+color:white;
 }
 
 /* BADGE */
@@ -151,13 +142,6 @@ display:flex;
 justify-content:center;
 align-items:center;
 height:100vh;
-}
-
-/* SCROLL */
-::-webkit-scrollbar{width:5px;}
-::-webkit-scrollbar-thumb{
-background:var(--blue);
-border-radius:10px;
 }
 
 /* ERROR */
@@ -179,8 +163,8 @@ color:#ff4d4d;
 <div class="card" style="max-width:350px;width:90%;">
 <h3><i data-lucide="lock"></i> Connexion Admin</h3>
 
-<input id="adminPhone" placeholder="Numéro">
-<input id="adminPass" type="password" placeholder="Mot de passe">
+<input id="adminPhone" placeholder="Numéro" autocomplete="off">
+<input id="adminPass" type="password" placeholder="Mot de passe" autocomplete="off">
 
 <button class="mainBtn" onclick="loginAdmin()">Connexion</button>
 <p id="error"></p>
@@ -191,7 +175,7 @@ color:#ff4d4d;
 <div id="adminPanel" style="display:none;">
 
 <div class="header">
-<div class="header-title">
+<div style="display:flex;align-items:center;gap:10px;">
 <i data-lucide="shield"></i>
 <h2>ADMIN PANEL PRO</h2>
 </div>
@@ -202,21 +186,18 @@ color:#ff4d4d;
 </div>
 
 <div class="container">
-
 <div class="grid">
 
-<!-- 🔥 NOTIFICATION GLOBALE -->
+<!-- NOTIFICATION -->
 <div class="card">
 <h3><i data-lucide="bell"></i> Notification globale</h3>
 
-<textarea id="globalMsg" placeholder="Message pour tous les utilisateurs"></textarea>
-
+<textarea id="globalMsg" placeholder="Message pour tous"></textarea>
 <input type="file" id="globalFile">
 
 <button class="mainBtn broadcastBtn" onclick="sendGlobalNotif()">
 Envoyer à tous
 </button>
-
 </div>
 
 <!-- USERS -->
@@ -227,13 +208,19 @@ Envoyer à tous
 
 <!-- COMMANDES -->
 <div class="card">
-<h3><i data-lucide="package"></i> Commandes <span class="badge" id="cmdBadge" style="display:none">0</span></h3>
+<h3>
+<i data-lucide="package"></i> Commandes
+<span class="badge" id="cmdBadge" style="display:none">0</span>
+</h3>
 <div id="commandes" class="list"></div>
 </div>
 
 <!-- RECHARGES -->
 <div class="card">
-<h3><i data-lucide="wallet"></i> Recharges <span class="badge" id="rechBadge" style="display:none">0</span></h3>
+<h3>
+<i data-lucide="wallet"></i> Recharges
+<span class="badge" id="rechBadge" style="display:none">0</span>
+</h3>
 <div id="recharges" class="list"></div>
 </div>
 
@@ -243,13 +230,13 @@ Envoyer à tous
 <div id="transferts" class="list"></div>
 </div>
 
-<!-- MONÉTISATION -->
+<!-- MONETISATION -->
 <div class="card">
 <h3><i data-lucide="trending-up"></i> Monétisation</h3>
 <div id="monetisations" class="list"></div>
 </div>
 
-<!-- MESSAGE USER -->
+<!-- MESSAGE -->
 <div class="card">
 <h3><i data-lucide="send"></i> Envoyer message</h3>
 
@@ -267,18 +254,20 @@ Envoyer à tous
 </div>
 
 </div>
-
+</div>
 </div>
 
-</div>
-
-<!-- ICON INIT -->
+<!-- ICONS -->
 <script>
 lucide.createIcons();
 </script>
 
-<!-- JS -->
-<script type="module" src="admin.js"></script>
+<!-- 🔥 JS MODULES (IMPORTANT) -->
+<script type="module">
+import "./admin.js";
+import "./message.js";
+import "./noti.js";
+</script>
 
 <!-- LOAD -->
 <script>
