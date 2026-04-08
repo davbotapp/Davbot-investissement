@@ -645,77 +645,82 @@ ${details || "Aucun détail"}
 
 // ================= ACTIONS =================
 // ================= LOGGER =================
-async function logAction(type,data){
+async function logAction(type, data){
+try{
 await push(ref(db,"admin_logs"),{
 type,
 ...data,
 date:Date.now()
 });
+}catch(e){
+console.error("Log error:", e);
+}
+}
+
+// ================= SAFE GET =================
+async function safeGet(path){
+const snap = await get(ref(db, path));
+return snap.exists() ? snap.val() : null;
+}
+
+// ================= SAFE DELETE =================
+async function safeDelete(path){
+const snap = await get(ref(db, path));
+if(!snap.exists()) return false;
+await remove(ref(db, path));
+return true;
 }
 
 // ================= VALID RECHARGE =================
 window.valRecharge = async(id,user,amount)=>{
 
-if(lock(id)) return alert("⏳ Traitement...");
+if(lock(id)) return alert("⏳ Traitement en cours...");
 
 try{
 
-// 🔒 Vérifications
-if(!user || amount <= 0){
-unlock(id);
-return alert("❌ Données invalides");
-}
+if(!user || amount <= 0) throw "❌ Données invalides";
 
-const rRef = ref(db,"demandes_recharges/"+id);
-const check = await get(rRef);
+// 🔍 Vérifier recharge
+const recharge = await safeGet("demandes_recharges/"+id);
+if(!recharge) throw "⚠️ Déjà traité";
 
-if(!check.exists()){
-unlock(id);
-return alert("⚠️ Déjà traité");
-}
+// 🔍 Vérifier user
+const userData = await safeGet("users/"+user);
+if(!userData) throw "❌ Utilisateur introuvable";
 
-// 🔥 USER
-const userRef = ref(db,"users/"+user);
-const snap = await get(userRef);
+const oldBal = userData.balance || 0;
+const newBal = oldBal + amount;
 
-if(!snap.exists()){
-unlock(id);
-return alert("❌ Utilisateur introuvable");
-}
+// 💰 Update solde
+await update(ref(db,"users/"+user),{ balance:newBal });
 
-const bal = snap.val().balance || 0;
-const newBal = bal + amount;
-
-// 💰 UPDATE
-await update(userRef,{ balance:newBal });
-
-// 📦 ARCHIVE
+// 📦 Archive
 await set(ref(db,"recharges_validées/"+id),{
-user,amount,
-oldBalance:bal,
+user, amount,
+oldBalance:oldBal,
 newBalance:newBal,
 status:"approved",
 date:Date.now()
 });
 
-// 🗑️ DELETE
-await remove(rRef);
+// 🗑️ Supprimer demande
+await safeDelete("demandes_recharges/"+id);
 
-// 📩 MESSAGE USER
+// 📩 Notification
 await push(ref(db,"messages/"+user),{
 text:`✅ Recharge validée\n💰 +${amount} FC`,
 date:Date.now(),
 read:false
 });
 
-// 📊 LOG ADMIN
+// 📊 Log
 await logAction("recharge_validée",{user,amount});
 
 alert("✅ Recharge validée");
 
 }catch(e){
 console.error(e);
-alert("❌ Erreur système");
+alert(e || "❌ Erreur système");
 }
 
 unlock(id);
@@ -728,38 +733,33 @@ if(lock(id)) return alert("⏳ Traitement...");
 
 try{
 
-const rRef = ref(db,"demandes_recharges/"+id);
-const check = await get(rRef);
+const recharge = await safeGet("demandes_recharges/"+id);
+if(!recharge) throw "⚠️ Déjà traité";
 
-if(!check.exists()){
-unlock(id);
-return alert("⚠️ Déjà traité");
-}
-
-// 📦 ARCHIVE REFUS
+// 📦 Archive
 await set(ref(db,"recharges_refusées/"+id),{
-user,amount,
+user, amount,
 status:"refused",
 date:Date.now()
 });
 
-// 🗑️ DELETE
-await remove(rRef);
+// 🗑️ Delete
+await safeDelete("demandes_recharges/"+id);
 
-// 📩 MESSAGE
+// 📩 Message
 await push(ref(db,"messages/"+user),{
 text:`❌ Recharge refusée\n💰 ${amount} FC`,
 date:Date.now()
 });
 
-// 📊 LOG
+// 📊 Log
 await logAction("recharge_refusée",{user,amount});
 
 alert("❌ Recharge refusée");
 
 }catch(e){
 console.error(e);
-alert("Erreur");
+alert(e || "Erreur");
 }
 
 unlock(id);
@@ -772,40 +772,33 @@ if(lock(id)) return alert("⏳ Traitement...");
 
 try{
 
-const refCmd = ref(db,"orders/pending/"+user+"/"+id);
-const snap = await get(refCmd);
+const cmd = await safeGet(`orders/pending/${user}/${id}`);
+if(!cmd) throw "⚠️ Déjà traité";
 
-if(!snap.exists()){
-unlock(id);
-return alert("⚠️ Déjà traité");
-}
-
-const data = snap.val();
-
-// 📦 ARCHIVE
-await set(ref(db,"orders/validated/"+user+"/"+id),{
-...data,
+// 📦 Archive
+await set(ref(db,`orders/validated/${user}/${id}`),{
+...cmd,
 status:"approved",
 dateValidated:Date.now()
 });
 
-// 🗑️ DELETE
-await remove(refCmd);
+// 🗑️ Delete
+await safeDelete(`orders/pending/${user}/${id}`);
 
-// 📩 MESSAGE
+// 📩 Message
 await push(ref(db,"messages/"+user),{
-text:`✅ Commande validée\n📦 ${data.service}`,
+text:`✅ Commande validée\n📦 ${cmd.service}`,
 date:Date.now()
 });
 
-// 📊 LOG
-await logAction("commande_validée",{user,price:data.price});
+// 📊 Log
+await logAction("commande_validée",{user,price:cmd.price || 0});
 
 alert("✅ Commande validée");
 
 }catch(e){
 console.error(e);
-alert("Erreur");
+alert(e || "Erreur");
 }
 
 unlock(id);
@@ -818,246 +811,52 @@ if(lock(id)) return alert("⏳ Traitement...");
 
 try{
 
-// 🔒 Vérif
-if(price < 0){
-unlock(id);
-return alert("❌ Prix invalide");
-}
+if(price < 0) throw "❌ Prix invalide";
 
-// 🔥 REF CMD
-const refCmd = ref(db,"orders/pending/"+user+"/"+id);
-const snap = await get(refCmd);
+// 🔍 Commande
+const cmd = await safeGet(`orders/pending/${user}/${id}`);
+if(!cmd) throw "⚠️ Déjà traité";
 
-if(!snap.exists()){
-unlock(id);
-return alert("⚠️ Déjà traité");
-}
+// 🔍 User
+const userData = await safeGet("users/"+user);
+if(!userData) throw "❌ User introuvable";
 
-// 🔥 USER
-const userRef = ref(db,"users/"+user);
-const userSnap = await get(userRef);
+const oldBal = userData.balance || 0;
+const newBal = oldBal + price;
 
-if(!userSnap.exists()){
-unlock(id);
-return alert("❌ User introuvable");
-}
+// 💰 Remboursement
+await update(ref(db,"users/"+user),{
+balance:newBal
+});
 
-const bal = userSnap.val().balance || 0;
-const newBal = bal + price;
-
-// 💰 REMBOURSEMENT
-await update(userRef,{ balance:newBal });
-
-// 📦 ARCHIVE
-await set(ref(db,"orders/cancelled/"+user+"/"+id),{
-...(snap.val()),
+// 📦 Archive
+await set(ref(db,`orders/cancelled/${user}/${id}`),{
+...cmd,
 status:"refused",
 price,
-oldBalance:bal,
+oldBalance:oldBal,
 newBalance:newBal,
 dateCancelled:Date.now()
 });
 
-// 🗑️ DELETE
-await remove(refCmd);
+// 🗑️ Delete
+await safeDelete(`orders/pending/${user}/${id}`);
 
-// 📩 MESSAGE
+// 📩 Message
 await push(ref(db,"messages/"+user),{
 text:`❌ Commande refusée\n💰 ${price} FC remboursé`,
 date:Date.now()
 });
 
-// 📊 LOG
+// 📊 Log
 await logAction("commande_refusée",{user,price});
 
 alert("❌ Refusée + remboursée");
 
 }catch(e){
 console.error(e);
-alert("Erreur");
+alert(e || "Erreur");
 }
 
 unlock(id);
 };
-// ================= 📩 MESSAGE ADMIN → USER (VERSION PRO) =================
-window.sendMsg = async () => {
-
-const user = document.getElementById("target").value.trim();
-const msg = document.getElementById("msg").value.trim();
-const fileInput = document.getElementById("uploadFile");
-const btn = document.querySelector(".mainBtn");
-
-// 🔒 Vérification
-if(!user){
-    alert("❌ Numéro utilisateur requis");
-    return;
-}
-
-// 🔍 Vérifier si user existe
-const userSnap = await get(ref(db,"users/"+user));
-
-if(!userSnap.exists()){
-    alert("❌ Utilisateur introuvable");
-    return;
-}
-
-// 🎯 UI loading
-btn.disabled = true;
-btn.innerText = "⏳ Envoi en cours...";
-
-try{
-
-    // 📤 CAS AVEC IMAGE
-    if(fileInput.files.length > 0){
-
-        const file = fileInput.files[0];
-
-        // 🔒 sécurité type fichier
-        if(!file.type.startsWith("image/")){
-            alert("❌ Seules les images sont autorisées");
-            btn.disabled = false;
-            btn.innerText = "Envoyer";
-            return;
-        }
-
-        const reader = new FileReader();
-
-        reader.onload = async function(e){
-
-            await push(ref(db,"messages/"+user),{
-                text: msg || "📷 Image envoyée",
-                image: e.target.result,
-                from: "admin",
-                date: Date.now(),
-                read:false
-            });
-
-            alert("✅ Message + image envoyé");
-
-            // reset
-            document.getElementById("msg").value = "";
-            fileInput.value = "";
-
-            btn.disabled = false;
-            btn.innerText = "Envoyer";
-        };
-
-        reader.readAsDataURL(file);
-
-    } else {
-
-        // 📤 TEXTE SIMPLE
-        if(!msg){
-            alert("❌ Message vide");
-            btn.disabled = false;
-            btn.innerText = "Envoyer";
-            return;
-        }
-
-        await push(ref(db,"messages/"+user),{
-            text: msg,
-            from: "admin",
-            date: Date.now(),
-            read:false
-        });
-
-        alert("✅ Message envoyé");
-
-        // reset
-        document.getElementById("msg").value = "";
-
-        btn.disabled = false;
-        btn.innerText = "Envoyer";
-    }
-
-} catch(err){
-
-    console.error(err);
-    alert("❌ Erreur lors de l'envoi");
-
-    btn.disabled = false;
-    btn.innerText = "Envoyer";
-}
-
-};
-// ================= 📩 MESSAGES UTILISATEURS =================
-// ================= 📩 MESSAGES UTILISATEURS =================
-onValue(ref(db,"support_messages"), snap=>{
-
-const box = document.getElementById("userMessages");
-if(!box) return;
-
-box.innerHTML = "";
-
-if(!snap.exists()){
-box.innerHTML = "<p>Aucun message utilisateur</p>";
-return;
-}
-
-Object.entries(snap.val()).reverse().forEach(([id,msg])=>{
-
-const name = msg.name || "Utilisateur";
-const phone = msg.phone || "Non défini";
-const photo = msg.photo || "";
-const text = msg.text || "";
-const image = msg.image || "";
-const date = msg.date ? new Date(msg.date).toLocaleString() : "Date inconnue";
-
-// 🔥 AVATAR AUTO
-const avatar = photo
-? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-: `<div style="
-width:50px;
-height:50px;
-border-radius:50%;
-background:#00d2ff;
-display:flex;
-align-items:center;
-justify-content:center;
-color:black;
-font-weight:bold;">
-${name.substring(0,2)}
-</div>`;
-
-// 🧠 IMAGE MESSAGE
-const imageBox = image
-? `<img src="${image}" style="width:100%;margin-top:10px;border-radius:10px;">`
-: "";
-
-// ✅ UI COMPLETE
-box.innerHTML += `
-<div class="card">
-
-<div style="display:flex;align-items:center;gap:10px;">
-${avatar}
-<div>
-<b>${name}</b><br>
-📱 ${phone}
-</div>
-</div>
-
-<hr>
-
-📝 ${text || "<i>Aucun message</i>"}
-
-${imageBox}
-
-<br><small>${date}</small>
-
-<div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap;">
-
-<button onclick="copyUserMsg(\`${text}\`)">
-📋 Copier
-</button>
-
-<button onclick="deleteUserMsg('${id}')"
-style="background:red;color:white;">
-🗑️ Supprimer
-</button>
-
-</div>
-
-</div>
-`;
-});
-});
