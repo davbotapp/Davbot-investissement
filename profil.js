@@ -164,9 +164,9 @@ onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
     Object.values(snap.val()).forEach(cmd=>{
         const price = cmd.price || 0;
 
-        // 🔥 3% à partir de 2000 FC
+        // 🔥 4% à partir de 2000 FC
         if(price >= 2000){
-            total += price * 0.03;
+            total += price * 0.04;
         }
     });
 
