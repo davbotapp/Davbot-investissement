@@ -222,42 +222,52 @@ onValue(ref(db,"users/"+userPhone), async snap=>{
 });
 
 // ================= 📩 INBOX =================
-onValue(ref(db, "messages/" + userPhone), snap=>{
+onValue(ref(db,"messages/"+userPhone), snap=>{
 
-    inboxEl.innerHTML = "";
+inboxEl.innerHTML = "";
 
-    if(!snap.exists()){
-        inboxEl.innerHTML = "<p style='text-align:center'>Aucun message</p>";
-        return;
-    }
+if(!snap.exists()){
+inboxEl.innerHTML = "<p style='text-align:center'>Aucun message</p>";
+return;
+}
 
-    Object.entries(snap.val()).reverse().forEach(([id, msg])=>{
+Object.entries(snap.val()).reverse().forEach(([id,msg])=>{
 
-        inboxEl.innerHTML += `
-        <div style="
-            background:#111;
-            padding:12px;
-            border-radius:10px;
-            margin-top:10px;
-            border-left:3px solid ${msg.read ? "#444" : "#00d2ff"};
-        ">
+const type = msg.from || "system";
 
-            ${msg.text ? `<b>${msg.text}</b>` : ""}
+// 🎨 STYLE
+let color = "#111";
+if(type === "admin") color = "#003b4d";
+if(type === "system") color = "#1a1a1a";
 
-            ${msg.image ? `<img src="${msg.image}" style="width:100%;margin-top:5px;border-radius:8px;">` : ""}
+inboxEl.innerHTML += `
+<div style="
+background:${color};
+padding:12px;
+border-radius:10px;
+margin-top:10px;
+border-left:3px solid ${msg.read ? "#444" : "#00d2ff"};
+">
 
-            <small style="display:block;margin-top:5px;opacity:0.7;">
-                ${new Date(msg.date).toLocaleString()}
-            </small>
+<b>${type === "admin" ? "🛡️ ADMIN" : type === "user" ? "👤 VOUS" : "⚙️ SYSTEM"}</b><br>
 
-            <div style="margin-top:8px;display:flex;gap:5px;">
-                <button onclick="copyMsg('${msg.text || ""}')">📋 Copier</button>
-                <button onclick="deleteMsg('${id}')">🗑️ Supprimer</button>
-            </div>
+${msg.text ? `<b>${msg.text}</b>` : ""}
 
-        </div>
-        `;
-    });
+${msg.image ? `<img src="${msg.image}" style="width:100%;margin-top:5px;border-radius:8px;">` : ""}
+
+<small style="display:block;margin-top:5px;opacity:0.7;">
+${msg.date ? new Date(msg.date).toLocaleString() : ""}
+</small>
+
+<div style="margin-top:8px;display:flex;gap:5px;">
+<button onclick="copyMsg(\`${msg.text || ""}\`)">📋</button>
+<button onclick="deleteMsg('${id}')">🗑️</button>
+</div>
+
+</div>
+`;
+
+});
 
 });
 
@@ -265,18 +275,18 @@ onValue(ref(db, "messages/" + userPhone), snap=>{
 
 // 📋 Copier
 window.copyMsg = (text)=>{
-    if(!text) return alert("Vide");
+if(!text) return alert("Vide");
 
-    navigator.clipboard.writeText(text)
-    .then(()=> alert("✅ Copié"))
-    .catch(()=> alert(text));
+navigator.clipboard.writeText(text)
+.then(()=> alert("✅ Copié"))
+.catch(()=> alert(text));
 };
 
 // 🗑️ Supprimer
 window.deleteMsg = async(id)=>{
-    if(confirm("Supprimer ce message ?")){
-        await remove(ref(db,"messages/"+userPhone+"/"+id));
-    }
+if(confirm("Supprimer ce message ?")){
+await remove(ref(db,"messages/"+userPhone+"/"+id));
+}
 };
 
 // ================= ✉️ ENVOYER AU SUPPORT =================
@@ -292,7 +302,7 @@ try{
 
 await push(ref(db,"messages/"+userPhone),{
 text,
-from:"user",
+from:"user", // 🔥 IMPORTANT
 name: currentUser.name || "Utilisateur",
 phone: userPhone,
 photo: currentUser.photo || "",
@@ -300,7 +310,7 @@ date: Date.now(),
 read:false
 });
 
-document.getElementById("msgInput").value = "";
+document.getElementById("msgInput").value="";
 
 alert("✅ Message envoyé");
 
