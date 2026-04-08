@@ -332,7 +332,7 @@ for(const [user, cmds] of Object.entries(snap.val())){
             📊 Type : ${c.type || "-"}<br>
             🔢 Quantité : ${c.quantity || 0}<br>
             🔗 Lien : ${c.link || "-"}<br>
-            
+            🆔 plan : ${c.plan || "-"}<br>
             `;
         }
 
