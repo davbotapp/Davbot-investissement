@@ -1,167 +1,131 @@
-// ================= 📩 MESSAGE SYSTEM =================
+// ================= FIREBASE =================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import {
+getDatabase, ref, push, onValue, get
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// ================= 📤 ADMIN → USER =================
-export async function sendAdminMsg(db){
+const firebaseConfig = {
+apiKey:"AIza...",
+authDomain:"starlink-investit.firebaseapp.com",
+databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
+projectId:"starlink-investit"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ================= ENVOYER MESSAGE =================
+window.sendMsg = async ()=>{
 
 const user = document.getElementById("target").value.trim();
-const msgInput = document.getElementById("msg");
-const msg = msgInput.value.trim();
-const fileInput = document.getElementById("uploadFile");
-const btn = document.querySelector(".mainBtn");
+const text = document.getElementById("msg").value.trim();
+const file = document.getElementById("uploadFile").files[0];
 
 if(!user){
-    alert("❌ Numéro utilisateur requis");
-    return;
+alert("❌ Numéro requis");
+return;
 }
 
-// check user
-const userSnap = await get(ref(db,"users/"+user));
-
-if(!userSnap.exists()){
-    alert("❌ Utilisateur introuvable");
-    return;
+if(!text && !file){
+alert("❌ Message vide");
+return;
 }
 
-// UI loading
-btn.disabled = true;
-btn.innerText = "⏳ Envoi...";
+let image = "";
 
-try{
-
-let imageBase64 = null;
-
-// 📷 IMAGE
-if(fileInput.files.length > 0){
-
-    const file = fileInput.files[0];
-
-    if(!file.type.startsWith("image/")){
-        alert("❌ Image uniquement");
-        resetBtn(btn);
-        return;
-    }
-
-    imageBase64 = await new Promise((resolve)=>{
-        const reader = new FileReader();
-        reader.onload = e => resolve(e.target.result);
-        reader.readAsDataURL(file);
-    });
-
-}
-
-// 📤 SEND
-if(!msg && !imageBase64){
-    alert("❌ Message vide");
-    resetBtn(btn);
-    return;
-}
+// 📸 convertir image en base64
+if(file){
+const reader = new FileReader();
+reader.onload = async ()=>{
+image = reader.result;
 
 await push(ref(db,"messages/"+user),{
-    text: msg || "📷 Image envoyée",
-    image: imageBase64,
-    from:"admin",
-    date: Date.now(),
-    read:false,
-    type:"chat"
+text,
+image,
+from:"admin",
+date:Date.now(),
+read:false
 });
 
-// UI
+alert("✅ Message envoyé avec image");
+
+document.getElementById("msg").value="";
+document.getElementById("uploadFile").value="";
+};
+
+reader.readAsDataURL(file);
+
+}else{
+
+await push(ref(db,"messages/"+user),{
+text,
+from:"admin",
+date:Date.now(),
+read:false
+});
+
 alert("✅ Message envoyé");
 
-// reset
-msgInput.value="";
-fileInput.value="";
-
-resetBtn(btn);
-
-}catch(err){
-
-console.error(err);
-alert("❌ Erreur");
-
-resetBtn(btn);
+document.getElementById("msg").value="";
 }
+};
 
-}
-
-// ================= 🔁 RESET BTN =================
-function resetBtn(btn){
-btn.disabled = false;
-btn.innerText = "Envoyer";
-}
-
-
-// ================= 📥 SUPPORT USER =================
-export function listenSupportMessages(db){
-
-onValue(ref(db,"support_messages"), snap=>{
+// ================= AFFICHER MESSAGES =================
+onValue(ref(db,"messages"), async snap=>{
 
 const box = document.getElementById("userMessages");
 if(!box) return;
 
-box.innerHTML = "";
+box.innerHTML = "⏳ Chargement...";
 
 if(!snap.exists()){
-box.innerHTML = "<p>Aucun message utilisateur</p>";
+box.innerHTML = "<small>Aucun message</small>";
 return;
 }
 
-Object.entries(snap.val()).reverse().forEach(([id,msg])=>{
+let html = "";
 
-const name = msg.name || "Utilisateur";
-const phone = msg.phone || "Non défini";
-const photo = msg.photo || "";
-const text = msg.text || "";
-const image = msg.image || "";
-const date = msg.date ? new Date(msg.date).toLocaleString() : "";
+// 🔥 parcourir tous les users
+for(const [user, msgs] of Object.entries(snap.val())){
 
-// avatar
-const avatar = photo
-? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;">`
-: `<div style="
-width:50px;height:50px;border-radius:50%;
-background:#00d2ff;display:flex;
-align-items:center;justify-content:center;
-color:black;font-weight:bold;">
-${name.substring(0,2)}
-</div>`;
+// 🔥 récupérer nom utilisateur
+let name = user;
 
-// image
-const imageBox = image
-? `<img src="${image}" style="width:100%;margin-top:10px;border-radius:10px;">`
+try{
+const userSnap = await get(ref(db,"users/"+user));
+if(userSnap.exists()){
+name = userSnap.val().name || user;
+}
+}catch(e){}
+
+// 🔥 parcourir messages
+for(const [id, m] of Object.entries(msgs)){
+
+const date = m.date
+? new Date(m.date).toLocaleString()
 : "";
 
-// UI
-box.innerHTML += `
-<div class="card">
+html += `
+<div class="card" style="margin-bottom:8px;">
 
-<div style="display:flex;gap:10px;align-items:center;">
-${avatar}
-<div>
-<b>${name}</b><br>
-📱 ${phone}
-</div>
+<b>${name}</b> 📱 ${user}<br>
+
+<div style="margin-top:5px;">
+${m.text || ""}
 </div>
 
-<hr>
+${m.image ? `
+<img src="${m.image}" style="width:100%;margin-top:5px;border-radius:10px;">
+` : ""}
 
-📝 ${text || "<i>Aucun message</i>"}
-${imageBox}
-
-<br><small>${date}</small>
-
-<div style="margin-top:10px;display:flex;gap:5px;">
-
-<button onclick="copyUserMsg(\`${text}\`)">📋</button>
-<button onclick="deleteUserMsg('${id}')" style="background:red;">🗑️</button>
-
-</div>
+<small style="opacity:0.6;">${date}</small>
 
 </div>
 `;
-
-});
-
-});
+}
 
 }
+
+box.innerHTML = html;
+
+});
