@@ -280,25 +280,36 @@ window.deleteMsg = async(id)=>{
 };
 
 // ================= ✉️ ENVOYER AU SUPPORT =================
+
+// ================= ✉️ ENVOYER MESSAGE (USER → ADMIN) =================
 document.getElementById("sendBtn").onclick = async ()=>{
 
-    const text = document.getElementById("msgInput").value.trim();
+const text = document.getElementById("msgInput").value.trim();
 
-    if(!text) return alert("Message vide");
+if(!text) return alert("Message vide");
 
-    await push(ref(db,"support_messages"),{
-        name: currentUser.name || "Utilisateur",
-        phone: userPhone,
-        photo: currentUser.photo || "",
-        text,
-        date: Date.now()
-    });
+try{
 
-    document.getElementById("msgInput").value = "";
+await push(ref(db,"messages/"+userPhone),{
+text,
+from:"user",
+name: currentUser.name || "Utilisateur",
+phone: userPhone,
+photo: currentUser.photo || "",
+date: Date.now(),
+read:false
+});
 
-    alert("✅ Message envoyé à l'admin");
+document.getElementById("msgInput").value = "";
+
+alert("✅ Message envoyé");
+
+}catch(e){
+console.error(e);
+alert("❌ Erreur");
+}
+
 };
-
 // ================= LOGOUT =================
 
 document.getElementById("logout").onclick = ()=>{
