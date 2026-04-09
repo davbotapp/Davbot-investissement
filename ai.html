@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IA Bots - Davbot</title>
 
-<!-- ICONS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
@@ -22,12 +21,34 @@ body{
     color:white;
 }
 
+/* 🔥 BANNIÈRE */
+.banner{
+    width:100%;
+    height:180px;
+    overflow:hidden;
+    position:relative;
+}
+
+.banner img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.banner::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(to bottom,transparent,#050a14);
+}
+
 /* LAYOUT */
 .overlay{
     padding:15px;
     min-height:100vh;
 }
 
+/* HEADER */
 .header{
     text-align:center;
     margin-bottom:15px;
@@ -129,7 +150,7 @@ button:hover{
     transform:scale(1.05);
 }
 
-/* EMPTY TEXT */
+/* EMPTY */
 .empty{
     text-align:center;
     opacity:0.5;
@@ -141,12 +162,17 @@ button:hover{
 
 <body>
 
+<!-- 🔥 IMAGE HAUT -->
+<div class="banner">
+<img src="https://i.ibb.co/QvvGv4SV/file-00000000210871f795ac7e5de3367a32.png">
+</div>
+
 <div class="overlay">
 
 <div class="header">
 <h2><i class="fa-solid fa-robot"></i> IA Bots</h2>
 <p>Automatise ton business avec l'intelligence artificielle 🤖</p>
-    <p>vous recevrez la commande dans votre profil dans la messagerie admin</p>
+<p>📩 La commande apparaîtra dans ton profil (messagerie)</p>
 </div>
 
 <div class="card">
@@ -190,6 +216,30 @@ button:hover{
 </div>
 
 <script type="module" src="ai.js"></script>
+
+<!-- 🔥 SCRIPT UI -->
+<script>
+const types = document.querySelectorAll(".type-item");
+const priceEl = document.getElementById("price");
+const formZone = document.getElementById("formZone");
+
+types.forEach(item=>{
+    item.onclick = ()=>{
+        types.forEach(i=>i.classList.remove("active"));
+        item.classList.add("active");
+
+        const price = item.dataset.price;
+        priceEl.innerText = price + " FC";
+
+        // 🔥 FORM DYNAMIQUE
+        formZone.innerHTML = `
+        <input placeholder="Nom du projet">
+        <input placeholder="Numéro WhatsApp ou lien">
+        <textarea placeholder="Décris ton bot (fonction, objectif...)"></textarea>
+        `;
+    }
+});
+</script>
 
 </body>
 </html>
