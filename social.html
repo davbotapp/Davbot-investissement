@@ -23,10 +23,31 @@ background: radial-gradient(circle at top,#0b1c2c,#050a14);
 color:white;
 }
 
+/* ===== BANNIÈRE ===== */
+.banner{
+width:100%;
+height:160px;
+overflow:hidden;
+position:relative;
+}
+
+.banner img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.banner::after{
+content:"";
+position:absolute;
+inset:0;
+background:linear-gradient(to bottom,transparent,#050a14);
+}
+
 /* HEADER */
 .header{
 text-align:center;
-padding:20px 10px;
+padding:15px 10px;
 }
 
 .header h2{
@@ -57,8 +78,6 @@ text-align:center;
 cursor:pointer;
 transition:0.3s;
 border:1px solid rgba(255,255,255,0.08);
-position:relative;
-overflow:hidden;
 }
 
 .card:hover{
@@ -72,8 +91,8 @@ box-shadow:0 0 15px rgba(0,210,255,0.4);
 
 /* ICON */
 .card img{
-width:32px;
-height:32px;
+width:36px;
+height:36px;
 margin-bottom:6px;
 }
 
@@ -102,7 +121,6 @@ font-size:13px;
 outline:none;
 }
 
-/* INPUT FOCUS */
 select:focus,input:focus{
 box-shadow:0 0 10px var(--cyan);
 }
@@ -114,7 +132,6 @@ font-size:22px;
 color:var(--cyan);
 margin-top:12px;
 font-weight:bold;
-animation:fadeIn 0.5s;
 }
 
 /* BTN */
@@ -133,17 +150,17 @@ transition:0.3s;
 button:hover{
 transform:scale(1.03);
 }
-
-/* ANIMATION */
-@keyframes fadeIn{
-from{opacity:0;transform:translateY(10px);}
-to{opacity:1;transform:translateY(0);}
-}
 </style>
 </head>
 
 <body>
 
+<!-- 🔥 BANNIÈRE -->
+<div class="banner">
+<img src="https://i.ibb.co/3V38pKK/file-00000000bb7871f7807893baa360b9e6.png">
+</div>
+
+<!-- HEADER -->
 <div class="header">
 <h2><i class="fa-solid fa-share-nodes"></i> Réseaux Sociaux</h2>
 <p>Boost tes réseaux en quelques secondes 🚀</p>
@@ -152,47 +169,47 @@ to{opacity:1;transform:translateY(0);}
 <!-- PLATEFORMES -->
 <div class="grid" id="platforms">
 
-<div class="card" data-type="social" data-name="Facebook">
+<div class="card" data-name="Facebook">
 <img src="https://cdn.simpleicons.org/facebook/1877F2">
 <div class="name">Facebook</div>
 </div>
 
-<div class="card" data-type="social" data-name="Instagram">
+<div class="card" data-name="Instagram">
 <img src="https://cdn.simpleicons.org/instagram/E4405F">
 <div class="name">Instagram</div>
 </div>
 
-<div class="card" data-type="social" data-name="TikTok">
-<img src="https://cdn.simpleicons.org/tiktok/ffffff">
+<div class="card" data-name="TikTok">
+<img src="https://cdn.simpleicons.org/tiktok/46ff15">
 <div class="name">TikTok</div>
 </div>
 
-<div class="card" data-type="social" data-name="YouTube">
+<div class="card" data-name="YouTube">
 <img src="https://cdn.simpleicons.org/youtube/FF0000">
 <div class="name">YouTube</div>
 </div>
 
-<div class="card" data-type="social" data-name="Twitter">
-<img src="https://cdn.simpleicons.org/x/ffffff">
+<div class="card" data-name="Twitter">
+<img src="https://cdn.simpleicons.org/x/fffff0f">
 <div class="name">Twitter/X</div>
 </div>
 
-<div class="card" data-type="social" data-name="LinkedIn">
-<img src="https://cdn.simpleicons.org/linkedin/0A66C2">
+<div class="card" data-name="LinkedIn">
+<img src="https://cdn.simpleicons.org/github/0A66C2">
 <div class="name">LinkedIn</div>
 </div>
 
-<div class="card" data-type="messaging" data-name="WhatsApp">
+<div class="card" data-name="WhatsApp">
 <img src="https://cdn.simpleicons.org/whatsapp/25D366">
 <div class="name">WhatsApp</div>
 </div>
 
-<div class="card" data-type="messaging" data-name="Telegram">
+<div class="card" data-name="Telegram">
 <img src="https://cdn.simpleicons.org/telegram/26A5E4">
 <div class="name">Telegram</div>
 </div>
 
-<div class="card" data-type="messaging" data-name="Discord">
+<div class="card" data-name="Discord">
 <img src="https://cdn.simpleicons.org/discord/5865F2">
 <div class="name">Discord</div>
 </div>
@@ -228,6 +245,19 @@ to{opacity:1;transform:translateY(0);}
 </div>
 
 <script type="module" src="social.js"></script>
+
+<!-- SCRIPT SELECTION -->
+<script>
+let selected = "";
+
+document.querySelectorAll(".card").forEach(card=>{
+card.onclick = ()=>{
+document.querySelectorAll(".card").forEach(c=>c.classList.remove("active"));
+card.classList.add("active");
+selected = card.dataset.name;
+};
+});
+</script>
 
 </body>
 </html>
