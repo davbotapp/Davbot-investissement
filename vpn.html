@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>VPN - Davbot</title>
 
-<!-- 🔥 ICONS -->
+<!-- ICONS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
@@ -22,10 +22,31 @@ background:var(--dark);
 color:white;
 }
 
+/* 🔥 BANNIÈRE */
+.banner{
+width:100%;
+height:180px;
+overflow:hidden;
+position:relative;
+}
+
+.banner img{
+width:100%;
+height:100%;
+object-fit:cover;
+}
+
+.banner::after{
+content:"";
+position:absolute;
+inset:0;
+background:linear-gradient(to bottom,transparent,#050a14);
+}
+
 /* HEADER */
 .header{
 text-align:center;
-padding:20px;
+padding:15px;
 font-size:22px;
 color:var(--blue);
 font-weight:bold;
@@ -149,11 +170,16 @@ to{opacity:1; transform:translateY(0);}
 
 <body>
 
+<!-- 🔥 IMAGE HAUT -->
+<div class="banner">
+<img src="https://i.ibb.co/pv41yYxS/IMG-20260409-WA0045.webp">
+</div>
+
 <div class="header">🛡️ Choisir votre VPN</div>
 
 <div class="card">
 
-<!-- 🔥 VPN TYPE -->
+<!-- VPN TYPE -->
 <div class="vpn-list" id="vpnList">
 
 <div class="vpn-item active" data-vpn="OpenVPN">
@@ -178,19 +204,19 @@ ShadowSocks
 
 </div>
 
-<!-- 📡 RÉSEAU -->
+<!-- RÉSEAU -->
 <input type="text" id="reseau" placeholder="📡 Réseau (MTN, Airtel...)">
 
-<!-- ⏳ DURÉE -->
-<div class="option" data-price="2500" data-name="7 jours">7 jours - 2500 FC</div>
-<div class="option" data-price="5000" data-name="15 jours">15 jours - 5000 FC</div>
-<div class="option" data-price="8000" data-name="30 jours">30 jours - 8000 FC</div>
+<!-- DURÉE -->
+<div class="option" data-price="2500">7 jours - 2500 FC</div>
+<div class="option" data-price="5000">15 jours - 5000 FC</div>
+<div class="option" data-price="8000">30 jours - 8000 FC</div>
 
-<!-- 📦 INFOS -->
+<!-- INFOS -->
 <input type="text" id="vpnName" placeholder="Nom du VPN">
 <textarea id="config" placeholder="⚙️ Configuration spéciale (facultatif)"></textarea>
 
-<!-- 💰 PRIX -->
+<!-- PRIX -->
 <div class="price" id="price">0 FC</div>
 
 <button onclick="valider()">🚀 Commander</button>
@@ -198,6 +224,26 @@ ShadowSocks
 </div>
 
 <script type="module" src="vpn.js"></script>
+
+<!-- SCRIPT UI -->
+<script>
+// sélection VPN
+document.querySelectorAll(".vpn-item").forEach(item=>{
+item.onclick=()=>{
+document.querySelectorAll(".vpn-item").forEach(i=>i.classList.remove("active"));
+item.classList.add("active");
+};
+});
+
+// sélection durée
+document.querySelectorAll(".option").forEach(opt=>{
+opt.onclick=()=>{
+document.querySelectorAll(".option").forEach(o=>o.classList.remove("active"));
+opt.classList.add("active");
+document.getElementById("price").innerText = opt.dataset.price + " FC";
+};
+});
+</script>
 
 </body>
 </html>
