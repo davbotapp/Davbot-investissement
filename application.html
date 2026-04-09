@@ -7,7 +7,6 @@
 
 <!-- ICONS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
 <style>
 :root{
     --blue:#00d2ff;
@@ -21,7 +20,18 @@ body{
     background: radial-gradient(circle at top, #0b1c2c, #050a14);
     color:white;
 }
+/* ===== IMAGE FULL WIDTH ===== */
+.banner{
+    width:100%;
+    height:200px;
+    overflow:hidden;
+}
 
+.banner img{
+    width:100%;
+    height:100%;
+    object-fit:cover; /* 🔥 remplit toute la largeur */
+}
 /* ===== ANIMATION ===== */
 @keyframes fadeUp{
     from{opacity:0; transform:translateY(30px);}
@@ -229,12 +239,23 @@ button:hover{
 </head>
 
 <body>
-
+<!-- 🔥 IMAGE EN HAUT (PLEINE LARGEUR) -->
+<div class="banner">
+<img src="https://i.ibb.co/3V38pKK/file-00000000bb7871f7807893baa360b9e6.png">
+</div>
 <div class="overlay">
 
 <div class="header">
 <h2><i class="fa-solid fa-mobile-screen"></i> Création Application</h2>
 <p>Crée ton app comme une startup 🚀</p>
+</div>
+<!-- 🔥 IMAGE EN HAUT (PLEINE LARGEUR) --
+
+<div class="card">
+
+<div class="input-box">
+<i class="fa-solid fa-rocket"></i>
+<input id="name" placeholder="Nom de l'application">
 </div>
 
 <!-- TYPES -->
@@ -287,22 +308,9 @@ button:hover{
 <button onclick="valider()">
 <i class="fa-solid fa-paper-plane"></i> Commander
 </button>
-
+<p></p>
 </div>
 
-</div>
-    <!-- 🔥 IMAGE APK -->
-<div class="apk-preview">
-    <div class="phone-frame">
-        <img src="https://i.ibb.co/3V38pKK/file-00000000bb7871f7807893baa360b9e6.png">
-    </div>
-</div>
-
-<div class="card">
-
-<div class="input-box">
-<i class="fa-solid fa-rocket"></i>
-<input id="name" placeholder="Nom de l'application">
 </div>
 
 <script type="module" src="application.js"></script>
