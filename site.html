@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Création Site Web Pro</title>
 
-<!-- ICONS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
@@ -22,12 +21,34 @@ body{
     color:white;
 }
 
-/* ===== LAYOUT ===== */
+/* 🔥 BANNIÈRE */
+.banner{
+    width:100%;
+    height:180px;
+    overflow:hidden;
+    position:relative;
+}
+
+.banner img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.banner::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:linear-gradient(to bottom,transparent,#050a14);
+}
+
+/* LAYOUT */
 .overlay{
     min-height:100vh;
     padding:15px;
 }
 
+/* HEADER */
 .header{
     text-align:center;
     margin-bottom:20px;
@@ -43,7 +64,7 @@ body{
     font-size:14px;
 }
 
-/* ===== CARD ===== */
+/* CARD */
 .card{
     max-width:600px;
     margin:auto;
@@ -60,7 +81,7 @@ body{
     to{opacity:1; transform:translateY(0);}
 }
 
-/* ===== INPUT PRO ===== */
+/* INPUT */
 .input-box{
     position:relative;
     margin-bottom:8px;
@@ -75,9 +96,8 @@ body{
     opacity:0.6;
 }
 
-input{
+input, textarea{
     width:90%;
-    height:25px;
     padding:8px 10px 8px 30px;
     border-radius:8px;
     border:none;
@@ -87,18 +107,11 @@ input{
 }
 
 textarea{
-    width:90%;
     height:70px;
-    padding:8px 10px 8px 30px;
-    border-radius:8px;
-    border:none;
-    background:rgba(255,255,255,0.06);
-    color:white;
-    font-size:13px;
     resize:none;
 }
 
-/* ===== TYPES ===== */
+/* TYPES */
 .types{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -126,7 +139,7 @@ textarea{
     font-weight:bold;
 }
 
-/* ===== FILE ===== */
+/* FILE */
 .file{
     border:1px dashed var(--blue);
     padding:10px;
@@ -136,7 +149,7 @@ textarea{
     font-size:13px;
 }
 
-/* ===== PRICE ===== */
+/* PRICE */
 .price{
     text-align:center;
     font-size:18px;
@@ -144,7 +157,7 @@ textarea{
     margin-top:10px;
 }
 
-/* ===== BUTTON ===== */
+/* BUTTON */
 button{
     width:100%;
     padding:12px;
@@ -165,6 +178,11 @@ button:hover{
 
 <body>
 
+<!-- 🔥 IMAGE HAUT -->
+<div class="banner">
+<img src="https://i.imgur.com/zxYUSx2.jpeg">
+</div>
+
 <div class="overlay">
 
 <div class="header">
@@ -181,14 +199,15 @@ button:hover{
 
 <!-- TYPE -->
 <div class="types" id="types">
-<div class="type-item"><i class="fa-solid fa-cart-shopping"></i> E-commerce</div>
-<div class="type-item"><i class="fa-solid fa-building"></i> Entreprise</div>
-<div class="type-item"><i class="fa-solid fa-blog"></i> Blog</div>
-<div class="type-item"><i class="fa-solid fa-user"></i> Portfolio</div>
-<div class="type-item"><i class="fa-solid fa-bolt"></i> Landing</div>
-<div class="type-item"><i class="fa-solid fa-layer-group"></i> Autre</div>
+<div class="type-item">🛒 E-commerce</div>
+<div class="type-item">🏢 Entreprise</div>
+<div class="type-item">📰 Blog</div>
+<div class="type-item">👤 Portfolio</div>
+<div class="type-item">⚡ Landing</div>
+<div class="type-item">📦 Autre</div>
 </div>
 <p></p>
+
 <div class="input-box">
 <i class="fa-solid fa-palette"></i>
 <input id="color" placeholder="Couleur principale">
@@ -210,7 +229,7 @@ button:hover{
 </div>
 
 <div class="file">
-<i class="fa-solid fa-image"></i> Image du projet
+📷 Image du projet
 <input type="file" id="image">
 </div>
 
@@ -223,7 +242,7 @@ button:hover{
 <div class="price" id="price">35000 FC</div>
 
 <button onclick="valider()">
-<i class="fa-solid fa-paper-plane"></i> Commander
+🚀 Commander
 </button>
 
 </div>
@@ -231,6 +250,26 @@ button:hover{
 </div>
 
 <script type="module" src="site.js"></script>
+
+<!-- 🔥 SCRIPT UI -->
+<script>
+// sélection type
+document.querySelectorAll("#types .type-item").forEach(item=>{
+item.onclick=()=>{
+document.querySelectorAll("#types .type-item").forEach(i=>i.classList.remove("active"));
+item.classList.add("active");
+};
+});
+
+// sélection vitesse + prix
+document.querySelectorAll("#speed .type-item").forEach(item=>{
+item.onclick=()=>{
+document.querySelectorAll("#speed .type-item").forEach(i=>i.classList.remove("active"));
+item.classList.add("active");
+document.getElementById("price").innerText = item.dataset.price + " FC";
+};
+});
+</script>
 
 </body>
 </html>
