@@ -67,24 +67,87 @@ function updatePrice(){
 
   const prices = {
 
-    cheap: {
-      Likes: 2900,
-      Vues: 1000,
-      Followers: 12550,
-      "Membre Groupe": 4000,
-      "Membre Chaîne": 6000,
-      "Membre Canal": 5000
-    },
+cheap: {
 
-    premium: {
-      Likes: 4250,
-      Vues: 1450,
-      Followers: 49000,
-      "Membre Groupe": 4600,
-      "Membre Chaîne": 6700,
-      "Membre Canal": 5800
-    }
-  };
+TikTok: {
+Vues: 1100,
+Likes: 3000,
+Followers: 10000,
+"Pack": 6000
+},
+
+Facebook: {
+Vues: 1000,
+Likes: 2850,
+Followers: 9500,
+"Pack": 5500
+},
+
+YouTube: {
+Vues: 1100,
+Likes: 3000,
+Followers: 12000,
+"Pack": 6000
+},
+
+Instagram: {
+Vues: 1100,
+Likes: 2800,
+Followers: 11000,
+"Pack": 6000
+},
+
+Telegram: {
+Membre: 4000,
+Reaction: 2500
+},
+
+WhatsApp: {
+Abonne: 25000,
+Reaction: 5000
+},
+
+X: {
+Vues: 1300,
+Likes: 2000,
+Followers: 8000
+}
+
+},
+
+premium: {
+
+TikTok: {
+Vues: 1500,
+Likes: 4500,
+Followers: 40000,
+"Pack": 9000
+},
+
+Facebook: {
+Vues: 1500,
+Likes: 4400,
+Followers: 35000,
+"Pack": 88000
+},
+
+Instagram: {
+Vues: 1600,
+Likes: 4300,
+Followers: 28000,
+"Pack": 9000
+},
+
+YouTube: {
+Vues: 1900,
+Likes: 5000,
+Followers: 50000,
+"Pack": 9000
+}
+
+}
+
+};
 
   const base = prices[plan]?.[selectedType] || 0;
 
