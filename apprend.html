@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apprendre - Davbot</title>
+
+<style>
+:root{
+--blue:#6c5cff;
+--cyan:#00d2ff;
+--dark:#050a14;
+--glass:rgba(255,255,255,0.05);
+}
+
+body{
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background: radial-gradient(circle at top,#0b1c2c,#050a14);
+color:white;
+}
+
+/* HEADER */
+.header{
+text-align:center;
+padding:20px;
+}
+
+.header h2{
+color:var(--cyan);
+}
+
+/* GRID */
+.grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:12px;
+padding:15px;
+}
+
+/* CARD */
+.card{
+background:var(--glass);
+padding:15px;
+border-radius:12px;
+cursor:pointer;
+text-align:center;
+transition:0.3s;
+border:1px solid rgba(255,255,255,0.08);
+}
+
+.card:hover{
+transform:translateY(-5px);
+}
+
+.card.active{
+border:1px solid var(--cyan);
+box-shadow:0 0 15px rgba(0,210,255,0.4);
+}
+
+.icon{
+font-size:28px;
+}
+
+.title{
+font-weight:bold;
+}
+
+.desc{
+font-size:12px;
+opacity:0.6;
+}
+
+/* CONTENT */
+.content{
+padding:15px;
+max-width:600px;
+margin:auto;
+display:none;
+}
+
+/* BUTTON */
+button{
+width:100%;
+padding:12px;
+margin-top:10px;
+border:none;
+border-radius:10px;
+background:linear-gradient(90deg,var(--blue),var(--cyan));
+font-weight:bold;
+cursor:pointer;
+}
+
+.locked{
+background:gray;
+cursor:not-allowed;
+}
+
+.price{
+color:var(--cyan);
+font-weight:bold;
+margin-top:10px;
+}
+
+.duration{
+font-size:13px;
+opacity:0.7;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<h2>🎓 Apprendre</h2>
+<p>Formations premium Davbot 🚀</p>
+</div>
+
+<!-- COURSES -->
+<div class="grid">
+
+<div class="card" onclick="openCourse('web')">
+<div class="icon">🌐</div>
+<div class="title">HTML CSS JS</div>
+<div class="desc">Créer des sites web</div>
+</div>
+
+<div class="card" onclick="openCourse('ai')">
+<div class="icon">🤖</div>
+<div class="title">AI Bot</div>
+<div class="desc">Créer bots intelligents</div>
+</div>
+
+<div class="card" onclick="openCourse('business')">
+<div class="icon">💰</div>
+<div class="title">Business</div>
+<div class="desc">Gagner en ligne</div>
+</div>
+
+<div class="card" onclick="openCourse('vpn')">
+<div class="icon">🔐</div>
+<div class="title">VPN</div>
+<div class="desc">Sécurité internet</div>
+</div>
+
+</div>
+
+<!-- CONTENU -->
+<div class="content" id="contentBox"></div>
+
+<script type="module" src="apprend.js"></script>
+
+<script>
+
+function openCourse(course){
+
+const contentBox = document.getElementById("contentBox");
+
+const data = {
+
+web: {
+title:"🌐 HTML CSS JS",
+price:20000,
+duration:"⏳ 2 mois 10 jours",
+desc:"Apprends à créer des sites web modernes de votre choix"
+},
+
+ai: {
+title:"🤖 AI Bot",
+price:10000,
+duration:"⏳ 10 jours",
+desc:"Créer des bots intelligents pour Facebook WhatsApp etc"
+},
+
+business: {
+title:"💰 Business",
+price:15000,
+duration:"⏳ 30 jours",
+desc:"Gagner de l'argent en ligne par de moins legal et facile"
+},
+
+vpn: {
+title:"🔐 VPN",
+price:7000,
+duration:"⏳ 7 jours",
+desc:"Sécurité et contournement connexion gratuit"
+}
+
+};
+
+const c = data[course];
+
+contentBox.style.display = "block";
+
+contentBox.innerHTML = `
+<h3>${c.title}</h3>
+<p>${c.desc}</p>
+
+<div class="duration">${c.duration}</div>
+<div class="price">${c.price} FC</div>
+
+<button onclick="payer('${course}',${c.price})">
+💳 Payer
+</button>
+
+<button id="startBtn" class="locked">
+🔒 En attente validation admin
+</button>
+`;
+
+}
+
+</script>
+
+</body>
+</html>
