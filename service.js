@@ -30,12 +30,12 @@ const services = [
         icon: "📲",
         page: "social.html"
     },
-    {
-        nom: "Hébergement",
-        desc: "Serveur rapide et sécurisé",
-        icon: "💾",
-        page: "hebergement.html"
-    },
+   {
+    nom: "Davbot Academy",
+    desc: "Plateforme de formation IA, business et technologie",
+    icon: "💎",
+    page: "apprend.html"
+   },
     {
         nom: "VPN",
         desc: "Connexion sécurisée et anonyme",
