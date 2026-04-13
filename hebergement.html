@@ -3,18 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hébergement</title>
+<title>Formation HTML CSS JS</title>
 
 <style>
 :root{
---blue:#00d2ff;
+--blue:#6c5cff;
+--cyan:#00d2ff;
 --dark:#050a14;
+--glass:rgba(255,255,255,0.05);
 }
 
 body{
 margin:0;
-font-family:sans-serif;
-background:var(--dark);
+font-family:'Segoe UI',sans-serif;
+background: radial-gradient(circle at top,#0b1c2c,#050a14);
 color:white;
 }
 
@@ -22,85 +24,91 @@ color:white;
 .header{
 text-align:center;
 padding:20px;
-color:var(--blue);
-font-size:22px;
+}
+
+.header h2{
+color:var(--cyan);
+}
+
+/* CONTAINER */
+.container{
+padding:15px;
+max-width:700px;
+margin:auto;
 }
 
 /* CARD */
 .card{
-margin:15px;
+background:var(--glass);
 padding:15px;
-border-radius:15px;
-background:rgba(255,255,255,0.05);
+border-radius:12px;
+margin-bottom:15px;
 }
 
-/* OPTIONS */
-.option{
-padding:15px;
-margin:10px 0;
-border-radius:10px;
-background:#111;
-cursor:pointer;
-text-align:center;
-}
-
-.option.active{
-background:var(--blue);
-color:black;
-}
-
-/* INPUT */
-input{
+/* BUTTON */
+button{
 width:100%;
 padding:12px;
 margin-top:10px;
 border:none;
 border-radius:10px;
-background:#111;
+background:linear-gradient(90deg,var(--blue),var(--cyan));
+font-weight:bold;
+cursor:pointer;
+}
+
+/* INPUT */
+textarea{
+width:100%;
+padding:10px;
+margin-top:10px;
+border-radius:8px;
+border:none;
+background:rgba(255,255,255,0.05);
 color:white;
 }
 
-/* PRICE */
-.price{
-text-align:center;
-font-size:24px;
-margin-top:10px;
-color:var(--blue);
+.day{
+color:var(--cyan);
+font-weight:bold;
 }
 
-/* BTN */
-button{
-width:100%;
-padding:15px;
-margin-top:15px;
-border:none;
-border-radius:10px;
-background:var(--blue);
+.price{
+color:var(--cyan);
 font-weight:bold;
+}
+
+.locked{
+background:gray;
+cursor:not-allowed;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">💾 Hébergement Web</div>
+<div class="header">
+<h2>🌐 Formation HTML CSS JS</h2>
+<p>Durée: 2 mois 10 jours</p>
+</div>
+
+<div class="container">
 
 <div class="card">
+<div class="day" id="dayTitle">Jour 1</div>
+<h3 id="lessonTitle"></h3>
+<p id="lessonContent"></p>
+</div>
 
-<div class="option" data-price="2500" data-name="30 jours">30 jours - 2500 FC</div>
-<div class="option" data-price="3500" data-name="60 jours">60 jours - 3500 FC</div>
-<div class="option" data-price="4000" data-name="90 jours">90 jours - 4000 FC</div>
-
-<input type="text" id="siteName" placeholder="Nom du site">
-<input type="text" id="siteUrl" placeholder="Lien du site">
-
-<div class="price" id="price">0 FC</div>
-
-<button onclick="valider()">🚀 Commander</button>
+<div class="card">
+<h3>❓ Question au prof IA</h3>
+<textarea id="question" placeholder="Pose ta question sur la leçon"></textarea>
+<button onclick="ask()">Envoyer</button>
+</div>
 
 </div>
 
-<script type="module" src="hebergement.js"></script>
+<script type="module" src="HTML.js"></script>
 
 </body>
 </html>
