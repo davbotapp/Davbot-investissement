@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Formation HTML CSS JS</title>
+
+<title>Formation Dev - Davbot</title>
 
 <style>
 :root{
@@ -26,27 +27,67 @@ text-align:center;
 padding:20px;
 }
 
-.header h2{
+.header h1{
 color:var(--cyan);
+margin:0;
 }
 
-/* CONTAINER */
-.container{
-padding:15px;
-max-width:700px;
-margin:auto;
+.header p{
+opacity:0.6;
+font-size:14px;
 }
 
-/* CARD */
-.card{
+/* NAV */
+.nav{
+display:flex;
+justify-content:center;
+gap:10px;
+margin:10px;
+}
+
+.nav button{
+padding:10px 15px;
+border:none;
+border-radius:8px;
 background:var(--glass);
-padding:15px;
-border-radius:12px;
-margin-bottom:15px;
+color:white;
+cursor:pointer;
 }
 
-/* BUTTON */
-button{
+.nav button.active{
+background:linear-gradient(90deg,var(--blue),var(--cyan));
+}
+
+/* BOX */
+.box{
+max-width:700px;
+margin:20px auto;
+padding:20px;
+background:var(--glass);
+border-radius:12px;
+}
+
+/* CODE */
+pre{
+background:black;
+padding:10px;
+border-radius:8px;
+overflow:auto;
+}
+
+/* INPUT */
+input{
+width:100%;
+padding:10px;
+margin-top:10px;
+border:none;
+border-radius:8px;
+background:rgba(255,255,255,0.08);
+color:white;
+}
+
+/* BTN */
+.mainBtn{
 width:100%;
 padding:12px;
 margin-top:10px;
@@ -57,58 +98,82 @@ font-weight:bold;
 cursor:pointer;
 }
 
-/* INPUT */
-textarea{
-width:100%;
-padding:10px;
+/* ANSWER */
+.answer{
 margin-top:10px;
+background:rgba(0,0,0,0.3);
+padding:10px;
 border-radius:8px;
-border:none;
-background:rgba(255,255,255,0.05);
-color:white;
-}
-
-.day{
-color:var(--cyan);
-font-weight:bold;
-}
-
-.price{
-color:var(--cyan);
-font-weight:bold;
-}
-
-.locked{
-background:gray;
-cursor:not-allowed;
 }
 </style>
 </head>
 
 <body>
 
+<!-- HEADER -->
 <div class="header">
-<h2>🌐 Formation HTML CSS JS</h2>
-<p>Durée: 2 mois 10 jours</p>
+<h1>🎓 Formation Développeur</h1>
+<p>HTML • CSS • JavaScript (70 jours)</p>
 </div>
 
-<div class="container">
-
-<div class="card">
-<div class="day" id="dayTitle">Jour 1</div>
-<h3 id="lessonTitle"></h3>
-<p id="lessonContent"></p>
+<!-- NAVIGATION -->
+<div class="nav">
+<button onclick="loadSection('html')" class="active">HTML</button>
+<button onclick="loadSection('css')">CSS</button>
+<button onclick="loadSection('js')">JS</button>
 </div>
 
-<div class="card">
-<h3>❓ Question au prof IA</h3>
-<textarea id="question" placeholder="Pose ta question sur la leçon"></textarea>
-<button onclick="ask()">Envoyer</button>
+<!-- CONTENU -->
+<div class="box" id="lessonBox">
+Chargement...
 </div>
 
+<!-- IA -->
+<div class="box">
+<h3>🤖 Pose ta question</h3>
+
+<input id="question" placeholder="Pose une question sur la leçon">
+
+<button class="mainBtn" onclick="ask()">Demander</button>
+
+<div id="answer" class="answer"></div>
 </div>
 
-<script type="module" src="HTML.js"></script>
+<!-- SCRIPTS -->
+<script src="HTML.js"></script>
+<script src="CSS.js"></script>
+<script src="JS.js"></script>
+
+<script>
+
+// SECTION ACTUELLE
+let currentSection = "html";
+
+// CHANGER SECTION
+function loadSection(section){
+
+currentSection = section;
+
+// style bouton
+document.querySelectorAll(".nav button")
+.forEach(b=>b.classList.remove("active"));
+
+event.target.classList.add("active");
+
+// 🔥 CHARGEMENT
+if(section === "html"){
+showLesson();
+}
+else if(section === "css"){
+showCSS();
+}
+else{
+showJS();
+}
+
+}
+
+</script>
 
 </body>
 </html>
