@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Formation Dev - Davbot</title>
+<title>Formation HTML - Davbot</title>
 
 <style>
 :root{
@@ -14,6 +13,7 @@
 --glass:rgba(255,255,255,0.05);
 }
 
+/* BODY */
 body{
 margin:0;
 font-family:'Segoe UI',sans-serif;
@@ -27,83 +27,117 @@ text-align:center;
 padding:20px;
 }
 
-.header h1{
-color:var(--cyan);
+.header h2{
 margin:0;
+color:var(--cyan);
 }
 
 .header p{
 opacity:0.6;
-font-size:14px;
+font-size:13px;
 }
 
-/* NAV */
-.nav{
-display:flex;
-justify-content:center;
-gap:10px;
-margin:10px;
+/* PROGRESSION */
+.progressBox{
+max-width:700px;
+margin:auto;
+padding:10px;
 }
 
-.nav button{
-padding:10px 15px;
-border:none;
-border-radius:8px;
-background:var(--glass);
-color:white;
-cursor:pointer;
+.progress{
+height:10px;
+background:#111;
+border-radius:10px;
+overflow:hidden;
 }
 
-.nav button.active{
+.progressBar{
+height:100%;
+width:0%;
 background:linear-gradient(90deg,var(--blue),var(--cyan));
 }
 
-/* BOX */
-.box{
+/* LESSON */
+.lesson{
 max-width:700px;
-margin:20px auto;
-padding:20px;
+margin:auto;
 background:var(--glass);
+padding:15px;
 border-radius:12px;
+margin-top:10px;
+border:1px solid rgba(255,255,255,0.08);
 }
 
-/* CODE */
-pre{
-background:black;
-padding:10px;
-border-radius:8px;
-overflow:auto;
+.lesson h3{
+color:var(--cyan);
+}
+
+/* TEXT */
+.lesson p{
+font-size:14px;
+line-height:1.5;
+}
+
+/* NAVIGATION */
+.nav{
+display:flex;
+gap:10px;
+margin-top:10px;
+}
+
+.nav button{
+flex:1;
 }
 
 /* INPUT */
-input{
-width:100%;
-padding:10px;
-margin-top:10px;
-border:none;
-border-radius:8px;
-background:rgba(255,255,255,0.08);
-color:white;
-}
-
-/* BTN */
-.mainBtn{
+textarea{
 width:100%;
 padding:12px;
 margin-top:10px;
 border:none;
 border-radius:10px;
+background:#0b1c2c;
+color:white;
+outline:none;
+}
+
+/* BUTTON */
+button{
+padding:12px;
+border:none;
+border-radius:10px;
 background:linear-gradient(90deg,var(--blue),var(--cyan));
 font-weight:bold;
 cursor:pointer;
+transition:0.3s;
 }
 
-/* ANSWER */
-.answer{
-margin-top:10px;
-background:rgba(0,0,0,0.3);
+button:hover{
+transform:scale(1.02);
+}
+
+/* RESPONSE */
+.response{
+background:#111;
 padding:10px;
-border-radius:8px;
+margin-top:10px;
+border-radius:10px;
+font-size:13px;
+}
+
+/* LOCK */
+.lock{
+text-align:center;
+margin-top:20px;
+color:red;
+}
+
+/* FOOTER */
+.footer{
+text-align:center;
+margin-top:20px;
+opacity:0.6;
+font-size:12px;
 }
 </style>
 </head>
@@ -112,68 +146,52 @@ border-radius:8px;
 
 <!-- HEADER -->
 <div class="header">
-<h1>🎓 Formation Développeur</h1>
-<p>HTML • CSS • JavaScript (70 jours)</p>
+<h2>🌐 Formation HTML</h2>
+<p>Apprends à coder étape par étape 🚀</p>
 </div>
 
-<!-- NAVIGATION -->
-<div class="nav">
-<button onclick="loadSection('html')" class="active">HTML</button>
-<button onclick="loadSection('css')">CSS</button>
-<button onclick="loadSection('js')">JS</button>
+<!-- PROGRESSION -->
+<div class="progressBox">
+<p id="dayText">Jour 1</p>
+<div class="progress">
+<div class="progressBar" id="progressBar"></div>
+</div>
 </div>
 
-<!-- CONTENU -->
-<div class="box" id="lessonBox">
+<!-- LEÇON -->
+<div class="lesson" id="lessonBox">
 Chargement...
 </div>
 
-<!-- IA -->
-<div class="box">
-<h3>🤖 Pose ta question</h3>
-
-<input id="question" placeholder="Pose une question sur la leçon">
-
-<button class="mainBtn" onclick="ask()">Demander</button>
-
-<div id="answer" class="answer"></div>
+<!-- NAVIGATION -->
+<div class="lesson">
+<div class="nav">
+<button onclick="prevLesson()">⬅️ Précédent</button>
+<button onclick="nextLesson()">➡️ Suivant</button>
+</div>
 </div>
 
-<!-- SCRIPTS -->
-<script src="HTML.js"></script>
-<script src="CSS.js"></script>
-<script src="JS.js"></script>
+<!-- IA QUESTION -->
+<div class="lesson">
+<h3>🤖 Poser une question</h3>
 
-<script>
+<textarea id="questionInput" placeholder="Pose ta question sur la leçon du jour..."></textarea>
 
-// SECTION ACTUELLE
-let currentSection = "html";
+<button onclick="askAI()">Envoyer</button>
 
-// CHANGER SECTION
-function loadSection(section){
+<div id="aiResponse" class="response"></div>
+</div>
 
-currentSection = section;
+<!-- MESSAGE LOCK -->
+<div class="lock" id="lockBox"></div>
 
-// style bouton
-document.querySelectorAll(".nav button")
-.forEach(b=>b.classList.remove("active"));
+<!-- FOOTER -->
+<div class="footer">
+Davbot Formation © 2026
+</div>
 
-event.target.classList.add("active");
-
-// 🔥 CHARGEMENT
-if(section === "html"){
-showLesson();
-}
-else if(section === "css"){
-showCSS();
-}
-else{
-showJS();
-}
-
-}
-
-</script>
+<!-- JS -->
+<script type="module" src="HTML.js"></script>
 
 </body>
-</html>
+  </html>
