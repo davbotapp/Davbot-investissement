@@ -353,7 +353,7 @@ content = `
 `;
 }
 
-
+}
 
 lessons[i] = content;
 }
