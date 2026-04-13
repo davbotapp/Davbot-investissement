@@ -1,374 +1,207 @@
 // ================= CONFIG =================
-let currentDay = parseInt(localStorage.getItem("courseDay")) || 1;
-const totalDays = 70;
-
 const API_URL = "https://arychauhann.onrender.com/api/gemini-proxy2";
 
-// ================= LEÇONS HTML PRO =================
-const lessons = {
+// ================= VARIABLES =================
+let currentDay = parseInt(localStorage.getItem("html_day")) || 1;
+const maxDay = 70;
 
-1:{
-title:"📘 Définition HTML",
-content:`
-HTML (HyperText Markup Language) est le langage utilisé pour créer la structure d'une page web.
+// ================= ELEMENTS =================
+const lessonBox = document.getElementById("lessonBox");
+const dayText = document.getElementById("dayText");
+const progressBar = document.getElementById("progressBar");
 
-👉 Il permet de :
-- afficher du texte
-- ajouter des images
-- créer des boutons
-- organiser le contenu
+// ================= LEÇONS =================
+const lessons = {};
 
-⚠️ HTML n’est PAS un langage de programmation, c’est un langage de STRUCTURE.
-`
-},
+// 🔥 GENERATEUR AUTOMATIQUE
+for(let i=1;i<=70;i++){
 
-2:{
-title:"🌍 Introduction Web",
-content:`
-Un site web fonctionne avec 3 technologies :
+let content = "";
 
-🧱 HTML → Structure (squelette)
-🎨 CSS → Design (style)
-⚡ JS → Interaction (logique)
+if(i === 1){
+content = `
+<h3>📘 Jour 1 : Introduction HTML</h3>
+<p><b>HTML</b> signifie HyperText Markup Language.</p>
 
-👉 Exemple :
-HTML crée un bouton
-CSS le rend beau
-JS le rend cliquable
-`
-},
+<p>👉 C'est le langage utilisé pour créer la structure des sites web.</p>
 
-3:{
-title:"📦 Structure HTML complète",
-content:`
-Structure de base :
+<p>Exemple :</p>
+<pre>
+&lt;h1&gt;Bonjour&lt;/h1&gt;
+</pre>
 
-<!DOCTYPE html>
-<html>
-<head>
-<title>Mon site</title>
-</head>
-<body>
-Contenu ici
-</body>
-</html>
+<p>👉 Résultat : un titre affiché</p>
+`;
+}
 
-🔹 html → racine
-🔹 head → configuration
-🔹 body → contenu visible
-`
-},
+else if(i === 2){
+content = `
+<h3>📘 Jour 2 : Structure HTML</h3>
 
-4:{
-title:"🏷️ Balises HTML",
-content:`
-Une balise sert à structurer le contenu.
+<p>Un document HTML contient :</p>
 
-Exemple :
-<p>Bonjour</p>
+<pre>
+&lt;html&gt;
+&lt;head&gt;&lt;/head&gt;
+&lt;body&gt;&lt;/body&gt;
+&lt;/html&gt;
+</pre>
 
-👉 Ouverture : <p>
-👉 Fermeture : </p>
+<p>👉 body = contenu visible</p>
+`;
+}
 
-Certaines balises n'ont pas de fermeture :
-<img>
-`
-},
+else if(i === 3){
+content = `
+<h3>📘 Jour 3 : Les balises</h3>
 
-5:{
-title:"📝 Titres",
-content:`
-<h1>Grand titre</h1>
-<h2>Sous titre</h2>
-...
-<h6>Petit titre</h6>
+<p>Les balises sont la base du HTML :</p>
 
-👉 h1 = important
-👉 h6 = moins important
-`
-},
+<pre>
+&lt;p&gt;Texte&lt;/p&gt;
+</pre>
 
-6:{
-title:"📄 Paragraphes",
-content:`
-<p>Ceci est un texte</p>
+<p>👉 ouverture + fermeture</p>
+`;
+}
 
-👉 Sert à écrire du contenu
-👉 Important pour SEO
-`
-},
+else if(i === 4){
+content = `
+<h3>📘 Jour 4 : Titres</h3>
 
-7:{
-title:"🔗 Liens",
-content:`
-<a href="https://google.com">Clique ici</a>
+<pre>
+&lt;h1&gt;Titre&lt;/h1&gt;
+&lt;h2&gt;Sous-titre&lt;/h2&gt;
+</pre>
 
-👉 href = destination
-👉 ouvre un site
-`
-},
+<p>👉 h1 = plus grand</p>
+`;
+}
 
-8:{
-title:"🖼️ Images",
-content:`
-<img src="image.jpg">
+else if(i === 5){
+content = `
+<h3>📘 Jour 5 : Paragraphes</h3>
 
-👉 src = chemin image
-👉 pas de fermeture
-`
-},
+<pre>
+&lt;p&gt;Ceci est un texte&lt;/p&gt;
+</pre>
 
-9:{
-title:"📋 Listes",
-content:`
+<p>👉 utilisé pour écrire du contenu</p>
+`;
+}
+
+else if(i === 6){
+content = `
+<h3>📘 Jour 6 : Images</h3>
+
+<pre>
+&lt;img src="image.jpg"&gt;
+</pre>
+
+<p>👉 afficher une image</p>
+`;
+}
+
+else if(i === 7){
+content = `
+<h3>📘 Jour 7 : Liens</h3>
+
+<pre>
+&lt;a href="https://google.com"&gt;Aller&lt;/a&gt;
+</pre>
+
+<p>👉 permet de naviguer</p>
+`;
+}
+
+else{
+content = `
+<h3>📘 Jour ${i}</h3>
+
+<p>Tu continues ton apprentissage HTML.</p>
+
+<p>👉 Aujourd’hui tu pratiques :</p>
+
 <ul>
-<li>Item 1</li>
-<li>Item 2</li>
+<li>Structure</li>
+<li>Balises</li>
+<li>Organisation du code</li>
 </ul>
 
-👉 ul = liste non ordonnée
-👉 ol = liste numérotée
-`
-},
-
-10:{
-title:"📦 DIV (très important)",
-content:`
-<div>contenu</div>
-
-👉 sert à organiser
-👉 utilisé partout
-👉 base du design CSS
-`
-},
-
-11:{
-title:"🔤 SPAN",
-content:`
-<span>texte</span>
-
-👉 inline (petit élément)
-👉 styliser une partie du texte
-`
-},
-
-12:{
-title:"🔥 HTML5 (balises modernes)",
-content:`
-<header> → haut page
-<section> → section
-<footer> → bas page
-<nav> → menu
-
-👉 code propre et moderne
-`
-},
-
-13:{
-title:"📑 Formulaire",
-content:`
-<input type="text">
-<button>Envoyer</button>
-
-👉 récupérer données utilisateur
-`
-},
-
-14:{
-title:"📊 Tableau",
-content:`
-<table>
-<tr><td>1</td></tr>
-</table>
-
-👉 afficher données
-`
-},
-
-15:{
-title:"🎥 Média",
-content:`
-<video></video>
-<audio></audio>
-
-👉 ajouter contenu multimédia
-`
-},
-
-16:{
-title:"⚡ Inline vs Block",
-content:`
-Block = prend toute la ligne (div)
-Inline = reste sur ligne (span)
-`
-},
-
-17:{
-title:"🎯 Attributs HTML",
-content:`
-href, src, class, id
-
-👉 donnent infos à balises
-`
-},
-
-18:{
-title:"🧠 Bonnes pratiques",
-content:`
-✔ code propre
-✔ indentation
-✔ noms clairs
-`
-},
-
-19:{
-title:"📐 Organisation",
-content:`
-👉 séparer HTML / CSS / JS
-👉 structure logique
-`
-},
-
-20:{
-title:"🔥 Balises essentielles (TOP 10)",
-content:`
-<h1> <p> <a> <img>
-<div> <span> <input>
-<button> <section> <footer>
-
-👉 maîtrise ces 10 = niveau pro
-`
-},
-
-21:{
-title:"🚀 Structure PRO complète",
-content:`
-<!DOCTYPE html>
-<html>
-<head>
-<title>Site</title>
-</head>
-<body>
-
-<header>Menu</header>
-
-<section>
-<h1>Titre</h1>
-<p>Texte</p>
-</section>
-
-<footer>Bas</footer>
-
-</body>
-</html>
-`
-},
-
-22:{
-title:"🎓 Projet pratique",
-content:`
-Créer une page :
-✔ titre
-✔ image
-✔ bouton
-✔ lien
-
-👉 tu es maintenant développeur 💪
-`
+<p>💡 Conseil :</p>
+<p>Code tous les jours pour progresser rapidement 🚀</p>
+`;
 }
 
-};
+lessons[i] = content;
+}
 
 // ================= AFFICHAGE =================
-function showLesson(){
+function loadLesson(){
 
-const box = document.getElementById("lessonBox");
+dayText.innerText = "Jour " + currentDay;
 
-if(currentDay > totalDays){
-box.innerHTML = "🎉 Formation terminée";
-return;
+// progression
+let percent = Math.floor((currentDay / maxDay) * 100);
+progressBar.style.width = percent + "%";
+
+// contenu
+lessonBox.innerHTML = lessons[currentDay];
+
 }
 
-const lesson = lessons[currentDay];
-
-if(!lesson){
-box.innerHTML = `
-<h3>📅 Jour ${currentDay}</h3>
-<p>Leçon bientôt disponible...</p>
-`;
-return;
-}
-
-box.innerHTML = `
-<h3>📅 Jour ${currentDay}</h3>
-<h2>${lesson.title}</h2>
-
-<div style="background:#0b1c2c;padding:12px;border-radius:10px;">
-${lesson.content}
-</div>
-
-<textarea id="question" placeholder="Pose ta question..." style="width:100%;margin-top:10px;padding:10px;border-radius:8px;"></textarea>
-
-<button onclick="askAI()">🤖 Demander à l'IA</button>
-
-<div id="aiResponse" style="margin-top:10px;"></div>
-
-<button onclick="nextDay()">➡️ Jour suivant</button>
-`;
-}
-
-// ================= NEXT =================
-window.nextDay = function(){
+// ================= NAVIGATION =================
+window.nextLesson = ()=>{
+if(currentDay < maxDay){
 currentDay++;
-localStorage.setItem("courseDay", currentDay);
-showLesson();
+localStorage.setItem("html_day", currentDay);
+loadLesson();
+}
+};
+
+window.prevLesson = ()=>{
+if(currentDay > 1){
+currentDay--;
+loadLesson();
+}
 };
 
 // ================= IA =================
-window.askAI = async function(){
+window.askAI = async ()=>{
 
-const q = document.getElementById("question").value;
-const box = document.getElementById("aiResponse");
+const input = document.getElementById("questionInput");
+const responseBox = document.getElementById("aiResponse");
 
-if(!q) return alert("❌ Question vide");
+const text = input.value.trim();
+if(!text) return;
 
-const prompt = `
-Tu es un professeur expert HTML.
-
-Règles :
-- Répond seulement sur la leçon du jour (${currentDay})
-- Explique simple
-- Donne exemples code
-- Pas hors sujet
-
-Leçon :
-${lessons[currentDay]?.content}
-
-Question :
-${q}
-`;
-
-box.innerHTML = "⏳ IA réfléchit...";
+responseBox.innerHTML = "⏳ Réponse...";
 
 try{
-const res = await fetch(API_URL,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({prompt})
-});
 
+const prompt = encodeURIComponent(`
+Tu es un professeur HTML CSS JS.
+
+Tu dois répondre uniquement sur la leçon du jour (${currentDay}).
+
+Explique clairement avec exemples simples.
+
+Question :
+${text}
+`);
+
+const res = await fetch(API_URL + "?prompt=" + prompt);
 const data = await res.json();
 
-box.innerHTML = `
-<div style="background:#111;padding:10px;border-radius:10px;">
-${data.response || "Erreur"}
-</div>
-`;
+const reply = data.result || data.response || "Erreur";
+
+responseBox.innerHTML = reply;
 
 }catch(e){
-box.innerHTML = "❌ Erreur API";
+responseBox.innerHTML = "❌ Erreur serveur";
 }
+
 };
 
 // ================= INIT =================
-window.addEventListener("DOMContentLoaded", showLesson);
+loadLesson();
