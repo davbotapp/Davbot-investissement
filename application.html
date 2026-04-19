@@ -3,10 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Création Application SaaS</title>
+
+<!-- 🔥 SEO -->
+<title>Créer une application mobile APK | Davbot</title>
+<meta name="description" content="Crée ton application mobile professionnelle avec Davbot. App business, e-commerce, réseaux sociaux ou jeux. Lance ton projet dès maintenant 🚀">
 
 <!-- ICONS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <style>
 :root{
     --blue:#00d2ff;
@@ -20,7 +24,8 @@ body{
     background: radial-gradient(circle at top, #0b1c2c, #050a14);
     color:white;
 }
-/* ===== IMAGE FULL WIDTH ===== */
+
+/* ===== BANNER ===== */
 .banner{
     width:100%;
     height:200px;
@@ -30,8 +35,9 @@ body{
 .banner img{
     width:100%;
     height:100%;
-    object-fit:cover; /* 🔥 remplit toute la largeur */
+    object-fit:cover;
 }
+
 /* ===== ANIMATION ===== */
 @keyframes fadeUp{
     from{opacity:0; transform:translateY(30px);}
@@ -40,75 +46,33 @@ body{
 
 /* ===== LAYOUT ===== */
 .overlay{
-    min-height:100vh;
     padding:20px;
 }
 
+/* ===== HEADER ===== */
 .header{
     text-align:center;
-    margin-bottom:30px;
+    margin-bottom:25px;
     animation:fadeUp 0.6s ease;
 }
 
 .header h2{
-    font-size:28px;
     color:var(--blue);
 }
 
-.header p{
-    opacity:0.7;
-}
-/* ===== PHONE IMAGE ===== */
-.apk-preview{
-    display:flex;
-    justify-content:center;
-    margin-bottom:20px;
-    animation:fadeUp 0.4s ease;
-}
-
-.phone-frame{
-    width:7000px;
-    height:250px;
-    border-radius:25px;
-    overflow:hidden;
-    border:5px solid #000;
-    background:#000;
-    box-shadow:0 0 30px rgba(0,210,255,0.4);
-    position:relative;
-    animation:float 3s infinite ease-in-out;
-}
-
-.phone-frame img{
-    width:100%;
-    height:100%;
-    object-fit:cover;
-}
-
-.phone-frame::before{
-    content:"";
-    position:absolute;
-    top:8px;
-    left:50%;
-    transform:translateX(-50%);
-    width:50px;
-    height:6px;
-    background:#111;
-    border-radius:10px;
-}
 /* ===== CARD ===== */
 .card{
     max-width:600px;
     margin:auto;
     background:var(--glass);
     border-radius:20px;
-    padding:25px;
+    padding:20px;
     backdrop-filter:blur(15px);
     border:1px solid rgba(0,210,255,0.2);
     animation:fadeUp 0.8s ease;
 }
 
 /* ===== INPUT ===== */
-/* ===== INPUT PRO ===== */
 .input-box{
     position:relative;
     margin-bottom:10px;
@@ -116,18 +80,15 @@ body{
 
 .input-box i{
     position:absolute;
-    left:12px;
-    top:40%;
+    left:5px;
+    top:30%;
     transform:translateY(-50%);
-    font-size:14px;
     opacity:0.6;
 }
 
-/* 🔥 INPUT COMPACT */
-input{
-    width:90%;
-    padding:10px 12px 10px 32px;
-    height:20px;
+input, textarea{
+    width: 85%;
+    padding:10px 10px 10px 35px;
     border-radius:8px;
     border:none;
     background:rgba(255,255,255,0.06);
@@ -135,39 +96,25 @@ input{
     font-size:14px;
 }
 
-/* 🔥 TEXTAREA COMPACT */
 textarea{
-    width:90%;
-    padding:10px 12px 10px 32px;
-    height:75px; /* 🔥 réduit */
-    border-radius:8px;
-    border:none;
-    background:rgba(255,255,255,0.06);
-    color:white;
-    font-size:14px;
+    height:70px;
     resize:none;
-                         }
+}
 
 /* ===== TYPES ===== */
 .types{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:10px;
-    margin-top:10px;
 }
 
 .type-item{
-    padding:12px;
+    padding:10px;
     text-align:center;
-    border-radius:12px;
+    border-radius:10px;
     background:rgba(255,255,255,0.05);
     cursor:pointer;
     transition:0.3s;
-}
-
-.type-item i{
-    display:block;
-    margin-bottom:5px;
 }
 
 .type-item:hover{
@@ -183,23 +130,21 @@ textarea{
 /* ===== FILE ===== */
 .file{
     border:1px dashed var(--blue);
-    padding:15px;
+    padding:10px;
     text-align:center;
     border-radius:10px;
     margin-top:10px;
-    cursor:pointer;
 }
 
 /* ===== SPEED ===== */
 .speed{
     display:flex;
     gap:10px;
-    margin-top:10px;
 }
 
 .speed div{
     flex:1;
-    padding:12px;
+    padding:10px;
     text-align:center;
     border-radius:10px;
     background:rgba(255,255,255,0.05);
@@ -214,9 +159,9 @@ textarea{
 /* ===== PRICE ===== */
 .price{
     text-align:center;
-    font-size:24px;
+    font-size:22px;
     color:var(--blue);
-    margin-top:15px;
+    margin-top:10px;
 }
 
 /* ===== BUTTON ===== */
@@ -239,64 +184,67 @@ button:hover{
 </head>
 
 <body>
-<!-- 🔥 IMAGE EN HAUT (PLEINE LARGEUR) -->
+
+<!-- 🔥 BANNER -->
 <div class="banner">
 <img src="https://i.ibb.co/3V38pKK/file-00000000bb7871f7807893baa360b9e6.png">
 </div>
+
 <div class="overlay">
 
 <div class="header">
 <h2><i class="fa-solid fa-mobile-screen"></i> Création Application</h2>
-<p>Crée ton app comme une startup 🚀</p>
+<p>Crée ton application professionnelle et lance ton business 🚀</p>
 </div>
-<!-- 🔥 IMAGE EN HAUT (PLEINE LARGEUR) --
 
 <div class="card">
 
+<!-- NOM -->
 <div class="input-box">
 <i class="fa-solid fa-rocket"></i>
 <input id="name" placeholder="Nom de l'application">
 </div>
 
 <!-- TYPES -->
-<div class="types">
-<div class="type-item"><i class="fa-solid fa-cart-shopping"></i>E-commerce</div>
-<div class="type-item"><i class="fa-solid fa-users"></i>Réseau Social</div>
-<div class="type-item"><i class="fa-solid fa-gamepad"></i>Jeu</div>
-<div class="type-item"><i class="fa-solid fa-briefcase"></i>Business</div>
-<div class="type-item"><i class="fa-solid fa-film"></i>Streaming</div>
-<div class="type-item"><i class="fa-solid fa-layer-group"></i>Autre</div>
+<div class="types" id="types">
+<div class="type-item">E-commerce</div>
+<div class="type-item">Réseau Social</div>
+<div class="type-item">Jeu</div>
+<div class="type-item">Business</div>
+<div class="type-item">Streaming</div>
+<div class="type-item">Autre</div>
 </div>
-<p></p>
+
+<br>
+
+<!-- THEME -->
 <div class="input-box">
 <i class="fa-solid fa-palette"></i>
-<input id="theme" placeholder="Thème">
+<input id="theme" placeholder="Thème de l'application">
 </div>
-    
-<p></p>
 
+<!-- COULEUR -->
 <div class="input-box">
 <i class="fa-solid fa-fill-drip"></i>
 <input id="color" placeholder="Couleur principale">
 </div>
 
-<p></p>
+<!-- DESCRIPTION -->
 <div class="input-box">
 <i class="fa-solid fa-align-left"></i>
-<textarea id="desc" placeholder="Description"></textarea>
+<textarea id="desc" placeholder="Description de ton application"></textarea>
+</div>
+
+<!-- FILE -->
+<div class="file">
+Icône App <input type="file" id="icon">
 </div>
 
 <div class="file">
-<i class="fa-solid fa-image"></i> Icône App
-<input type="file" id="icon">
+Image publicitaire <input type="file" id="pub">
 </div>
 
-<div class="file">
-<i class="fa-solid fa-photo-film"></i> Image Publicitaire
-<input type="file" id="pub">
-</div>
-
-<h3><i class="fa-solid fa-bolt"></i> Traitement</h3>
+<h3>⚡ Vitesse</h3>
 
 <div class="speed" id="speed">
 <div data-price="45000" class="active">🐢 Lent</div>
@@ -305,15 +253,35 @@ button:hover{
 
 <div class="price" id="price">45000 FC</div>
 
-<button onclick="valider()">
-<i class="fa-solid fa-paper-plane"></i> Commander
-</button>
-<p></p>
+<button onclick="valider()">🚀 Commander</button>
+
 </div>
 
 </div>
 
 <script type="module" src="application.js"></script>
+
+<script>
+// ===== TYPE SELECT =====
+document.querySelectorAll(".type-item").forEach(el=>{
+el.onclick = ()=>{
+document.querySelectorAll(".type-item").forEach(x=>x.classList.remove("active"));
+el.classList.add("active");
+};
+});
+
+// ===== SPEED SELECT =====
+const speed = document.querySelectorAll("#speed div");
+const priceEl = document.getElementById("price");
+
+speed.forEach(btn=>{
+btn.onclick = ()=>{
+speed.forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+priceEl.innerText = btn.dataset.price + " FC";
+};
+});
+</script>
 
 </body>
 </html>
