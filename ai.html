@@ -3,7 +3,23 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IA Bots - Davbot</title>
+
+<!-- 🔥 SEO -->
+<title>Créer un bot IA WhatsApp, Facebook, Web | Davbot</title>
+
+<meta name="description" content="Crée ton bot intelligent WhatsApp, Facebook ou Web avec Davbot. Automatise ton business, réponds aux clients et génère des revenus automatiquement.">
+
+<meta name="keywords" content="bot whatsapp, bot facebook, créer bot IA, intelligence artificielle, chatbot business, automatisation">
+
+<meta name="robots" content="index, follow">
+
+<!-- 🔥 OPEN GRAPH -->
+<meta property="og:title" content="Créer un bot IA avec Davbot 🤖">
+<meta property="og:description" content="Automatise ton business avec un bot intelligent et gagne de l'argent facilement.">
+<meta property="og:image" content="https://i.ibb.co/QvvGv4SV/file-00000000210871f795ac7e5de3367a32.png">
+
+<!-- ICON -->
+<link rel="icon" href="https://i.ibb.co/QvvGv4SV/file-00000000210871f795ac7e5de3367a32.png">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -21,7 +37,7 @@ body{
     color:white;
 }
 
-/* 🔥 BANNIÈRE */
+/* 🔥 BANNER */
 .banner{
     width:100%;
     height:180px;
@@ -42,7 +58,7 @@ body{
     background:linear-gradient(to bottom,transparent,#050a14);
 }
 
-/* LAYOUT */
+/* CONTENT */
 .overlay{
     padding:15px;
     min-height:100vh;
@@ -54,14 +70,14 @@ body{
     margin-bottom:15px;
 }
 
-.header h2{
+.header h1{
     color:var(--blue);
     font-size:22px;
 }
 
 .header p{
     font-size:13px;
-    opacity:0.7;
+    opacity:0.8;
 }
 
 /* CARD */
@@ -133,7 +149,7 @@ textarea{
     color:var(--blue);
 }
 
-/* BUTTON */
+/* BTN */
 button{
     width:100%;
     margin-top:10px;
@@ -157,12 +173,19 @@ button:hover{
     margin-top:10px;
     font-size:13px;
 }
+
+/* SEO TEXT (visible) */
+.info{
+    margin-top:20px;
+    font-size:13px;
+    opacity:0.8;
+    line-height:1.6;
+}
 </style>
 </head>
 
 <body>
 
-<!-- 🔥 IMAGE HAUT -->
 <div class="banner">
 <img src="https://i.ibb.co/QvvGv4SV/file-00000000210871f795ac7e5de3367a32.png">
 </div>
@@ -170,9 +193,8 @@ button:hover{
 <div class="overlay">
 
 <div class="header">
-<h2><i class="fa-solid fa-robot"></i> IA Bots</h2>
-<p>Automatise ton business avec l'intelligence artificielle 🤖</p>
-<p>📩 La commande apparaîtra dans ton profil (messagerie)</p>
+<h1>🤖 Créer un bot intelligent</h1>
+<p>Automatise tes messages, clients et revenus 💰</p>
 </div>
 
 <div class="card">
@@ -181,19 +203,19 @@ button:hover{
 <div class="types" id="types">
 
 <div class="type-item" data-type="fb_page" data-price="8500">
-<i class="fa-brands fa-facebook"></i><br> Page FB
-</div>
-
-<div class="type-item" data-type="fb_auto" data-price="0">
-<i class="fa-solid fa-bolt"></i><br> FB bot ❌
+<i class="fa-brands fa-facebook"></i><br> Page Facebook
 </div>
 
 <div class="type-item" data-type="wa" data-price="8500">
-<i class="fa-brands fa-whatsapp"></i><br> WhatsApp
+<i class="fa-brands fa-whatsapp"></i><br> WhatsApp Bot
 </div>
 
 <div class="type-item" data-type="web" data-price="12000">
 <i class="fa-solid fa-globe"></i><br> Web Bot
+</div>
+
+<div class="type-item" data-type="custom" data-price="15000">
+<i class="fa-solid fa-brain"></i><br> Bot IA avancé
 </div>
 
 </div>
@@ -208,16 +230,31 @@ button:hover{
 
 <!-- BTN -->
 <button onclick="valider()">
-<i class="fa-solid fa-paper-plane"></i> Commander
+<i class="fa-solid fa-paper-plane"></i> Commander maintenant
 </button>
 
+</div>
+
+<!-- 🔥 TEXTE SEO + MARKETING -->
+<div class="info">
+<p>
+Avec Davbot, tu peux créer un bot intelligent capable de répondre automatiquement aux clients,
+gérer ton business et générer des revenus 24h/24.
+</p>
+
+<p>
+Utilise un bot WhatsApp, Facebook ou Web pour automatiser ton activité et gagner du temps 🚀
+</p>
+
+<p>
+👉 Plus tu automatises, plus tu gagnes 💰
+</p>
 </div>
 
 </div>
 
 <script type="module" src="ai.js"></script>
 
-<!-- 🔥 SCRIPT UI -->
 <script>
 const types = document.querySelectorAll(".type-item");
 const priceEl = document.getElementById("price");
@@ -231,11 +268,10 @@ types.forEach(item=>{
         const price = item.dataset.price;
         priceEl.innerText = price + " FC";
 
-        // 🔥 FORM DYNAMIQUE
         formZone.innerHTML = `
         <input placeholder="Nom du projet">
-        <input placeholder="Numéro WhatsApp ou lien">
-        <textarea placeholder="Décris ton bot (fonction, objectif...)"></textarea>
+        <input placeholder="Numéro ou lien">
+        <textarea placeholder="Explique ton bot (fonction, objectif...)"></textarea>
         `;
     }
 });
