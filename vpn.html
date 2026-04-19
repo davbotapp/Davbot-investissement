@@ -3,102 +3,95 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VPN - Davbot</title>
 
-<!-- ICONS -->
+<!-- 🔥 SEO -->
+<title>VPN Sécurisé - Davbot | Connexion rapide, slowDNS, WireGuard, OpenVPN</title>
+
+<meta name="description" content="VPN sécurisé Davbot : connexion rapide, OpenVPN, WireGuard, HTTP Injector, ShadowSocks. Accès internet sécurisé, stable et rapide en Afrique (RDC).">
+
+<meta name="keywords" content="vpn gratuit, vpn rdc, slowdns, wireguard, openvpn, http injector, internet sécurisé, vpn rapide, davbot vpn">
+
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#00d2ff">
+
+<!-- 🔥 OPEN GRAPH -->
+<meta property="og:title" content="VPN Davbot 🚀 Connexion sécurisée rapide">
+<meta property="og:description" content="Accède à Internet sécurisé avec VPN rapide, stable et optimisé Afrique (RDC).">
+<meta property="og:image" content="https://i.ibb.co/pv41yYxS/IMG-20260409-WA0045.webp">
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
 :root{
 --blue:#00d2ff;
 --dark:#050a14;
---glass:rgba(255,255,255,0.05);
 }
 
 body{
 margin:0;
-font-family:'Segoe UI', sans-serif;
-background:var(--dark);
+font-family:'Segoe UI',sans-serif;
+background:radial-gradient(circle,#0b1c2c,#050a14);
 color:white;
 }
 
-/* 🔥 BANNIÈRE */
+/* HEADER */
+.header{
+text-align:center;
+padding:20px;
+font-size:22px;
+color:var(--blue);
+font-weight:bold;
+}
+
+/* BANNER */
 .banner{
 width:100%;
 height:180px;
 overflow:hidden;
-position:relative;
 }
-
 .banner img{
 width:100%;
 height:100%;
 object-fit:cover;
 }
 
-.banner::after{
-content:"";
-position:absolute;
-inset:0;
-background:linear-gradient(to bottom,transparent,#050a14);
-}
-
-/* HEADER */
-.header{
-text-align:center;
-padding:15px;
-font-size:22px;
-color:var(--blue);
-font-weight:bold;
-animation:fadeIn 1s ease;
-}
-
 /* CARD */
 .card{
 margin:15px;
 padding:20px;
-border-radius:20px;
-background:var(--glass);
+border-radius:18px;
+background:rgba(255,255,255,0.05);
 backdrop-filter:blur(10px);
 border:1px solid rgba(0,210,255,0.2);
-animation:fadeUp 0.8s ease;
 }
 
-/* VPN LIST */
+/* VPN GRID */
 .vpn-list{
 display:grid;
 grid-template-columns:repeat(2,1fr);
-gap:12px;
+gap:10px;
 }
 
 .vpn-item{
-background:#111;
 padding:15px;
 border-radius:12px;
+background:#111;
 text-align:center;
 cursor:pointer;
 transition:0.3s;
 }
 
-.vpn-item:hover{
-transform:scale(1.05);
-}
-
 .vpn-item i{
-font-size:22px;
 display:block;
-margin-bottom:5px;
+font-size:22px;
 color:var(--blue);
+margin-bottom:5px;
 }
 
 .vpn-item.active{
 background:var(--blue);
 color:black;
-box-shadow:0 0 15px var(--blue);
-}
-
-.vpn-item.active i{
-color:black;
+font-weight:bold;
 }
 
 /* OPTIONS */
@@ -107,15 +100,14 @@ padding:15px;
 margin-top:10px;
 border-radius:10px;
 background:#111;
-cursor:pointer;
 text-align:center;
+cursor:pointer;
 transition:0.3s;
 }
 
 .option.active{
 background:var(--blue);
 color:black;
-box-shadow:0 0 10px var(--blue);
 }
 
 /* INPUT */
@@ -132,13 +124,13 @@ color:white;
 /* PRICE */
 .price{
 text-align:center;
-font-size:26px;
-margin-top:15px;
+font-size:24px;
 color:var(--blue);
+margin-top:15px;
 font-weight:bold;
 }
 
-/* BTN */
+/* BUTTON */
 button{
 width:100%;
 padding:15px;
@@ -148,79 +140,90 @@ border-radius:10px;
 background:linear-gradient(45deg,#00d2ff,#0099ff);
 font-weight:bold;
 cursor:pointer;
-transition:0.3s;
 }
 
 button:hover{
 transform:scale(1.05);
 }
 
-/* ANIMATION */
-@keyframes fadeIn{
-from{opacity:0;}
-to{opacity:1;}
-}
-
-@keyframes fadeUp{
-from{opacity:0; transform:translateY(20px);}
-to{opacity:1; transform:translateY(0);}
+/* SEO TEXT */
+.seo{
+padding:15px;
+font-size:13px;
+opacity:0.8;
+line-height:1.5;
 }
 </style>
 </head>
 
 <body>
 
-<!-- 🔥 IMAGE HAUT -->
+<!-- 🔥 BANNER -->
 <div class="banner">
 <img src="https://i.ibb.co/pv41yYxS/IMG-20260409-WA0045.webp">
 </div>
 
-<div class="header">🛡️ Choisir votre VPN</div>
+<div class="header">
+🛡️ VPN Sécurisé Davbot
+</div>
 
 <div class="card">
 
 <!-- VPN TYPE -->
-<div class="vpn-list" id="vpnList">
+<div class="vpn-list">
 
-<div class="vpn-item active" data-vpn="OpenVPN">
+<div class="vpn-item active">
 <i class="fa-solid fa-shield-halved"></i>
 OpenVPN
 </div>
 
-<div class="vpn-item" data-vpn="WireGuard">
+<div class="vpn-item">
 <i class="fa-solid fa-bolt"></i>
 WireGuard
 </div>
 
-<div class="vpn-item" data-vpn="HTTP Injector">
+<div class="vpn-item">
 <i class="fa-solid fa-globe"></i>
-HTTP Custom 
+HTTP Custom
 </div>
 
-<div class="vpn-item" data-vpn="ShadowSocks">
+<div class="vpn-item">
 <i class="fa-solid fa-user-secret"></i>
 ShadowSocks
 </div>
 
 </div>
 
-<!-- RÉSEAU -->
-<input type="text" id="reseau" placeholder="📡 Réseau (MTN, Airtel...)">
+<!-- INPUTS -->
+<input type="text" placeholder="📡 Réseau (MTN, Airtel...)">
+<input type="text" placeholder="Nom du VPN">
+<textarea placeholder="⚙️ Configuration (slowDNS, UDP, proxy...)"></textarea>
 
-<!-- DURÉE -->
-<div class="option" data-price="2500">7 jours </div>
-<div class="option" data-price="5000">15 jours </div>
-<div class="option" data-price="8000">30 jours  </div>
+<!-- OPTIONS -->
+<div class="option active" data-price="2500">7 jours</div>
+<div class="option" data-price="5000">15 jours</div>
+<div class="option" data-price="8000">30 jours</div>
 
-<!-- INFOS -->
-<input type="text" id="vpnName" placeholder="Nom du VPN">
-<textarea id="config" placeholder="⚙️ Configuration spéciale (facultatif)"></textarea>
+<!-- PRICE -->
+<div class="price" id="price">2500 FC</div>
 
-<!-- PRIX -->
-<div class="price" id="price">0 FC</div>
+<button>🚀 Commander VPN</button>
 
-<button onclick="valider()">🚀 Commander</button>
+</div>
 
+<!-- 🔥 SEO TEXT (IMPORTANT GOOGLE) -->
+<div class="seo">
+<h3>VPN rapide et sécurisé</h3>
+
+<p>
+Le VPN Davbot permet une connexion rapide, stable et sécurisée.
+Compatible OpenVPN, WireGuard, HTTP Injector et ShadowSocks.
+</p>
+
+<p>
+Optimisé pour l’Afrique (RDC, Congo), avec connexion stable même sur réseau faible
+et support slowDNS, UDP et proxy sécurisé.
+</p>
 </div>
 
 <script type="module" src="vpn.js"></script>
@@ -244,6 +247,7 @@ document.getElementById("price").innerText = opt.dataset.price + " FC";
 };
 });
 </script>
+
 
 </body>
 </html>
