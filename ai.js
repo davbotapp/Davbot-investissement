@@ -48,7 +48,7 @@ function loadForm(type){
   if(type === "fb_page"){
     box.innerHTML = `
       <input id="pageName" placeholder="Nom de la page Facebook">
-      <textarea id="scenario" placeholder="Description & info pour votre bot"></textarea>
+      <textarea id="scenario" placeholder="Description & info pour votre bot et lien du profil Facebook de votre compte"></textarea>
     `;
   }
 
@@ -61,7 +61,7 @@ function loadForm(type){
 
   else if(type === "wa"){
     box.innerHTML = `
-      <input id="number" placeholder="Numéro WhatsApp du bot si vous avez pas mette "" ">
+      <input id="number" placeholder="Numéro WhatsApp du bot ">
       <textarea id="messages" placeholder="Description et info ( ex num admin , prefix...)"></textarea>
     `;
   }
