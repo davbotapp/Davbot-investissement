@@ -98,6 +98,10 @@ border:none;
 background:rgba(255,255,255,0.1);
 color:white;
 }
+  .card h2{
+margin-top:10px;
+color:var(--blue);
+  }
 
 /* BUTTON */
 button{
@@ -234,6 +238,30 @@ Envoyer à tous
 <div class="card">
 <h3><i data-lucide="trending-up"></i> Monétisation</h3>
 <div id="monetisations" class="list"></div>
+</div>
+  <!-- 📊 DASHBOARD STATS -->
+<div class="grid" style="margin-bottom:15px;">
+
+<div class="card" style="text-align:center;">
+<h4>👥 Utilisateurs</h4>
+<h2 id="statUsers">0</h2>
+</div>
+
+<div class="card" style="text-align:center;">
+<h4>💰 Total Solde</h4>
+<h2 id="statMoney">0 FC</h2>
+</div>
+
+<div class="card" style="text-align:center;">
+<h4>📦 Commandes</h4>
+<h2 id="statCmd">0</h2>
+</div>
+
+<div class="card" style="text-align:center;">
+<h4>💳 Recharges</h4>
+<h2 id="statRech">0</h2>
+</div>
+
 </div>
 
 <!-- MESSAGE -->
