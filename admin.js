@@ -79,12 +79,21 @@ let html = "";
 // 🔥 LOOP USERS
 Object.entries(snap.val()).forEach(([phone,u])=>{
 
+// 🛑 DATA INVALIDE
+if(!u || !phone) return;
+
+// 🛑 ignorer utilisateurs vides (optionnel PRO)
+if(!u.name && !u.balance && !u.points) return;
+
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
-const pass = u.password || "-";
-const balance = u.balance || 0;
-const points = u.points || 0;
-const revenue = u.revenus || 0;
+
+// ⚠️ NE PAS afficher vrai mot de passe
+const pass = u.password ? "••••••••" : "-";
+
+const balance = Number(u.balance || 0);
+const points = Number(u.points || 0);
+const revenue = Number(u.revenus || 0);
 const monetized = u.monetized ? "✅ Oui" : "❌ Non";
 
 // 🔥 AVATAR
@@ -128,10 +137,13 @@ ${avatar}
 
 <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
 
-<button onclick="addMoney('${phone}')" style="background:#00d2ff;">➕</button>
-<button onclick="removeMoney('${phone}')" style="background:#ff9800;">➖</button>
+<button onclick="safeClick('add-${phone}',()=>addMoney('${phone}'))" style="background:#00d2ff;">➕</button>
+
+<button onclick="safeClick('remove-${phone}',()=>removeMoney('${phone}'))" style="background:#ff9800;">➖</button>
+
 <button onclick="sendMsg('${phone}')" style="background:#4caf50;">💬</button>
-<button onclick="delUser('${phone}')" style="background:#ff4d4d;">❌</button>
+
+<button onclick="safeClick('del-${phone}',()=>delUser('${phone}'))" style="background:#ff4d4d;">❌</button>
 
 </div>
 
@@ -140,8 +152,8 @@ ${avatar}
 
 });
 
-// 🔥 injecter en une fois
-box.innerHTML = html;
+// 🔥 injecter
+box.innerHTML = html || "<small>Aucun utilisateur valide</small>";
 
 });
 // ================= RECHARGES =================
