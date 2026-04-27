@@ -213,7 +213,6 @@ ${avatar}
 📅 Date : <b>${date}</b><br>
 📌 Statut : <b style="color:orange;">${status}</b><br>
 🆔 ID : <small>${id}</small>
-
 ${r.proof ? `
 <br><br>📸 Preuve :
 <br><img src="${r.proof}" style="width:100%;border-radius:10px;">
@@ -259,7 +258,10 @@ let html = "";
 // ================= LOOP =================
 for(const [user, cmds] of Object.entries(snap.val())){
 
-    const u = usersData[user] || {};
+    // 🛑 ignorer utilisateur supprimé
+    const u = usersData[user];
+    if(!u) continue;
+
     const name = u.name || "Utilisateur";
     const photo = u.photo || "";
 
@@ -271,13 +273,17 @@ for(const [user, cmds] of Object.entries(snap.val())){
 
     for(const [id, c] of Object.entries(cmds)){
 
-        const date = c.date ? new Date(c.date).toLocaleString() : "-";
+        // 🛑 filtre données cassées
+        if(!c || !id || !c.service) continue;
+
+        const price = Number(c.price || 0);
+        const date = c.date ? new Date(c.date).toLocaleString() : "";
 
         let details = "";
 
         // ================= SERVICES =================
 
-        if(c.service === "Application"){
+           if(c.service === "Application"){
             details += `
             📱 Nom : ${c.name || "-"}<br>
             🎨 Couleur : ${c.color || "-"}<br>
@@ -348,7 +354,6 @@ for(const [user, cmds] of Object.entries(snap.val())){
     📦 Plan : ${c.plan || "-"}<br>
     `;
 }
-
         // ================= IMAGES =================
         Object.entries(c).forEach(([k,v])=>{
             if(typeof v === "string" && v.startsWith("data:image")){
@@ -382,16 +387,16 @@ for(const [user, cmds] of Object.entries(snap.val())){
         <hr style="opacity:0.1;margin:10px 0;">
 
         📦 <b>${c.service}</b><br>
-        💰 <b style="color:#00d2ff">${(c.price || 0).toLocaleString()} FC</b><br>
-        📅 ${date}
+        💰 <b style="color:#00d2ff">${price.toLocaleString()} FC</b><br>
+        ${date ? `📅 ${date}` : ""}
 
         <div style="margin-top:10px;line-height:1.6;">
-        ${details || "Aucun détail"}
+        ${details || ""}
         </div>
 
         <div style="margin-top:12px;display:flex;gap:6px;">
-        <button onclick="valCmd('${user}','${id}')" style="background:#4caf50;">✅</button>
-        <button onclick="refCmd('${user}','${id}',${c.price || 0})" style="background:#ff4d4d;">❌</button>
+        <button onclick="safeClick('cmd-ok-${id}',()=>valCmd('${user}','${id}'))" style="background:#4caf50;">✅</button>
+        <button onclick="safeClick('cmd-no-${id}',()=>refCmd('${user}','${id}',${price}))" style="background:#ff4d4d;">❌</button>
         </div>
 
         </div>
@@ -399,7 +404,8 @@ for(const [user, cmds] of Object.entries(snap.val())){
     }
 }
 
-box.innerHTML = html;
+// 🔥 injection finale
+box.innerHTML = html || "<small>Aucune commande valide</small>";
 
 });
 // ================= TRANSFERTS =================
