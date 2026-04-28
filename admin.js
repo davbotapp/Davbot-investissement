@@ -278,10 +278,6 @@ for(const [user, cmds] of Object.entries(snap.val())){
 
     for(const [id, c] of Object.entries(cmds)){
 
-        // 🛑 filtre données cassées
-        if(!c || !id || !c.service) continue;
-
-        const price = Number(c.price || 0);
         const date = c.date ? new Date(c.date).toLocaleString() : "";
 
         let details = "";
