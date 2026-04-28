@@ -711,95 +711,127 @@ return true;
 // ================= VALID RECHARGE =================
 window.valRecharge = async(id,user,amount)=>{
 
-if(lock(id)) return alert("⏳ Traitement en cours...");
+if(lock("rech-"+id)) return alert("⏳ Traitement en cours...");
 
 try{
 
-if(!user || amount <= 0) throw "❌ Données invalides";
+if(!id || !user) throw "❌ Données invalides";
 
-// 🔍 Vérifier recharge
+// 🔍 recharge
 const recharge = await safeGet("demandes_recharges/"+id);
 if(!recharge) throw "⚠️ Déjà traité";
 
-// 🔍 Vérifier user
+// 🔍 user
 const userData = await safeGet("users/"+user);
 if(!userData) throw "❌ Utilisateur introuvable";
 
-const oldBal = userData.balance || 0;
-const newBal = oldBal + amount;
+// 🔥 sécuriser montant
+const amt = Number(amount || recharge.amount || 0);
+if(amt <= 0) throw "❌ Montant invalide";
 
-// 💰 Update solde
-await update(ref(db,"users/"+user),{ balance:newBal });
+// 🔥 calcul
+const oldBal = Number(userData.balance || 0);
+const newBal = oldBal + amt;
 
-// 📦 Archive
+// 💰 update
+await update(ref(db,"users/"+user),{
+balance:newBal
+});
+
+// 📦 archive AVANT suppression
 await set(ref(db,"recharges_validées/"+id),{
-user, amount,
+user,
+amount:amt,
 oldBalance:oldBal,
 newBalance:newBal,
 status:"approved",
 date:Date.now()
 });
 
-// 🗑️ Supprimer demande
+// 🗑️ delete
 await safeDelete("demandes_recharges/"+id);
 
-// 📩 Notification
+// 📩 message
 await push(ref(db,"messages/"+user),{
-text:`✅ Recharge validée\n💰 +${amount} FC`,
+text:`✅ Recharge validée\n💰 +${amt} FC`,
 date:Date.now(),
 read:false
 });
 
-// 📊 Log
-await logAction("recharge_validée",{user,amount});
+// 📊 log
+await logAction("recharge_validée",{user,amount:amt});
 
 alert("✅ Recharge validée");
 
 }catch(e){
 console.error(e);
 alert(e || "❌ Erreur système");
+
+} finally {
+// 🔥 toujours libérer
+unlock("rech-"+id);
 }
 
-unlock(id);
 };
 
 // ================= REFUSE RECHARGE =================
 window.refRecharge = async(id,user,amount)=>{
 
-if(lock(id)) return alert("⏳ Traitement...");
+if(lock("rech-"+id)) return alert("⏳ Traitement...");
 
 try{
 
+if(!id || !user || !amount) throw "❌ Données invalides";
+
+// 🔍 vérifier recharge
 const recharge = await safeGet("demandes_recharges/"+id);
 if(!recharge) throw "⚠️ Déjà traité";
 
-// 📦 Archive
+// 🔍 vérifier user
+const userData = await safeGet("users/"+user);
+if(!userData) throw "❌ Utilisateur introuvable";
+
+// 💰 remboursement
+const oldBal = Number(userData.balance || 0);
+const newBal = oldBal + Number(amount);
+
+await update(ref(db,"users/"+user),{
+balance:newBal
+});
+
+// 📦 archive refus
 await set(ref(db,"recharges_refusées/"+id),{
-user, amount,
+user,
+amount,
+oldBalance:oldBal,
+newBalance:newBal,
 status:"refused",
 date:Date.now()
 });
 
-// 🗑️ Delete
+// 🗑️ supprimer demande
 await safeDelete("demandes_recharges/"+id);
 
-// 📩 Message
+// 📩 message user
 await push(ref(db,"messages/"+user),{
-text:`❌ Recharge refusée\n💰 ${amount} FC`,
-date:Date.now()
+text:`❌ Recharge refusée\n💰 ${amount} FC remboursé`,
+date:Date.now(),
+read:false
 });
 
-// 📊 Log
+// 📊 log
 await logAction("recharge_refusée",{user,amount});
 
-alert("❌ Recharge refusée");
+alert("❌ Refusé + remboursé");
 
 }catch(e){
 console.error(e);
 alert(e || "Erreur");
+
+} finally {
+unlock("rech-"+id);
 }
 
-unlock(id);
 };
 
 // ================= VALID COMMAND =================
