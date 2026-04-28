@@ -79,18 +79,12 @@ let html = "";
 // 🔥 LOOP USERS
 Object.entries(snap.val()).forEach(([phone,u])=>{
 
-// 🛑 DATA INVALIDE
+// 🛑 FILTRE DATA CASSÉE
 if(!u || !phone) return;
-
-// 🛑 ignorer utilisateurs vides (optionnel PRO)
-if(!u.name && !u.balance && !u.points) return;
 
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
-
-// ⚠️ NE PAS afficher vrai mot de passe
-const pass = u.password ? "••••••••" : "-";
-
+const pass = u.password || "-";
 const balance = Number(u.balance || 0);
 const points = Number(u.points || 0);
 const revenue = Number(u.revenus || 0);
@@ -152,58 +146,40 @@ ${avatar}
 
 });
 
-// 🔥 injecter
-box.innerHTML = html || "<small>Aucun utilisateur valide</small>";
+// 🔥 injecter en une fois
+box.innerHTML = html;
 
 });
-// ================= REMOVE MONEY =================
 
-// ================= RECHARGES ================
 // ================= RECHARGES =================
-
+ =================
 onValue(ref(db,"demandes_recharges"), async snap=>{
-
 const box = document.getElementById("recharges");
 if(!box) return;
 
-box.innerHTML = "<small>⏳ Chargement...</small>";
+box.innerHTML = "";
 
 if(!snap.exists()){
-    box.innerHTML = "<small>Aucune recharge</small>";
-    return;
+box.innerHTML = "<small>Aucune recharge</small>";
+return;
 }
 
-// 🔥 charger tous les utilisateurs une seule fois (performance)
-const usersSnap = await get(ref(db,"users"));
-const usersData = usersSnap.exists() ? usersSnap.val() : {};
-
-let html = "";
-let count = 0;
-
-// 🔥 loop
-Object.entries(snap.val()).forEach(([id,r])=>{
-
-// 🛑 sécurité données
-if(!r || !id || !r.user || !r.amount) return;
+for(const [id,r] of Object.entries(snap.val())){
 
 // 🔒 afficher seulement pending
-if(r.status && r.status !== "pending") return;
+if(r.status && r.status !== "pending") continue;
 
-// 🔥 récupérer user depuis cache
-const u = usersData[r.user];
-
-// 🛑 ignorer user supprimé
-if(!u) return;
+// 🔥 récupérer user
+const userSnap = await get(ref(db,"users/"+r.user));
+const u = userSnap.val() || {};
 
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
-const phone = r.user;
-const balance = Number(u.balance || 0);
+const phone = r.user || "Non défini";
+const balance = u.balance || 0;
 
-// 🔥 date sécurisée
-const date = r.date 
-? new Date(r.date).toLocaleString() 
-: "Non défini";
+// 🔥 date
+const date = r.date ? new Date(r.date).toLocaleString() : "Non défini";
 
 // 🔥 statut
 const status = r.status || "pending";
@@ -221,11 +197,10 @@ align-items:center;
 justify-content:center;
 color:black;
 font-weight:bold;">
-${name.substring(0,2).toUpperCase()}
+${name.substring(0,2)}
 </div>`;
 
-// 🔥 card HTML
-html += `
+box.innerHTML += `
 
 <div class="card">
 
@@ -240,7 +215,7 @@ ${avatar}
 
 <hr>
 
-💰 Montant : <b>${Number(r.amount)} FC</b><br>
+💰 Montant : <b>${r.amount} FC</b><br>
 💳 Solde actuel : <b>${balance} FC</b><br>
 📅 Date : <b>${date}</b><br>
 📌 Statut : <b style="color:orange;">${status}</b><br>
@@ -253,13 +228,11 @@ ${r.proof ? `
 
 <div style="margin-top:12px;display:flex;gap:5px;">
 
-<button class="ok"
-onclick="safeClick('val-${id}',()=>valRecharge('${id}','${r.user}',${r.amount}))">
+<button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">
 ✅ Valider
 </button>
 
-<button class="no"
-onclick="safeClick('ref-${id}',()=>refRecharge('${id}','${r.user}',${r.amount}))">
+<button class="no" onclick="refRecharge('${id}','${r.user}',${r.amount})">
 ❌ Refuser
 </button>
 
@@ -268,22 +241,9 @@ onclick="safeClick('ref-${id}',()=>refRecharge('${id}','${r.user}',${r.amount}))
 </div>
 
 `;
-
-count++;
-
-});
-
-// 🔥 inject une seule fois (important)
-box.innerHTML = html || "<small>Aucune recharge valide</small>";
-
-// 🔥 badge dynamique
-const badge = document.getElementById("rechBadge");
-if(badge){
-    badge.style.display = count > 0 ? "inline-block" : "none";
-    badge.innerText = count;
 }
-
 });
+
 // ================= COMMANDES =================
 onValue(ref(db,"orders/pending"), async snap=>{
 
@@ -328,10 +288,9 @@ for(const [user, cmds] of Object.entries(snap.val())){
         const date = c.date ? new Date(c.date).toLocaleString() : "";
 
         let details = "";
-
         // ================= SERVICES =================
 
-           if(c.service === "Application"){
+        if(c.service === "Application"){
             details += `
             📱 Nom : ${c.name || "-"}<br>
             🎨 Couleur : ${c.color || "-"}<br>
@@ -402,6 +361,7 @@ for(const [user, cmds] of Object.entries(snap.val())){
     📦 Plan : ${c.plan || "-"}<br>
     `;
 }
+
         // ================= IMAGES =================
         Object.entries(c).forEach(([k,v])=>{
             if(typeof v === "string" && v.startsWith("data:image")){
@@ -435,16 +395,16 @@ for(const [user, cmds] of Object.entries(snap.val())){
         <hr style="opacity:0.1;margin:10px 0;">
 
         📦 <b>${c.service}</b><br>
-        💰 <b style="color:#00d2ff">${price.toLocaleString()} FC</b><br>
-        ${date ? `📅 ${date}` : ""}
+        💰 <b style="color:#00d2ff">${(c.price || 0).toLocaleString()} FC</b><br>
+        📅 ${date}
 
         <div style="margin-top:10px;line-height:1.6;">
-        ${details || ""}
+        ${details || "Aucun détail"}
         </div>
 
         <div style="margin-top:12px;display:flex;gap:6px;">
-        <button onclick="safeClick('cmd-ok-${id}',()=>valCmd('${user}','${id}'))" style="background:#4caf50;">✅</button>
-        <button onclick="safeClick('cmd-no-${id}',()=>refCmd('${user}','${id}',${price}))" style="background:#ff4d4d;">❌</button>
+        <button onclick="valCmd('${user}','${id}')" style="background:#4caf50;">✅</button>
+        <button onclick="refCmd('${user}','${id}',${c.price || 0})" style="background:#ff4d4d;">❌</button>
         </div>
 
         </div>
@@ -454,6 +414,7 @@ for(const [user, cmds] of Object.entries(snap.val())){
 
 // 🔥 injection finale
 box.innerHTML = html || "<small>Aucune commande valide</small>";
+
 
 });
 // ================= TRANSFERTS =================
@@ -727,131 +688,97 @@ return true;
 }
 
 // ================= VALID RECHARGE =================
-
 window.valRecharge = async(id,user,amount)=>{
 
-console.log("CLICK VAL", id);
-
-if(lock("rech-"+id)) return alert("⏳ Traitement...");
+if(lock(id)) return alert("⏳ Traitement en cours...");
 
 try{
 
-// 🔍 test existence
-const rechargeRef = ref(db,"demandes_recharges/"+id);
-const rechargeSnap = await get(rechargeRef);
+if(!user || amount <= 0) throw "❌ Données invalides";
 
-if(!rechargeSnap.exists()){
-alert("⚠️ Déjà traité");
-return;
-}
-
-// 🔍 user
-const userRef = ref(db,"users/"+user);
-const userSnap = await get(userRef);
-
-if(!userSnap.exists()){
-alert("❌ User introuvable");
-return;
-}
-
-const userData = userSnap.val();
-
-const amt = Number(amount || rechargeSnap.val().amount || 0);
-const oldBal = Number(userData.balance || 0);
-const newBal = oldBal + amt;
-
-// 💰 UPDATE
-await update(userRef,{
-balance:newBal
-});
-
-// 📦 ARCHIVE
-await set(ref(db,"recharges_validées/"+id),{
-user,
-amount:amt,
-oldBalance:oldBal,
-newBalance:newBal,
-date:Date.now()
-});
-
-// ❗ DELETE DIRECT (pas safeDelete)
-await remove(rechargeRef);
-
-// 📩 message
-await push(ref(db,"messages/"+user),{
-text:`✅ Recharge validée +${amt} FC`,
-date:Date.now()
-});
-
-alert("✅ OK");
-
-}catch(e){
-console.error("ERREUR:", e);
-alert("❌ " + e);
-
-} finally {
-unlock("rech-"+id);
-}
-
-};
-// ================= REFUSE RECHARGE =================
-window.refRecharge = async(id,user,amount)=>{
-
-if(lock("rech-"+id)) return alert("⏳ Traitement...");
-
-try{
-
-if(!id || !user || !amount) throw "❌ Données invalides";
-
-// 🔍 vérifier recharge
+// 🔍 Vérifier recharge
 const recharge = await safeGet("demandes_recharges/"+id);
 if(!recharge) throw "⚠️ Déjà traité";
 
-// 🔍 vérifier user
+// 🔍 Vérifier user
 const userData = await safeGet("users/"+user);
 if(!userData) throw "❌ Utilisateur introuvable";
 
-// 💰 remboursement
-const oldBal = Number(userData.balance || 0);
-const newBal = oldBal + Number(amount);
+const oldBal = userData.balance || 0;
+const newBal = oldBal + amount;
 
-await update(ref(db,"users/"+user),{
-balance:newBal
-});
+// 💰 Update solde
+await update(ref(db,"users/"+user),{ balance:newBal });
 
-// 📦 archive refus
-await set(ref(db,"recharges_refusées/"+id),{
-user,
-amount,
+// 📦 Archive
+await set(ref(db,"recharges_validées/"+id),{
+user, amount,
 oldBalance:oldBal,
 newBalance:newBal,
-status:"refused",
+status:"approved",
 date:Date.now()
 });
 
-// 🗑️ supprimer demande
+// 🗑️ Supprimer demande
 await safeDelete("demandes_recharges/"+id);
 
-// 📩 message user
+// 📩 Notification
 await push(ref(db,"messages/"+user),{
-text:`❌ Recharge refusée\n💰 ${amount} FC remboursé`,
+text:`✅ Recharge validée\n💰 +${amount} FC`,
 date:Date.now(),
 read:false
 });
 
-// 📊 log
+// 📊 Log
+await logAction("recharge_validée",{user,amount});
+
+alert("✅ Recharge validée");
+
+}catch(e){
+console.error(e);
+alert(e || "❌ Erreur système");
+}
+
+unlock(id);
+};
+
+// ================= REFUSE RECHARGE =================
+window.refRecharge = async(id,user,amount)=>{
+
+if(lock(id)) return alert("⏳ Traitement...");
+
+try{
+
+const recharge = await safeGet("demandes_recharges/"+id);
+if(!recharge) throw "⚠️ Déjà traité";
+
+// 📦 Archive
+await set(ref(db,"recharges_refusées/"+id),{
+user, amount,
+status:"refused",
+date:Date.now()
+});
+
+// 🗑️ Delete
+await safeDelete("demandes_recharges/"+id);
+
+// 📩 Message
+await push(ref(db,"messages/"+user),{
+text:`❌ Recharge refusée\n💰 ${amount} FC`,
+date:Date.now()
+});
+
+// 📊 Log
 await logAction("recharge_refusée",{user,amount});
 
-alert("❌ Refusé + remboursé");
+alert("❌ Recharge refusée");
 
 }catch(e){
 console.error(e);
 alert(e || "Erreur");
-
-} finally {
-unlock("rech-"+id);
 }
 
+unlock(id);
 };
 
 // ================= VALID COMMAND =================
