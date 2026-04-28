@@ -14,7 +14,7 @@ projectId:"starlink-investit"
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ================= ERROR LOGGER =================
+// ================= LOGGER ERREUR =================
 window.addEventListener("unhandledrejection", e=>{
 console.error("🔥 Firebase Error:", e.reason);
 });
@@ -32,226 +32,244 @@ function unlock(id){
 delete loading[id];
 }
 
-// ================= SAFE FUNCTIONS =================
-async function safeGet(path){
-const snap = await get(ref(db, path));
-return snap.exists() ? snap.val() : null;
-}
+// SAFE CLICK
+window.safeClick = async(id,cb)=>{
+if(lock(id)) return;
+try{ await cb(); } catch(e){ console.error(e); alert("Erreur"); }
+unlock(id);
+};
 
-async function safeDelete(path){
-const r = ref(db, path);
-const snap = await get(r);
-if(!snap.exists()) return false;
-await remove(r);
-return true;
-}
+// ================= AUTH =================
+const ADMIN_PHONE = "0982697752";
+const ADMIN_PASS = "Davbotadmin123";
 
-// ================= LOGGER =================
-async function logAction(type,data){
-await push(ref(db,"admin_logs"),{
-type,
-...data,
-date:Date.now()
+window.loginAdmin = ()=>{
+if(adminPhone.value.trim()===ADMIN_PHONE && adminPass.value.trim()===ADMIN_PASS){
+localStorage.setItem("adminAuth","true");
+location.reload();
+}else error.innerText="❌ Accès refusé";
+};
+
+window.logoutAdmin = ()=>{
+localStorage.removeItem("adminAuth");
+location.reload();
+};
+
+window.onload = ()=>{
+if(localStorage.getItem("adminAuth")==="true"){
+loginBox.style.display="none";
+adminPanel.style.display="block";
+}
+};
+
+// ================= HELPERS =================
+const safeGet = async(path)=>{
+const s = await get(ref(db,path));
+return s.exists()? s.val():null;
+};
+
+// ================= USERS =================
+onValue(ref(db,"users"), snap=>{
+
+const box = document.getElementById("users");
+if(!box) return;
+
+if(!snap.exists()) return box.innerHTML="Aucun utilisateur";
+
+let html="", total=0;
+
+Object.entries(snap.val()).forEach(([phone,u])=>{
+
+if(!u) return;
+
+total++;
+
+const name = u.name || "User";
+const bal = Number(u.balance||0);
+
+html+=`
+<div class="card">
+<b>${name}</b><br>
+📱 ${phone}<br>
+💰 ${bal} FC
+
+<div>
+<button onclick="addMoney('${phone}')">➕</button>
+<button onclick="removeMoney('${phone}')">➖</button>
+<button onclick="delUser('${phone}')">❌</button>
+</div>
+</div>`;
 });
-}
 
-// =================================================
-// 💰 VALID RECHARGE
-// =================================================
+box.innerHTML = html;
+document.getElementById("totalUsers").innerText = total;
+
+});
+
+// ================= USER ACTIONS =================
+window.addMoney = async(phone)=>{
+const amt = Number(prompt("Montant"));
+if(!amt) return;
+
+const u = await safeGet("users/"+phone);
+await update(ref(db,"users/"+phone),{
+balance:(u.balance||0)+amt
+});
+alert("Ajouté");
+};
+
+window.removeMoney = async(phone)=>{
+const amt = Number(prompt("Montant"));
+if(!amt) return;
+
+const u = await safeGet("users/"+phone);
+await update(ref(db,"users/"+phone),{
+balance:(u.balance||0)-amt
+});
+alert("Retiré");
+};
+
+window.delUser = async(phone)=>{
+if(!confirm("Supprimer ?")) return;
+await remove(ref(db,"users/"+phone));
+};
+
+// ================= RECHARGES =================
+onValue(ref(db,"demandes_recharges"), snap=>{
+
+const box = document.getElementById("recharges");
+if(!box) return;
+
+if(!snap.exists()) return box.innerHTML="Aucune recharge";
+
+let html="";
+
+Object.entries(snap.val()).forEach(([id,r])=>{
+
+if(!r || r.status==="done") return;
+
+html+=`
+<div class="card">
+💰 ${r.amount} FC<br>
+📱 ${r.user}
+
+<button onclick="valRecharge('${id}','${r.user}',${r.amount})">✅</button>
+<button onclick="refRecharge('${id}','${r.user}')">❌</button>
+</div>`;
+});
+
+box.innerHTML = html;
+});
+
+// ACTIONS RECHARGE
 window.valRecharge = async(id,user,amount)=>{
-
-const key = "rech-"+id;
-if(lock(key)) return alert("⏳ Traitement...");
+if(lock(id)) return;
 
 try{
+const u = await safeGet("users/"+user);
 
-const recharge = await safeGet("demandes_recharges/"+id);
-if(!recharge) throw "Déjà traité";
-
-const userRef = ref(db,"users/"+user);
-const snap = await get(userRef);
-
-if(!snap.exists()) throw "Utilisateur introuvable";
-
-const u = snap.val();
-
-const amt = Number(amount || recharge.amount || 0);
-if(amt <= 0) throw "Montant invalide";
-
-const newBal = Number(u.balance || 0) + amt;
-
-// update solde
-await update(userRef,{balance:newBal});
-
-// archive
-await set(ref(db,"recharges_validées/"+id),{
-user, amount:amt, newBalance:newBal,
-status:"approved",
-date:Date.now()
-});
-
-// delete
-await remove(ref(db,"demandes_recharges/"+id));
-
-// message
-await push(ref(db,"messages/"+user),{
-text:`✅ Recharge validée\n💰 +${amt} FC`,
-date:Date.now()
-});
-
-await logAction("recharge_validée",{user,amount:amt});
-
-alert("✅ Recharge OK");
-
-}catch(e){
-console.error(e);
-alert(e);
-}
-
-unlock(key);
-};
-
-// =================================================
-// ❌ REFUSE RECHARGE
-// =================================================
-window.refRecharge = async(id,user,amount)=>{
-
-const key = "rech-"+id;
-if(lock(key)) return alert("⏳ Traitement...");
-
-try{
-
-const recharge = await safeGet("demandes_recharges/"+id);
-if(!recharge) throw "Déjà traité";
-
-await set(ref(db,"recharges_refusées/"+id),{
-user,
-amount:Number(amount || recharge.amount || 0),
-status:"refused",
-date:Date.now()
+await update(ref(db,"users/"+user),{
+balance:(u.balance||0)+Number(amount)
 });
 
 await remove(ref(db,"demandes_recharges/"+id));
 
-await push(ref(db,"messages/"+user),{
-text:`❌ Recharge refusée`,
-date:Date.now()
-});
+alert("Validé");
+}catch(e){ alert(e); }
 
-await logAction("recharge_refusée",{user});
-
-alert("❌ Refusé");
-
-}catch(e){
-console.error(e);
-alert(e);
-}
-
-unlock(key);
+unlock(id);
 };
 
-// =================================================
-// 📦 VALID COMMAND
-// =================================================
+window.refRecharge = async(id)=>{
+await remove(ref(db,"demandes_recharges/"+id);
+alert("Refusé");
+};
+
+// ================= COMMANDES =================
+onValue(ref(db,"orders/pending"), snap=>{
+
+const box = document.getElementById("commandes");
+if(!box) return;
+
+if(!snap.exists()) return box.innerHTML="Aucune commande";
+
+let html="";
+
+Object.entries(snap.val()).forEach(([user,cmds])=>{
+Object.entries(cmds).forEach(([id,c])=>{
+
+html+=`
+<div class="card">
+📦 ${c.service}<br>
+💰 ${c.price} FC
+
+<button onclick="valCmd('${user}','${id}')">✅</button>
+<button onclick="refCmd('${user}','${id}',${c.price})">❌</button>
+</div>`;
+});
+});
+
+box.innerHTML = html;
+});
+
+// ACTIONS CMD
 window.valCmd = async(user,id)=>{
-
-const key = "cmd-"+user+"-"+id;
-if(lock(key)) return alert("⏳ Traitement...");
-
-try{
-
-const cmdRef = ref(db,`orders/pending/${user}/${id}`);
-const snap = await get(cmdRef);
-
-if(!snap.exists()) throw "Déjà traité";
-
-const cmd = snap.val();
-
-// archive
 await set(ref(db,`orders/validated/${user}/${id}`),{
-...cmd,
-status:"approved",
-dateValidated:Date.now()
+status:"ok"
 });
-
-// delete
-await remove(cmdRef);
-
-// message
-await push(ref(db,"messages/"+user),{
-text:`✅ Commande validée\n📦 ${cmd.service}`,
-date:Date.now()
-});
-
-await logAction("commande_validée",{user});
-
-alert("✅ Commande OK");
-
-}catch(e){
-console.error(e);
-alert(e);
-}
-
-unlock(key);
+await remove(ref(db,`orders/pending/${user}/${id}`));
+alert("Validé");
 };
 
-// =================================================
-// ❌ REFUSE COMMAND
-// =================================================
 window.refCmd = async(user,id,price)=>{
+const u = await safeGet("users/"+user);
 
-const key = "cmd-"+user+"-"+id;
-if(lock(key)) return alert("⏳ Traitement...");
-
-try{
-
-const cmdRef = ref(db,`orders/pending/${user}/${id}`);
-const snap = await get(cmdRef);
-
-if(!snap.exists()) throw "Déjà traité";
-
-const cmd = snap.val();
-
-const amt = Number(price || cmd.price || 0);
-
-const userRef = ref(db,"users/"+user);
-const userSnap = await get(userRef);
-
-if(!userSnap.exists()) throw "User introuvable";
-
-const u = userSnap.val();
-
-// remboursement
-const newBal = Number(u.balance || 0) + amt;
-
-await update(userRef,{balance:newBal});
-
-// archive
-await set(ref(db,`orders/cancelled/${user}/${id}`),{
-...cmd,
-status:"refused",
-price:amt,
-newBalance:newBal,
-dateCancelled:Date.now()
+await update(ref(db,"users/"+user),{
+balance:(u.balance||0)+Number(price)
 });
 
-// delete
-await remove(cmdRef);
-
-// message
-await push(ref(db,"messages/"+user),{
-text:`❌ Commande refusée\n💰 ${amt} FC remboursé`,
-date:Date.now()
-});
-
-await logAction("commande_refusée",{user});
-
-alert("❌ Commande refusée");
-
-}catch(e){
-console.error(e);
-alert(e);
-}
-
-unlock(key);
+await remove(ref(db,`orders/pending/${user}/${id}`));
+alert("Refusé + remboursé");
 };
+
+// ================= TRANSFERT =================
+window.valTrans = async(id,from,to,amt)=>{
+const u1 = await safeGet("users/"+from);
+const u2 = await safeGet("users/"+to);
+
+await update(ref(db,"users/"+from),{
+balance:u1.balance-amt
+});
+await update(ref(db,"users/"+to),{
+balance:u2.balance+amt
+});
+
+await update(ref(db,"transferts/"+id),{status:"ok"});
+};
+
+window.refTrans = async(id)=>{
+await update(ref(db,"transferts/"+id),{status:"refused"});
+};
+
+// ================= MONETISATION =================
+window.valMonet = async(id,user)=>{
+await update(ref(db,"users/"+user),{monetized:true});
+await update(ref(db,"demandes_monetisation/"+id),{status:"ok"});
+};
+
+window.refMonet = async(id)=>{
+await update(ref(db,"demandes_monetisation/"+id),{status:"refused"});
+};
+
+// ================= STATS =================
+onValue(ref(db,"users"), snap=>{
+if(!snap.exists()) return;
+
+let total=0;
+
+Object.values(snap.val()).forEach(u=>{
+total += Number(u.balance||0);
+});
+
+document.getElementById("totalMoney").innerText = total+" FC";
+});
