@@ -161,8 +161,7 @@ box.innerHTML = html || "<small>Aucun utilisateur valide</small>";
 // ================= RECHARGES ================
 // ================= RECHARGES =================
 
-
-        onValue(ref(db,"demandes_recharges"), async snap=>{
+onValue(ref(db,"demandes_recharges"), async snap=>{
 
 const box = document.getElementById("recharges");
 if(!box) return;
@@ -174,89 +173,110 @@ if(!snap.exists()){
     return;
 }
 
-let html = "";
-let count = 0;
-
-// 🔥 récupérer tous les users UNE SEULE FOIS
+// 🔥 charger tous les utilisateurs une seule fois (performance)
 const usersSnap = await get(ref(db,"users"));
 const usersData = usersSnap.exists() ? usersSnap.val() : {};
 
-// 🔥 loop rapide
-Object.entries(snap.val()).forEach(([id, r])=>{
+let html = "";
+let count = 0;
 
-    // 🛑 sécurité data
-    if(!r || !id || !r.user || !r.amount) return;
+// 🔥 loop
+Object.entries(snap.val()).forEach(([id,r])=>{
 
-    if(r.status && r.status !== "pending") return;
+// 🛑 sécurité données
+if(!r || !id || !r.user || !r.amount) return;
 
-    const u = usersData[r.user];
+// 🔒 afficher seulement pending
+if(r.status && r.status !== "pending") return;
 
-    // 🛑 user supprimé → ignore
-    if(!u) return;
+// 🔥 récupérer user depuis cache
+const u = usersData[r.user];
 
-    const name = u.name || "User";
-    const photo = u.photo || "";
-    const phone = r.user;
-    const balance = Number(u.balance || 0);
+// 🛑 ignorer user supprimé
+if(!u) return;
 
-    const date = r.date 
-        ? new Date(r.date).toLocaleString() 
-        : "-";
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
+const phone = r.user;
+const balance = Number(u.balance || 0);
 
-    const avatar = photo
-    ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-    : `<div style="
-        width:50px;height:50px;border-radius:50%;
-        background:#00d2ff;
-        display:flex;align-items:center;justify-content:center;
-        color:black;font-weight:bold;">
-        ${name.substring(0,2).toUpperCase()}
-      </div>`;
+// 🔥 date sécurisée
+const date = r.date 
+? new Date(r.date).toLocaleString() 
+: "Non défini";
 
-    html += `
-    <div class="card">
+// 🔥 statut
+const status = r.status || "pending";
 
-    <div style="display:flex;align-items:center;gap:10px;">
-    ${avatar}
-    <div>
-    <b>${name}</b><br>
-    📱 ${phone}
-    </div>
-    </div>
+// 🔥 avatar
+const avatar = photo
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;
+height:50px;
+border-radius:50%;
+background:#00d2ff;
+display:flex;
+align-items:center;
+justify-content:center;
+color:black;
+font-weight:bold;">
+${name.substring(0,2).toUpperCase()}
+</div>`;
 
-    <hr>
+// 🔥 card HTML
+html += `
 
-    💰 Montant : <b>${r.amount} FC</b><br>
-    💳 Solde : <b>${balance} FC</b><br>
-    📅 ${date}<br>
+<div class="card">
 
-    ${r.proof ? `
-    <br><img src="${r.proof}" style="width:100%;border-radius:10px;">
-    ` : ""}
+<div style="display:flex;align-items:center;gap:10px;">
+${avatar}
 
-    <div style="margin-top:10px;display:flex;gap:5px;">
+<div>
+<b>${name}</b><br>
+📱 ${phone}
+</div>
+</div>
 
-    <button onclick="safeClick('val-${id}',()=>valRecharge('${id}','${r.user}',${r.amount}))" style="background:#4caf50;">
-    ✅
-    </button>
+<hr>
 
-    <button onclick="safeClick('ref-${id}',()=>refRecharge('${id}','${r.user}',${r.amount}))" style="background:#ff4d4d;">
-    ❌
-    </button>
+💰 Montant : <b>${Number(r.amount)} FC</b><br>
+💳 Solde actuel : <b>${balance} FC</b><br>
+📅 Date : <b>${date}</b><br>
+📌 Statut : <b style="color:orange;">${status}</b><br>
+🆔 ID : <small>${id}</small>
 
-    </div>
+${r.proof ? `
+<br><br>📸 Preuve :
+<br><img src="${r.proof}" style="width:100%;border-radius:10px;">
+` : ""}
 
-    </div>
-    `;
+<div style="margin-top:12px;display:flex;gap:5px;">
 
-    count++;
+<button class="ok"
+onclick="safeClick('val-${id}',()=>valRecharge('${id}','${r.user}',${r.amount}))">
+✅ Valider
+</button>
+
+<button class="no"
+onclick="safeClick('ref-${id}',()=>refRecharge('${id}','${r.user}',${r.amount}))">
+❌ Refuser
+</button>
+
+</div>
+
+</div>
+
+`;
+
+count++;
 
 });
 
-// 🔥 inject une seule fois
+// 🔥 inject une seule fois (important)
 box.innerHTML = html || "<small>Aucune recharge valide</small>";
 
-// 🔥 badge
+// 🔥 badge dynamique
 const badge = document.getElementById("rechBadge");
 if(badge){
     badge.style.display = count > 0 ? "inline-block" : "none";
@@ -264,8 +284,6 @@ if(badge){
 }
 
 });
-
- 
 // ================= COMMANDES =================
 onValue(ref(db,"orders/pending"), async snap=>{
 
