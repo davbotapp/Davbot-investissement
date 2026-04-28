@@ -161,77 +161,75 @@ box.innerHTML = html || "<small>Aucun utilisateur valide</small>";
 // ================= RECHARGES ================
 // ================= RECHARGES =================
 
-onValue(ref(db,"demandes_recharges"), async snap=>{
+onValue(ref(db,"demandes_recharges"), async snap => {
 
 const box = document.getElementById("recharges");
 if(!box) return;
 
 box.innerHTML = "<small>⏳ Chargement...</small>";
 
+try{
+
 if(!snap.exists()){
     box.innerHTML = "<small>Aucune recharge</small>";
     return;
 }
 
-// 🔥 charger tous les utilisateurs une seule fois (performance)
+// 🔥 charger users une seule fois
 const usersSnap = await get(ref(db,"users"));
 const usersData = usersSnap.exists() ? usersSnap.val() : {};
 
 let html = "";
 let count = 0;
 
-// 🔥 loop
-Object.entries(snap.val()).forEach(([id,r])=>{
+// 🔥 loop sécurisé
+for(const [id,r] of Object.entries(snap.val())){
 
-// 🛑 sécurité données
-if(!r || !id || !r.user || !r.amount) return;
+// 🛑 données invalides
+if(!r || !id || !r.user) continue;
 
-// 🔒 afficher seulement pending
-if(r.status && r.status !== "pending") return;
+// 🔥 montant sécurisé
+const amount = Number(r.amount || 0);
+if(amount <= 0) continue;
 
-// 🔥 récupérer user depuis cache
+// 🔒 seulement pending
+if(r.status && r.status !== "pending") continue;
+
+// 🔥 user
 const u = usersData[r.user];
+if(!u) continue;
 
-// 🛑 ignorer user supprimé
-if(!u) return;
-
+// 🔥 infos
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
 const phone = r.user;
 const balance = Number(u.balance || 0);
 
-// 🔥 date sécurisée
-const date = r.date 
-? new Date(r.date).toLocaleString() 
-: "Non défini";
-
-// 🔥 statut
-const status = r.status || "pending";
+// 🔥 date safe
+let date = "Non défini";
+if(r.date){
+    try{
+        date = new Date(r.date).toLocaleString();
+    }catch{}
+}
 
 // 🔥 avatar
 const avatar = photo
 ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
 : `<div style="
-width:50px;
-height:50px;
-border-radius:50%;
+width:50px;height:50px;border-radius:50%;
 background:#00d2ff;
-display:flex;
-align-items:center;
-justify-content:center;
-color:black;
-font-weight:bold;">
+display:flex;align-items:center;justify-content:center;
+color:black;font-weight:bold;">
 ${name.substring(0,2).toUpperCase()}
 </div>`;
 
-// 🔥 card HTML
+// 🔥 card
 html += `
-
 <div class="card">
 
 <div style="display:flex;align-items:center;gap:10px;">
 ${avatar}
-
 <div>
 <b>${name}</b><br>
 📱 ${phone}
@@ -240,10 +238,10 @@ ${avatar}
 
 <hr>
 
-💰 Montant : <b>${Number(r.amount)} FC</b><br>
+💰 Montant : <b>${amount} FC</b><br>
 💳 Solde actuel : <b>${balance} FC</b><br>
 📅 Date : <b>${date}</b><br>
-📌 Statut : <b style="color:orange;">${status}</b><br>
+📌 Statut : <b style="color:orange;">pending</b><br>
 🆔 ID : <small>${id}</small>
 
 ${r.proof ? `
@@ -254,33 +252,36 @@ ${r.proof ? `
 <div style="margin-top:12px;display:flex;gap:5px;">
 
 <button class="ok"
-onclick="safeClick('val-${id}',()=>valRecharge('${id}','${r.user}',${r.amount}))">
+onclick="safeClick('val-${id}',()=>valRecharge('${id}','${r.user}',${amount}))">
 ✅ Valider
 </button>
 
 <button class="no"
-onclick="safeClick('ref-${id}',()=>refRecharge('${id}','${r.user}',${r.amount}))">
+onclick="safeClick('ref-${id}',()=>refRecharge('${id}','${r.user}',${amount}))">
 ❌ Refuser
 </button>
 
 </div>
 
 </div>
-
 `;
 
 count++;
+}
 
-});
-
-// 🔥 inject une seule fois (important)
+// 🔥 inject final
 box.innerHTML = html || "<small>Aucune recharge valide</small>";
 
-// 🔥 badge dynamique
+// 🔥 badge
 const badge = document.getElementById("rechBadge");
 if(badge){
     badge.style.display = count > 0 ? "inline-block" : "none";
     badge.innerText = count;
+}
+
+}catch(e){
+console.error("❌ Erreur affichage recharge:", e);
+box.innerHTML = "<small>❌ Erreur chargement</small>";
 }
 
 });
@@ -727,222 +728,236 @@ return true;
 }
 
 // ================= VALID RECHARGE =================
-window.valRecharge = async(id,user,amount)=>{
+window.valRecharge = async (id, user, amount) => {
 
-if(lock("rech-"+id)) return alert("⏳ Traitement en cours...");
+const key = "rech-" + id;
+if (lock(key)) return alert("⏳ Traitement en cours...");
 
-try{
+try {
 
-if(!id || !user) throw "❌ Données invalides";
+// 🔍 Vérif ID
+if (!id || !user) throw "❌ Données invalides";
 
-// 🔍 recharge
-const recharge = await safeGet("demandes_recharges/"+id);
-if(!recharge) throw "⚠️ Déjà traité";
+// 🔍 Recharge
+const recharge = await safeGet("demandes_recharges/" + id);
+if (!recharge) throw "⚠️ Déjà traité";
 
-// 🔍 user
-const userData = await safeGet("users/"+user);
-if(!userData) throw "❌ Utilisateur introuvable";
+// 🔍 User
+const userRef = ref(db, "users/" + user);
+const userSnap = await get(userRef);
+if (!userSnap.exists()) throw "❌ Utilisateur introuvable";
 
-// 🔥 sécuriser montant
+const userData = userSnap.val();
+
+// 🔥 Montant sécurisé
 const amt = Number(amount || recharge.amount || 0);
-if(amt <= 0) throw "❌ Montant invalide";
+if (amt <= 0) throw "❌ Montant invalide";
 
-// 🔥 calcul
+// 🔥 Calcul solde
 const oldBal = Number(userData.balance || 0);
 const newBal = oldBal + amt;
 
-// 💰 update
-await update(ref(db,"users/"+user),{
-balance:newBal
-});
-
-// 📦 archive AVANT suppression
-await set(ref(db,"recharges_validées/"+id),{
-user,
-amount:amt,
-oldBalance:oldBal,
-newBalance:newBal,
-status:"approved",
-date:Date.now()
-});
-
-// 🗑️ delete
-await safeDelete("demandes_recharges/"+id);
-
-// 📩 message
-await push(ref(db,"messages/"+user),{
-text:`✅ Recharge validée\n💰 +${amt} FC`,
-date:Date.now(),
-read:false
-});
-
-// 📊 log
-await logAction("recharge_validée",{user,amount:amt});
-
-alert("✅ Recharge validée");
-
-}catch(e){
-console.error(e);
-alert(e || "❌ Erreur système");
-
-} finally {
-// 🔥 toujours libérer
-unlock("rech-"+id);
-}
-
-};
-
-// ================= REFUSE RECHARGE =================
-window.refRecharge = async(id,user,amount)=>{
-
-if(lock("rech-"+id)) return alert("⏳ Traitement...");
-
-try{
-
-if(!id || !user || !amount) throw "❌ Données invalides";
-
-// 🔍 vérifier recharge
-const recharge = await safeGet("demandes_recharges/"+id);
-if(!recharge) throw "⚠️ Déjà traité";
-
-// 🔍 vérifier user
-const userData = await safeGet("users/"+user);
-if(!userData) throw "❌ Utilisateur introuvable";
-
-// 💰 remboursement
-const oldBal = Number(userData.balance || 0);
-const newBal = oldBal + Number(amount);
-
-await update(ref(db,"users/"+user),{
-balance:newBal
-});
-
-// 📦 archive refus
-await set(ref(db,"recharges_refusées/"+id),{
-user,
-amount,
-oldBalance:oldBal,
-newBalance:newBal,
-status:"refused",
-date:Date.now()
-});
-
-// 🗑️ supprimer demande
-await safeDelete("demandes_recharges/"+id);
-
-// 📩 message user
-await push(ref(db,"messages/"+user),{
-text:`❌ Recharge refusée\n💰 ${amount} FC remboursé`,
-date:Date.now(),
-read:false
-});
-
-// 📊 log
-await logAction("recharge_refusée",{user,amount});
-
-alert("❌ Refusé + remboursé");
-
-}catch(e){
-console.error(e);
-alert(e || "Erreur");
-
-} finally {
-unlock("rech-"+id);
-}
-
-};
-
-// ================= VALID COMMAND =================
-window.valCmd = async(user,id)=>{
-
-if(lock("cmd-"+user+"-"+id)) return alert("⏳ Traitement...");
-
-try{
-
-const cmd = await safeGet(`orders/pending/${user}/${id}`);
-if(!cmd) throw "⚠️ Déjà traité";
-
-await set(ref(db,`orders/validated/${user}/${id}`),{
-...cmd,
-status:"approved",
-dateValidated:Date.now()
-});
-
-await safeDelete(`orders/pending/${user}/${id}`);
-
-await push(ref(db,"messages/"+user),{
-text:`✅ Commande validée\n📦 ${cmd.service}`,
-date:Date.now()
-});
-
-await logAction("commande_validée",{user});
-
-alert("✅ Commande validée");
-
-}catch(e){
-console.error(e);
-alert(e || "Erreur");
-
-} finally {
-unlock("cmd-"+user+"-"+id);
-}
-
-};
-
-
-// ================= REFUSE COMMAND =================
-window.refCmd = async(user,id,price)=>{
-
-if(lock(id)) return alert("⏳ Traitement...");
-
-try{
-
-if(price < 0) throw "❌ Prix invalide";
-
-// 🔍 Commande
-const cmd = await safeGet(`orders/pending/${user}/${id}`);
-if(!cmd) throw "⚠️ Déjà traité";
-
-// 🔍 User
-const userData = await safeGet("users/"+user);
-if(!userData) throw "❌ User introuvable";
-
-const oldBal = userData.balance || 0;
-const newBal = oldBal + price;
-
-// 💰 Remboursement
-await update(ref(db,"users/"+user),{
-balance:newBal
-});
+// 💰 Update solde
+await update(userRef, { balance: newBal });
 
 // 📦 Archive
-await set(ref(db,`orders/cancelled/${user}/${id}`),{
-...cmd,
-status:"refused",
-price,
-oldBalance:oldBal,
-newBalance:newBal,
-dateCancelled:Date.now()
+await set(ref(db, "recharges_validées/" + id), {
+user,
+amount: amt,
+oldBalance: oldBal,
+newBalance: newBal,
+status: "approved",
+date: Date.now()
 });
 
-// 🗑️ Delete
-await safeDelete(`orders/pending/${user}/${id}`);
+// 🗑️ Supprimer demande
+await remove(ref(db, "demandes_recharges/" + id));
 
-// 📩 Message
-await push(ref(db,"messages/"+user),{
-text:`❌ Commande refusée\n💰 ${price} FC remboursé`,
-date:Date.now()
+// 📩 Message utilisateur
+await push(ref(db, "messages/" + user), {
+text: `✅ Recharge validée\n💰 +${amt} FC`,
+date: Date.now(),
+read: false
 });
 
 // 📊 Log
-await logAction("commande_refusée",{user,price});
+await logAction("recharge_validée", { user, amount: amt });
+
+alert("✅ Recharge validée");
+
+} catch (e) {
+console.error("❌ valRecharge:", e);
+alert(e || "Erreur système");
+
+} finally {
+unlock(key);
+}
+
+};
+// ================= REFUSE RECHARGE =================
+
+window.refRecharge = async (id, user, amount) => {
+
+const key = "rech-" + id;
+if (lock(key)) return alert("⏳ Traitement...");
+
+try {
+
+// 🔍 Vérif
+if (!id || !user) throw "❌ Données invalides";
+
+// 🔍 Recharge
+const recharge = await safeGet("demandes_recharges/" + id);
+if (!recharge) throw "⚠️ Déjà traité";
+
+// 📦 Archive refus
+await set(ref(db, "recharges_refusées/" + id), {
+user,
+amount: Number(amount || recharge.amount || 0),
+status: "refused",
+date: Date.now()
+});
+
+// 🗑️ Supprimer demande
+await remove(ref(db, "demandes_recharges/" + id));
+
+// 📩 Message
+await push(ref(db, "messages/" + user), {
+text: `❌ Recharge refusée`,
+date: Date.now(),
+read: false
+});
+
+// 📊 Log
+await logAction("recharge_refusée", { user });
+
+alert("❌ Recharge refusée");
+
+} catch (e) {
+console.error("❌ refRecharge:", e);
+alert(e || "Erreur");
+
+} finally {
+unlock(key);
+}
+
+};
+// ================= VALID COMMAND =================
+window.valCmd = async (user, id) => {
+
+const key = "cmd-" + user + "-" + id;
+if (lock(key)) return alert("⏳ Traitement...");
+
+try {
+
+// 🔍 Commande
+const cmdRef = ref(db, `orders/pending/${user}/${id}`);
+const snap = await get(cmdRef);
+
+if (!snap.exists()) throw "⚠️ Déjà traité";
+
+const cmd = snap.val();
+
+// 📦 Archive
+await set(ref(db, `orders/validated/${user}/${id}`), {
+...cmd,
+status: "approved",
+dateValidated: Date.now()
+});
+
+// 🗑️ Suppression DIRECTE (important)
+await remove(cmdRef);
+
+// 📩 Message
+await push(ref(db, "messages/" + user), {
+text: `✅ Commande validée\n📦 ${cmd.service}`,
+date: Date.now(),
+read: false
+});
+
+// 📊 Log
+await logAction("commande_validée", { user, id });
+
+alert("✅ Commande validée");
+
+} catch (e) {
+console.error("❌ valCmd:", e);
+alert(e || "Erreur");
+
+} finally {
+unlock(key);
+}
+
+};
+// ================= REFUSE COMMAND =================
+window.refCmd = async (user, id, price) => {
+
+const key = "cmd-" + user + "-" + id;
+if (lock(key)) return alert("⏳ Traitement...");
+
+try {
+
+// 🔍 Commande
+const cmdRef = ref(db, `orders/pending/${user}/${id}`);
+const snap = await get(cmdRef);
+
+if (!snap.exists()) throw "⚠️ Déjà traité";
+
+const cmd = snap.val();
+
+// 🔥 prix sécurisé
+const amt = Number(price || cmd.price || 0);
+if (amt < 0) throw "❌ Prix invalide";
+
+// 🔍 User
+const userRef = ref(db, "users/" + user);
+const userSnap = await get(userRef);
+
+if (!userSnap.exists()) throw "❌ Utilisateur introuvable";
+
+const userData = userSnap.val();
+
+// 💰 remboursement
+const oldBal = Number(userData.balance || 0);
+const newBal = oldBal + amt;
+
+await update(userRef, {
+balance: newBal
+});
+
+// 📦 Archive
+await set(ref(db, `orders/cancelled/${user}/${id}`), {
+...cmd,
+status: "refused",
+price: amt,
+oldBalance: oldBal,
+newBalance: newBal,
+dateCancelled: Date.now()
+});
+
+// 🗑️ Suppression DIRECTE
+await remove(cmdRef);
+
+// 📩 Message
+await push(ref(db, "messages/" + user), {
+text: `❌ Commande refusée\n💰 ${amt} FC remboursé`,
+date: Date.now(),
+read: false
+});
+
+// 📊 Log
+await logAction("commande_refusée", { user, amount: amt });
 
 alert("❌ Refusée + remboursée");
 
-}catch(e){
-console.error(e);
+} catch (e) {
+console.error("❌ refCmd:", e);
 alert(e || "Erreur");
+
+} finally {
+unlock(key);
 }
 
-unlock(id);
 };
+
+</div>
