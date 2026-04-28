@@ -266,10 +266,7 @@ let html = "";
 // ================= LOOP =================
 for(const [user, cmds] of Object.entries(snap.val())){
 
-    // 🛑 ignorer utilisateur supprimé
-    const u = usersData[user];
-    if(!u) continue;
-
+    
     const name = u.name || "Utilisateur";
     const photo = u.photo || "";
 
