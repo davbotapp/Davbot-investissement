@@ -727,71 +727,73 @@ return true;
 }
 
 // ================= VALID RECHARGE =================
+
 window.valRecharge = async(id,user,amount)=>{
 
-if(lock("rech-"+id)) return alert("⏳ Traitement en cours...");
+console.log("CLICK VAL", id);
+
+if(lock("rech-"+id)) return alert("⏳ Traitement...");
 
 try{
 
-if(!id || !user) throw "❌ Données invalides";
+// 🔍 test existence
+const rechargeRef = ref(db,"demandes_recharges/"+id);
+const rechargeSnap = await get(rechargeRef);
 
-// 🔍 recharge
-const recharge = await safeGet("demandes_recharges/"+id);
-if(!recharge) throw "⚠️ Déjà traité";
+if(!rechargeSnap.exists()){
+alert("⚠️ Déjà traité");
+return;
+}
 
 // 🔍 user
-const userData = await safeGet("users/"+user);
-if(!userData) throw "❌ Utilisateur introuvable";
+const userRef = ref(db,"users/"+user);
+const userSnap = await get(userRef);
 
-// 🔥 sécuriser montant
-const amt = Number(amount || recharge.amount || 0);
-if(amt <= 0) throw "❌ Montant invalide";
+if(!userSnap.exists()){
+alert("❌ User introuvable");
+return;
+}
 
-// 🔥 calcul
+const userData = userSnap.val();
+
+const amt = Number(amount || rechargeSnap.val().amount || 0);
 const oldBal = Number(userData.balance || 0);
 const newBal = oldBal + amt;
 
-// 💰 update
-await update(ref(db,"users/"+user),{
+// 💰 UPDATE
+await update(userRef,{
 balance:newBal
 });
 
-// 📦 archive AVANT suppression
+// 📦 ARCHIVE
 await set(ref(db,"recharges_validées/"+id),{
 user,
 amount:amt,
 oldBalance:oldBal,
 newBalance:newBal,
-status:"approved",
 date:Date.now()
 });
 
-// 🗑️ delete
-await safeDelete("demandes_recharges/"+id);
+// ❗ DELETE DIRECT (pas safeDelete)
+await remove(rechargeRef);
 
 // 📩 message
 await push(ref(db,"messages/"+user),{
-text:`✅ Recharge validée\n💰 +${amt} FC`,
-date:Date.now(),
-read:false
+text:`✅ Recharge validée +${amt} FC`,
+date:Date.now()
 });
 
-// 📊 log
-await logAction("recharge_validée",{user,amount:amt});
-
-alert("✅ Recharge validée");
+alert("✅ OK");
 
 }catch(e){
-console.error(e);
-alert(e || "❌ Erreur système");
+console.error("ERREUR:", e);
+alert("❌ " + e);
 
 } finally {
-// 🔥 toujours libérer
 unlock("rech-"+id);
 }
 
 };
-
 // ================= REFUSE RECHARGE =================
 window.refRecharge = async(id,user,amount)=>{
 
