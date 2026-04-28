@@ -79,12 +79,18 @@ let html = "";
 // 🔥 LOOP USERS
 Object.entries(snap.val()).forEach(([phone,u])=>{
 
-// 🛑 FILTRE DATA CASSÉE
+// 🛑 DATA INVALIDE
 if(!u || !phone) return;
+
+// 🛑 ignorer utilisateurs vides (optionnel PRO)
+if(!u.name && !u.balance && !u.points) return;
 
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
-const pass = u.password || "-";
+
+// ⚠️ NE PAS afficher vrai mot de passe
+const pass = u.password ? "••••••••" : "-";
+
 const balance = Number(u.balance || 0);
 const points = Number(u.points || 0);
 const revenue = Number(u.revenus || 0);
@@ -146,40 +152,58 @@ ${avatar}
 
 });
 
-// 🔥 injecter en une fois
-box.innerHTML = html;
+// 🔥 injecter
+box.innerHTML = html || "<small>Aucun utilisateur valide</small>";
 
 });
+// ================= REMOVE MONEY =================
 
+// ================= RECHARGES ================
 // ================= RECHARGES =================
- =================
+
 onValue(ref(db,"demandes_recharges"), async snap=>{
+
 const box = document.getElementById("recharges");
 if(!box) return;
 
-box.innerHTML = "";
+box.innerHTML = "<small>⏳ Chargement...</small>";
 
 if(!snap.exists()){
-box.innerHTML = "<small>Aucune recharge</small>";
-return;
+    box.innerHTML = "<small>Aucune recharge</small>";
+    return;
 }
 
-for(const [id,r] of Object.entries(snap.val())){
+// 🔥 charger tous les utilisateurs une seule fois (performance)
+const usersSnap = await get(ref(db,"users"));
+const usersData = usersSnap.exists() ? usersSnap.val() : {};
+
+let html = "";
+let count = 0;
+
+// 🔥 loop
+Object.entries(snap.val()).forEach(([id,r])=>{
+
+// 🛑 sécurité données
+if(!r || !id || !r.user || !r.amount) return;
 
 // 🔒 afficher seulement pending
-if(r.status && r.status !== "pending") continue;
+if(r.status && r.status !== "pending") return;
 
-// 🔥 récupérer user
-const userSnap = await get(ref(db,"users/"+r.user));
-const u = userSnap.val() || {};
+// 🔥 récupérer user depuis cache
+const u = usersData[r.user];
+
+// 🛑 ignorer user supprimé
+if(!u) return;
 
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
-const phone = r.user || "Non défini";
-const balance = u.balance || 0;
+const phone = r.user;
+const balance = Number(u.balance || 0);
 
-// 🔥 date
-const date = r.date ? new Date(r.date).toLocaleString() : "Non défini";
+// 🔥 date sécurisée
+const date = r.date 
+? new Date(r.date).toLocaleString() 
+: "Non défini";
 
 // 🔥 statut
 const status = r.status || "pending";
@@ -197,10 +221,11 @@ align-items:center;
 justify-content:center;
 color:black;
 font-weight:bold;">
-${name.substring(0,2)}
+${name.substring(0,2).toUpperCase()}
 </div>`;
 
-box.innerHTML += `
+// 🔥 card HTML
+html += `
 
 <div class="card">
 
@@ -215,7 +240,7 @@ ${avatar}
 
 <hr>
 
-💰 Montant : <b>${r.amount} FC</b><br>
+💰 Montant : <b>${Number(r.amount)} FC</b><br>
 💳 Solde actuel : <b>${balance} FC</b><br>
 📅 Date : <b>${date}</b><br>
 📌 Statut : <b style="color:orange;">${status}</b><br>
@@ -228,11 +253,13 @@ ${r.proof ? `
 
 <div style="margin-top:12px;display:flex;gap:5px;">
 
-<button class="ok" onclick="valRecharge('${id}','${r.user}',${r.amount})">
+<button class="ok"
+onclick="safeClick('val-${id}',()=>valRecharge('${id}','${r.user}',${r.amount}))">
 ✅ Valider
 </button>
 
-<button class="no" onclick="refRecharge('${id}','${r.user}',${r.amount})">
+<button class="no"
+onclick="safeClick('ref-${id}',()=>refRecharge('${id}','${r.user}',${r.amount}))">
 ❌ Refuser
 </button>
 
@@ -241,9 +268,22 @@ ${r.proof ? `
 </div>
 
 `;
-}
+
+count++;
+
 });
 
+// 🔥 inject une seule fois (important)
+box.innerHTML = html || "<small>Aucune recharge valide</small>";
+
+// 🔥 badge dynamique
+const badge = document.getElementById("rechBadge");
+if(badge){
+    badge.style.display = count > 0 ? "inline-block" : "none";
+    badge.innerText = count;
+}
+
+});
 // ================= COMMANDES =================
 onValue(ref(db,"orders/pending"), async snap=>{
 
@@ -266,7 +306,10 @@ let html = "";
 // ================= LOOP =================
 for(const [user, cmds] of Object.entries(snap.val())){
 
-    
+    // 🛑 ignorer utilisateur supprimé
+    const u = usersData[user];
+    if(!u) continue;
+
     const name = u.name || "Utilisateur";
     const photo = u.photo || "";
 
@@ -278,12 +321,17 @@ for(const [user, cmds] of Object.entries(snap.val())){
 
     for(const [id, c] of Object.entries(cmds)){
 
+        // 🛑 filtre données cassées
+        if(!c || !id || !c.service) continue;
+
+        const price = Number(c.price || 0);
         const date = c.date ? new Date(c.date).toLocaleString() : "";
 
         let details = "";
+
         // ================= SERVICES =================
 
-        if(c.service === "Application"){
+           if(c.service === "Application"){
             details += `
             📱 Nom : ${c.name || "-"}<br>
             🎨 Couleur : ${c.color || "-"}<br>
@@ -354,7 +402,6 @@ for(const [user, cmds] of Object.entries(snap.val())){
     📦 Plan : ${c.plan || "-"}<br>
     `;
 }
-
         // ================= IMAGES =================
         Object.entries(c).forEach(([k,v])=>{
             if(typeof v === "string" && v.startsWith("data:image")){
@@ -388,16 +435,16 @@ for(const [user, cmds] of Object.entries(snap.val())){
         <hr style="opacity:0.1;margin:10px 0;">
 
         📦 <b>${c.service}</b><br>
-        💰 <b style="color:#00d2ff">${(c.price || 0).toLocaleString()} FC</b><br>
-        📅 ${date}
+        💰 <b style="color:#00d2ff">${price.toLocaleString()} FC</b><br>
+        ${date ? `📅 ${date}` : ""}
 
         <div style="margin-top:10px;line-height:1.6;">
-        ${details || "Aucun détail"}
+        ${details || ""}
         </div>
 
         <div style="margin-top:12px;display:flex;gap:6px;">
-        <button onclick="valCmd('${user}','${id}')" style="background:#4caf50;">✅</button>
-        <button onclick="refCmd('${user}','${id}',${c.price || 0})" style="background:#ff4d4d;">❌</button>
+        <button onclick="safeClick('cmd-ok-${id}',()=>valCmd('${user}','${id}'))" style="background:#4caf50;">✅</button>
+        <button onclick="safeClick('cmd-no-${id}',()=>refCmd('${user}','${id}',${price}))" style="background:#ff4d4d;">❌</button>
         </div>
 
         </div>
@@ -407,7 +454,6 @@ for(const [user, cmds] of Object.entries(snap.val())){
 
 // 🔥 injection finale
 box.innerHTML = html || "<small>Aucune commande valide</small>";
-
 
 });
 // ================= TRANSFERTS =================
@@ -683,135 +729,166 @@ return true;
 // ================= VALID RECHARGE =================
 window.valRecharge = async(id,user,amount)=>{
 
-if(lock(id)) return alert("⏳ Traitement en cours...");
+if(lock("rech-"+id)) return alert("⏳ Traitement en cours...");
 
 try{
 
-if(!user || amount <= 0) throw "❌ Données invalides";
+if(!id || !user) throw "❌ Données invalides";
 
-// 🔍 Vérifier recharge
+// 🔍 recharge
 const recharge = await safeGet("demandes_recharges/"+id);
 if(!recharge) throw "⚠️ Déjà traité";
 
-// 🔍 Vérifier user
+// 🔍 user
 const userData = await safeGet("users/"+user);
 if(!userData) throw "❌ Utilisateur introuvable";
 
-const oldBal = userData.balance || 0;
-const newBal = oldBal + amount;
+// 🔥 sécuriser montant
+const amt = Number(amount || recharge.amount || 0);
+if(amt <= 0) throw "❌ Montant invalide";
 
-// 💰 Update solde
-await update(ref(db,"users/"+user),{ balance:newBal });
+// 🔥 calcul
+const oldBal = Number(userData.balance || 0);
+const newBal = oldBal + amt;
 
-// 📦 Archive
+// 💰 update
+await update(ref(db,"users/"+user),{
+balance:newBal
+});
+
+// 📦 archive AVANT suppression
 await set(ref(db,"recharges_validées/"+id),{
-user, amount,
+user,
+amount:amt,
 oldBalance:oldBal,
 newBalance:newBal,
 status:"approved",
 date:Date.now()
 });
 
-// 🗑️ Supprimer demande
+// 🗑️ delete
 await safeDelete("demandes_recharges/"+id);
 
-// 📩 Notification
+// 📩 message
 await push(ref(db,"messages/"+user),{
-text:`✅ Recharge validée\n💰 +${amount} FC`,
+text:`✅ Recharge validée\n💰 +${amt} FC`,
 date:Date.now(),
 read:false
 });
 
-// 📊 Log
-await logAction("recharge_validée",{user,amount});
+// 📊 log
+await logAction("recharge_validée",{user,amount:amt});
 
 alert("✅ Recharge validée");
 
 }catch(e){
 console.error(e);
 alert(e || "❌ Erreur système");
+
+} finally {
+// 🔥 toujours libérer
+unlock("rech-"+id);
 }
 
-unlock(id);
 };
 
 // ================= REFUSE RECHARGE =================
 window.refRecharge = async(id,user,amount)=>{
 
-if(lock(id)) return alert("⏳ Traitement...");
+if(lock("rech-"+id)) return alert("⏳ Traitement...");
 
 try{
 
+if(!id || !user || !amount) throw "❌ Données invalides";
+
+// 🔍 vérifier recharge
 const recharge = await safeGet("demandes_recharges/"+id);
 if(!recharge) throw "⚠️ Déjà traité";
 
-// 📦 Archive
+// 🔍 vérifier user
+const userData = await safeGet("users/"+user);
+if(!userData) throw "❌ Utilisateur introuvable";
+
+// 💰 remboursement
+const oldBal = Number(userData.balance || 0);
+const newBal = oldBal + Number(amount);
+
+await update(ref(db,"users/"+user),{
+balance:newBal
+});
+
+// 📦 archive refus
 await set(ref(db,"recharges_refusées/"+id),{
-user, amount,
+user,
+amount,
+oldBalance:oldBal,
+newBalance:newBal,
 status:"refused",
 date:Date.now()
 });
 
-// 🗑️ Delete
+// 🗑️ supprimer demande
 await safeDelete("demandes_recharges/"+id);
 
-// 📩 Message
+// 📩 message user
 await push(ref(db,"messages/"+user),{
-text:`❌ Recharge refusée\n💰 ${amount} FC`,
-date:Date.now()
+text:`❌ Recharge refusée\n💰 ${amount} FC remboursé`,
+date:Date.now(),
+read:false
 });
 
-// 📊 Log
+// 📊 log
 await logAction("recharge_refusée",{user,amount});
 
-alert("❌ Recharge refusée");
+alert("❌ Refusé + remboursé");
 
 }catch(e){
 console.error(e);
 alert(e || "Erreur");
+
+} finally {
+unlock("rech-"+id);
 }
 
-unlock(id);
 };
 
 // ================= VALID COMMAND =================
 window.valCmd = async(user,id)=>{
 
-if(lock(id)) return alert("⏳ Traitement...");
+if(lock("cmd-"+user+"-"+id)) return alert("⏳ Traitement...");
 
 try{
 
 const cmd = await safeGet(`orders/pending/${user}/${id}`);
 if(!cmd) throw "⚠️ Déjà traité";
 
-// 📦 Archive
 await set(ref(db,`orders/validated/${user}/${id}`),{
 ...cmd,
 status:"approved",
 dateValidated:Date.now()
 });
 
-// 🗑️ Delete
 await safeDelete(`orders/pending/${user}/${id}`);
 
-// 📩 Message
 await push(ref(db,"messages/"+user),{
 text:`✅ Commande validée\n📦 ${cmd.service}`,
 date:Date.now()
 });
 
-// 📊 Log
-await logAction("commande_validée",{user,price:cmd.price || 0});
+await logAction("commande_validée",{user});
 
 alert("✅ Commande validée");
 
 }catch(e){
 console.error(e);
 alert(e || "Erreur");
+
+} finally {
+unlock("cmd-"+user+"-"+id);
 }
 
-unlock(id);
 };
+
 
 // ================= REFUSE COMMAND =================
 window.refCmd = async(user,id,price)=>{
