@@ -81,6 +81,8 @@ type,...data,date:Date.now()
 }
 
 // ================= USERS =================
+
+// ================= USERS =================
 onValue(ref(db,"users"), snap=>{
 
 const box = document.getElementById("users");
@@ -95,19 +97,14 @@ if(!snap.exists()){
 
 let html = "";
 
-// 🔥 LOOP USERS
 Object.entries(snap.val()).forEach(([phone,u])=>{
 
-// 🛑 DATA INVALIDE
+// 🔒 sécurité données
 if(!u || !phone) return;
-
-// 🛑 ignorer utilisateurs vides (optionnel PRO)
 if(!u.name && !u.balance && !u.points) return;
 
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
-
-// ⚠️ NE PAS afficher vrai mot de passe
 const pass = u.password ? "••••••••" : "-";
 
 const balance = Number(u.balance || 0);
@@ -115,7 +112,7 @@ const points = Number(u.points || 0);
 const revenue = Number(u.revenus || 0);
 const monetized = u.monetized ? "✅ Oui" : "❌ Non";
 
-// 🔥 AVATAR
+// 🔥 avatar
 const avatar = photo
 ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
 : `<div style="
@@ -128,41 +125,32 @@ ${name.substring(0,2).toUpperCase()}
 
 // 🔥 CARD
 html += `
-<div class="card" style="
-background:rgba(255,255,255,0.03);
-padding:15px;
-border-radius:15px;
-margin-bottom:10px;
-border:1px solid rgba(255,255,255,0.05);
-">
+<div class="card">
 
 <div style="display:flex;align-items:center;gap:10px;">
 ${avatar}
 <div>
 <b>${name}</b><br>
-<small style="opacity:0.6;">📱 ${phone}</small>
+<small>📱 ${phone}</small>
 </div>
 </div>
 
-<hr style="opacity:0.1;margin:10px 0;">
+<hr>
 
-<div style="line-height:1.6;">
-🔐 Mot de passe : <b>${pass}</b><br>
-💰 Solde : <b style="color:#00d2ff">${balance.toLocaleString()} FC</b><br>
-⭐ Points : <b>${points}</b><br>
-📈 Revenus : <b>${revenue.toLocaleString()} FC</b><br>
-💸 Monétisé : <b>${monetized}</b>
-</div>
+💰 <b>${balance.toLocaleString()} FC</b><br>
+⭐ ${points} pts<br>
+📈 ${revenue.toLocaleString()} FC<br>
+💸 ${monetized}
 
-<div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap;">
+<div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap;">
 
-<button onclick="safeClick('add-${phone}',()=>addMoney('${phone}'))" style="background:#00d2ff;">➕</button>
+<button onclick="safeClick('add-${phone}',()=>addMoney('${phone}'))">➕</button>
 
-<button onclick="safeClick('remove-${phone}',()=>removeMoney('${phone}'))" style="background:#ff9800;">➖</button>
+<button onclick="safeClick('remove-${phone}',()=>removeMoney('${phone}'))">➖</button>
 
-<button onclick="sendMsg('${phone}')" style="background:#4caf50;">💬</button>
+<button onclick="openMsg('${phone}')">💬</button>
 
-<button onclick="safeClick('del-${phone}',()=>delUser('${phone}'))" style="background:#ff4d4d;">❌</button>
+<button onclick="safeClick('del-${phone}',()=>delUser('${phone}'))">❌</button>
 
 </div>
 
@@ -171,11 +159,9 @@ ${avatar}
 
 });
 
-// 🔥 injecter
 box.innerHTML = html || "<small>Aucun utilisateur valide</small>";
 
 });
-
 // ================= MONEY =================
 window.addMoney = async(phone)=>{
 const u = await safeGet("users/"+phone);
@@ -289,43 +275,112 @@ alert("Refusé");
 };
 
 // ================= COMMANDES =================
+
 onValue(ref(db,"orders/pending"), async snap=>{
+
 const box = document.getElementById("commandes");
 if(!box) return;
 
-let html="";
-let count=0;
-
 if(!snap.exists()){
-box.innerHTML="Aucune commande";
-statCmd.innerText=0;
+box.innerHTML = "<small>Aucune commande</small>";
 return;
 }
 
-for(const [user,cmds] of Object.entries(snap.val())){
+const usersSnap = await get(ref(db,"users"));
+const usersData = usersSnap.exists() ? usersSnap.val() : {};
 
-for(const [id,c] of Object.entries(cmds)){
+let html = "";
 
-if(!c || !c.service) continue;
+for(const [user, cmds] of Object.entries(snap.val())){
 
-count++;
+// 🛑 sécuriser cmds
+if(!cmds || typeof cmds !== "object") continue;
 
+// 🛑 user supprimé
+const u = usersData[user];
+if(!u) continue;
+
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
+
+const avatar = photo
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;">`
+: `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+${name.substring(0,2).toUpperCase()}
+</div>`;
+
+for(const [id, c] of Object.entries(cmds)){
+
+// 🛑 data invalide
+if(!c || !id || typeof c !== "object" || !c.service) continue;
+
+const price = Number(c.price || 0);
+const date = c.date ? new Date(c.date).toLocaleString() : "";
+
+let details = "";
+
+// ===== DETAILS SIMPLE =====
+details += `🧾 Service : ${c.service}<br>`;
+if(c.name) details += `📌 Nom : ${c.name}<br>`;
+if(c.type) details += `⚡ Type : ${c.type}<br>`;
+
+// ===== IMAGES =====
+Object.values(c).forEach(v=>{
+if(typeof v === "string" && v.startsWith("data:image")){
+details += `<img src="${v}" style="width:100%;border-radius:10px;margin-top:10px;">`;
+}
+});
+
+// ===== CARD =====
 html += `
 <div class="card">
-📱 ${user}<br>
+
+<div style="display:flex;gap:10px;">
+${avatar}
+<div>
+<b>${name}</b><br>
+📱 ${user}
+</div>
+</div>
+
+<hr>
+
 📦 ${c.service}<br>
-💰 ${c.price||0} FC
+💰 ${price.toLocaleString()} FC<br>
+${date ? "📅 "+date : ""}
 
+<div>${details}</div>
+
+<div style="margin-top:10px;">
 <button onclick="safeClick('ok-${id}',()=>valCmd('${user}','${id}'))">✅</button>
-<button onclick="safeClick('no-${id}',()=>refCmd('${user}','${id}',${c.price||0}))">❌</button>
-</div>`;
+<button onclick="safeClick('no-${id}',()=>refCmd('${user}','${id}',${price}))">❌</button>
+</div>
+
+</div>
+`;
+}
 }
 
-}
+box.innerHTML = html || "<small>Aucune commande valide</small>";
 
-box.innerHTML = html || "Aucune commande";
-statCmd.innerText = count;
 });
+// ================= SAFE CLICK =================
+const clickLock = {};
+
+window.safeClick = async (id, fn)=>{
+if(clickLock[id]) return;
+
+clickLock[id] = true;
+
+try{
+await fn();
+}catch(e){
+console.error(e);
+alert("Erreur");
+}
+
+setTimeout(()=>delete clickLock[id],1000);
+};
 
 // ================= VALID CMD =================
 window.valCmd = async(user,id)=>{
