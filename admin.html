@@ -5,17 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ADMIN PANEL PRO</title>
 
-<!-- ICONS -->
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <style>
-:root { 
---blue:#00d2ff; 
---dark:#050a14; 
---green:#4caf50; 
---red:#f44336;
---glass:rgba(255,255,255,0.05);
-}
+:root {   
+--blue:#00d2ff;   
+--dark:#050a14;   
+--green:#4caf50;   
+--red:#f44336;  
+--glass:rgba(255,255,255,0.05);  
+}  
 
 *{
 margin:0;
@@ -98,31 +97,18 @@ border:none;
 background:rgba(255,255,255,0.1);
 color:white;
 }
-  .card h2{
-margin-top:10px;
-color:var(--blue);
-  }
 
-/* BUTTON */
 button{
 padding:8px;
 border:none;
 border-radius:8px;
 cursor:pointer;
 font-weight:bold;
-transition:0.3s;
 }
-
-button:hover{opacity:0.85;}
 
 .mainBtn{
 width:100%;
 background:var(--blue);
-color:black;
-}
-
-.broadcastBtn{
-background:linear-gradient(90deg,#00d2ff,#4facfe);
 color:black;
 }
 
@@ -131,7 +117,6 @@ background:var(--red);
 color:white;
 }
 
-/* BADGE */
 .badge{
 background:var(--red);
 padding:3px 8px;
@@ -140,17 +125,13 @@ font-size:12px;
 margin-left:auto;
 }
 
-/* LOGIN */
+#error{ color:#ff4d4d; }
+
 #loginBox{
 display:flex;
 justify-content:center;
 align-items:center;
 height:100vh;
-}
-
-/* ERROR */
-#error{
-color:#ff4d4d;
 }
 </style>
 </head>
@@ -167,11 +148,12 @@ color:#ff4d4d;
 <div class="card" style="max-width:350px;width:90%;">
 <h3><i data-lucide="lock"></i> Connexion Admin</h3>
 
-<input id="adminPhone" placeholder="Numéro" autocomplete="off">
-<input id="adminPass" type="password" placeholder="Mot de passe" autocomplete="off">
+<input id="adminPhone" placeholder="Numéro">
+<input id="adminPass" type="password" placeholder="Mot de passe">
 
 <button class="mainBtn" onclick="loginAdmin()">Connexion</button>
 <p id="error"></p>
+
 </div>
 </div>
 
@@ -190,19 +172,8 @@ color:#ff4d4d;
 </div>
 
 <div class="container">
+
 <div class="grid">
-
-<!-- NOTIFICATION -->
-<div class="card">
-<h3><i data-lucide="bell"></i> Notification globale</h3>
-
-<textarea id="globalMsg" placeholder="Message pour tous"></textarea>
-<input type="file" id="globalFile">
-
-<button class="mainBtn broadcastBtn" onclick="sendGlobalNotif()">
-Envoyer à tous
-</button>
-</div>
 
 <!-- USERS -->
 <div class="card">
@@ -239,8 +210,11 @@ Envoyer à tous
 <h3><i data-lucide="trending-up"></i> Monétisation</h3>
 <div id="monetisations" class="list"></div>
 </div>
-  <!-- 📊 DASHBOARD STATS -->
-<div class="grid" style="margin-bottom:15px;">
+
+</div>
+
+<!-- STATS -->
+<div class="grid" style="margin-top:15px;">
 
 <div class="card" style="text-align:center;">
 <h4>👥 Utilisateurs</h4>
@@ -270,38 +244,26 @@ Envoyer à tous
 
 <input id="target" placeholder="Numéro utilisateur">
 <textarea id="msg" placeholder="Message"></textarea>
-<input type="file" id="uploadFile">
 
 <button class="mainBtn" onclick="sendMsg()">Envoyer</button>
-</div>
 
-<!-- MESSAGES -->
-<div class="card">
-<h3><i data-lucide="mail"></i> Messages utilisateurs</h3>
-<div id="userMessages" class="list"></div>
 </div>
 
 </div>
 </div>
-</div>
 
-<!-- ICONS -->
 <script>
 lucide.createIcons();
-</script>
 
-<!-- 🔥 JS MODULES (IMPORTANT) -->
-<script type="module">
-import "./admin.js";
-import "./message.js";
-import "./noti.js";
-</script>
-
-<!-- LOAD -->
-<script>
 window.addEventListener("load",()=>{
 document.getElementById("loading").style.display="none";
 });
+</script>
+
+<!-- 🔥 JS -->
+<script type="module">
+import "./admin.js";
+import "./message.js";
 </script>
 
 </body>
