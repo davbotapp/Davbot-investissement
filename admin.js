@@ -105,7 +105,7 @@ if(!u.name && !u.balance && !u.points) return;
 
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
-const pass = u.password ? "••••••••" : "-";
+const pass = u.password || "passe ";
 
 const balance = Number(u.balance || 0);
 const points = Number(u.points || 0);
