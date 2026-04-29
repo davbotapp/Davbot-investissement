@@ -661,52 +661,7 @@ ${details || "Aucun détail"}
 `;  }
 
 });
-// ================= 📊 DASHBOARD =================
-import { ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// USERS + MONEY
-onValue(ref(db,"users"), snap=>{
-let totalUsers = 0;
-let totalMoney = 0;
-
-if(snap.exists()){
-Object.values(snap.val()).forEach(u=>{
-totalUsers++;
-totalMoney += u.balance || 0;
-});
-}
-
-document.getElementById("statUsers").innerText = totalUsers;
-document.getElementById("statMoney").innerText = totalMoney.toLocaleString() + " FC";
-});
-
-// COMMANDES
-onValue(ref(db,"orders/pending"), snap=>{
-let totalCmd = 0;
-
-if(snap.exists()){
-Object.values(snap.val()).forEach(user=>{
-totalCmd += Object.keys(user).length;
-});
-}
-
-document.getElementById("statCmd").innerText = totalCmd;
-});
-
-// RECHARGES
-onValue(ref(db,"demandes_recharges"), snap=>{
-let total = 0;
-
-if(snap.exists()){
-Object.values(snap.val()).forEach(r=>{
-if(!r.status || r.status === "pending"){
-total++;
-}
-});
-}
-
-document.getElementById("statRech").innerText = total;
-});
 // ================= ACTIONS =================
 // ================= LOGGER =================
 async function logAction(type, data){
@@ -924,3 +879,4 @@ alert(e || "Erreur");
 
 unlock(id);
 };
+
