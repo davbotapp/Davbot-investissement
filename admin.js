@@ -199,43 +199,122 @@ alert("Supprimé");
 };
 
 // ================= RECHARGES =================
-onValue(ref(db,"demandes_recharges"), async snap=>{
+onValue(ref(db,"demandes_recharges"), async snap => {
+
 const box = document.getElementById("recharges");
 if(!box) return;
 
-let html="";
-let count=0;
+box.innerHTML = "<small>⏳ Chargement...</small>";
 
-if(!snap.exists()){
-box.innerHTML="Aucune recharge";
-statRech.innerText=0;
-return;
+try{
+
+const data = snap.val() || {};
+
+// 🔥 charger users UNE SEULE FOIS
+const usersData = (await get(ref(db,"users"))).val() || {};
+
+let html = "";
+let count = 0;
+
+// 🔥 loop rapide (pas de await dedans)
+Object.entries(data).forEach(([id,r])=>{
+
+// 🛑 sécurités
+if(!r || !id || !r.user) return;
+
+const amount = Number(r.amount || 0);
+if(amount <= 0) return;
+
+if(r.status && r.status !== "pending") return;
+
+const u = usersData[r.user];
+if(!u) return;
+
+// 🔥 data
+const name = u.name || "Utilisateur";
+const phone = r.user;
+const balance = Number(u.balance || 0);
+
+// 🔥 date safe
+const date = r.date
+? new Date(r.date).toLocaleString()
+: "Non défini";
+
+// 🔥 avatar
+const avatar = u.photo
+? `<img src="${u.photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;height:50px;border-radius:50%;
+background:#00d2ff;display:flex;
+align-items:center;justify-content:center;
+color:black;font-weight:bold;">
+${name.substring(0,2).toUpperCase()}
+</div>`;
+
+// 🔥 preuve sécurisée
+let proofHTML = "";
+if(typeof r.proof === "string" && r.proof.startsWith("data:image")){
+proofHTML = `
+<br><br>📸 Preuve :
+<br><img src="${r.proof}" style="width:100%;border-radius:10px;">
+`;
 }
 
-for(const [id,r] of Object.entries(snap.val())){
+// 🔥 CARD
+html += `
+<div class="card">
 
-if(!r || !r.user) continue;
-if(r.status && r.status!=="pending") continue;
+<div style="display:flex;align-items:center;gap:10px;">
+${avatar}
+<div>
+<b>${name}</b><br>
+📱 ${phone}
+</div>
+</div>
 
-const user = await safeGet("users/"+r.user);
-if(!user) continue;
+<hr>
+
+💰 <b>${amount.toLocaleString()} FC</b><br>
+💳 ${balance.toLocaleString()} FC<br>
+📅 ${date}<br>
+
+${proofHTML}
+
+<div style="margin-top:12px;display:flex;gap:5px;">
+
+<button onclick="safeClick('val-${id}',()=>valRecharge('${id}','${phone}',${amount}))">
+✅
+</button>
+
+<button onclick="safeClick('ref-${id}',()=>refRecharge('${id}'))">
+❌
+</button>
+
+</div>
+
+</div>
+`;
 
 count++;
 
-html += `
-<div class="card">
-📱 ${r.user}<br>
-💰 ${r.amount} FC
-
-<button onclick="safeClick('val-${id}',()=>valRecharge('${id}','${r.user}',${r.amount}))">✅</button>
-<button onclick="safeClick('ref-${id}',()=>refRecharge('${id}','${r.user}',${r.amount}))">❌</button>
-</div>`;
-}
-
-box.innerHTML = html || "Aucune recharge";
-statRech.innerText = count;
 });
 
+// 🔥 inject
+box.innerHTML = html || "<small>Aucune recharge valide</small>";
+
+// 🔥 badge
+const badge = document.getElementById("rechBadge");
+if(badge){
+badge.style.display = count ? "inline-block" : "none";
+badge.innerText = count;
+}
+
+}catch(e){
+console.error("❌ Recharge error:", e);
+box.innerHTML = "<small>Erreur chargement</small>";
+}
+
+});
 // ================= VALID RECHARGE =================
 window.valRecharge = async(id,user,amount)=>{
 
@@ -435,31 +514,172 @@ unlock(key);
 
 // ================= TRANSFERT =================
 onValue(ref(db,"transferts"), async snap=>{
+
 const box = document.getElementById("transferts");
 if(!box) return;
 
-let html="";
+box.innerHTML = "";
 
 if(!snap.exists()){
-box.innerHTML="Aucun transfert";
+box.innerHTML = "<small>Aucun transfert</small>";
 return;
 }
 
 for(const [id,t] of Object.entries(snap.val())){
 
-if(!t || t.status!=="pending") continue;
+// 🔒 afficher seulement pending
+if(t.status && t.status !== "pending") continue;
 
-html += `
-<div class="card">
-${t.from} ➜ ${t.to}<br>
-💰 ${t.amount}
+// 🔥 récupérer utilisateurs
+const fromSnap = await get(ref(db,"users/"+t.from));
+const toSnap = await get(ref(db,"users/"+t.to));
 
-<button onclick="safeClick('t-ok-${id}',()=>valTrans('${id}','${t.from}','${t.to}',${t.amount}))">✅</button>
-<button onclick="safeClick('t-no-${id}',()=>refTrans('${id}')">❌</button>
+const fromUser = fromSnap.val() || {};
+const toUser = toSnap.val() || {};
+
+// 🔥 infos
+const fromName = fromUser.name || "Expéditeur";
+const toName = toUser.name || "Receveur";
+const fromPhoto = fromUser.photo || "";
+const toPhoto = toUser.photo || "";
+
+const date = t.date ? new Date(t.date).toLocaleString() : "Non défini";
+const amount = t.amount || 0;
+const status = t.status || "pending";
+
+// 🔥 avatars
+const fromAvatar = fromPhoto
+? `<img src="${fromPhoto}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;height:50px;border-radius:50%;
+background:#00d2ff;display:flex;align-items:center;
+justify-content:center;color:black;font-weight:bold;">
+${fromName.substring(0,2)}
 </div>`;
+
+const toAvatar = toPhoto
+? `<img src="${toPhoto}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="
+width:50px;height:50px;border-radius:50%;
+background:#00d2ff;display:flex;align-items:center;
+justify-content:center;color:black;font-weight:bold;">
+${toName.substring(0,2)}
+</div>`;
+
+// 🔥 couleur statut
+const statusColor = status === "pending" ? "orange" :
+                    status === "approved" ? "green" : "red";
+
+// 🔥 DETAILS AUTO (images incluses)
+let details = "";
+
+Object.entries(t).forEach(([key,value])=>{
+
+if(["from","to","amount","status","date"].includes(key)) return;
+
+// image détectée
+if(typeof value === "string" && value.startsWith("data:image")){
+details += `
+📸 ${key} :<br>
+<img src="${value}" style="width:100%;border-radius:10px;margin-top:5px;">
+<br>
+<a href="${value}" download="preuve.png">
+<button style="margin-top:5px;">⬇️ Télécharger</button>
+</a><br><br>
+`;
+}else{
+details += `<b>${key}</b> : ${value}<br>`;
 }
 
-box.innerHTML = html;
+});
+
+// ================= UI =================
+box.innerHTML += `
+<div class="card">
+
+<!-- EXPEDITEUR -->
+<div style="display:flex;align-items:center;gap:10px;">
+${fromAvatar}
+<div>
+<b>${fromName}</b><br>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Titre de la page</title>
+</head>
+<body>
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <title>Titre de la page</title>
+    </head>
+    <body>
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+            <meta charset="UTF-8">
+            <title>Titre de la page</title>
+        </head>
+        <body>
+            <!DOCTYPE html>
+            <html lang="fr">
+            <head>
+                <meta charset="UTF-8">
+                <title>Titre de la page</title>
+            </head>
+            <body>
+                
+                
+            </body>
+            </html>
+        </body>
+        </html>
+    </body>
+    </html>
+</body>
+</html>📱 ${t.from}
+</div>
+</div>
+
+<div style="text-align:center;margin:10px 0;">⬇️</div>
+
+<!-- RECEVEUR -->
+<div style="display:flex;align-items:center;gap:10px;">
+${toAvatar}
+<div>
+<b>${toName}</b><br>
+📱 ${t.to}
+</div>
+</div>
+
+<hr>
+
+💰 Montant : <b>${amount} FC</b><br>
+📅 Date : <b>${date}</b><br>
+📌 Statut : <b style="color:${statusColor};">${status}</b><br>
+🆔 <small>${id}</small>
+
+<div class="details" style="margin-top:10px;">
+${details || "Aucun détail"}
+</div>
+
+<div style="margin-top:10px;display:flex;gap:5px;">
+<button class="ok" onclick="valTrans('${id}','${t.from}','${t.to}',${amount})">
+✅ Valider
+</button>
+
+<button class="no" onclick="refTrans('${id}')">
+❌ Refuser
+</button>
+</div>
+
+</div>
+`;
+
+}
+
 });
 
 // ================= VALID TRANS =================
@@ -518,4 +738,3 @@ window.refMonet = async(id)=>{
 await safeDelete("demandes_monetisation/"+id);
 alert("Refusé");
 };
-  
