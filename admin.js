@@ -113,24 +113,6 @@ document.getElementById("statMoney").innerText = totalMoney.toLocaleString() + "
 
 });
 
-// ================= ANTI DOUBLE CLICK =================
-const clickLock = {};
-
-window.safeClick = async (id, fn)=>{
-if(clickLock[id]) return;
-
-clickLock[id] = true;
-
-try{
-await fn();
-}catch(e){
-console.error(e);
-alert("Erreur");
-}
-
-setTimeout(()=>delete clickLock[id],800);
-};
-
 
 // ================= USERS =================
 
