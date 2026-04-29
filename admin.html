@@ -11,26 +11,91 @@
 :root {
 --blue:#00d2ff;
 --dark:#050a14;
+--green:#4caf50;
 --red:#f44336;
 --glass:rgba(255,255,255,0.05);
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI', sans-serif;
 }
 
 body{
 background:var(--dark);
 color:white;
-font-family:Segoe UI;
 }
 
+/* LOADING */
+#loading{
+position:fixed;
+inset:0;
+background:#050a14;
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:999;
+}
+
+/* HEADER */
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px;
+border-bottom:1px solid var(--blue);
+background:#020617;
+position:sticky;
+top:0;
+z-index:10;
+}
+
+/* CONTAINER */
+.container{
+padding:10px;
+max-width:1200px;
+margin:auto;
+}
+
+/* GRID */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:12px;
+}
+
+/* CARD */
 .card{
 background:var(--glass);
+border:1px solid rgba(0,210,255,0.2);
+border-radius:15px;
 padding:12px;
-border-radius:12px;
-margin:10px;
+backdrop-filter:blur(10px);
+transition:0.3s;
 }
 
+.card:hover{
+border-color:var(--blue);
+box-shadow:0 0 15px rgba(0,210,255,0.2);
+}
+
+/* LIST */
 .list{
 max-height:300px;
 overflow:auto;
+}
+
+/* INPUT */
+input, textarea{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:none;
+background:rgba(255,255,255,0.1);
+color:white;
 }
 
 button{
@@ -38,23 +103,37 @@ padding:8px;
 border:none;
 border-radius:8px;
 cursor:pointer;
+font-weight:bold;
 }
 
 .mainBtn{
+width:100%;
 background:var(--blue);
 color:black;
-width:100%;
 }
 
 .logout{
 background:var(--red);
 color:white;
 }
+
+.badge{
+background:var(--red);
+padding:3px 8px;
+border-radius:10px;
+font-size:12px;
+margin-left:auto;
+}
+
+#error{
+color:#ff4d4d;
+text-align:center;
+}
 </style>
 </head>
 
 <body>
-
+<p>.</p>
 <!-- LOGIN -->
 <div id="loginBox">
 <div class="card">
