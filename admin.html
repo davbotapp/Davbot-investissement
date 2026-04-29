@@ -1,208 +1,258 @@
-<!DOCTYPE html>  <html lang="fr">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1.0">  
-<title>ADMIN PANEL PRO</title>  <!-- ICONS -->  <script src="https://unpkg.com/lucide@latest"></script>  <style>  
-:root {   
---blue:#00d2ff;   
---dark:#050a14;   
---green:#4caf50;   
---red:#f44336;  
---glass:rgba(255,255,255,0.05);  
-}  
-  
-*{  
-margin:0;  
-padding:0;  
-box-sizing:border-box;  
-font-family:'Segoe UI', sans-serif;  
-}  
-  
-body{  
-background:var(--dark);  
-color:white;  
-}  
-  
-/* LOADING */  
-#loading{  
-position:fixed;  
-inset:0;  
-background:#050a14;  
-display:flex;  
-align-items:center;  
-justify-content:center;  
-z-index:999;  
-}  
-  
-/* HEADER */  
-.header{  
-display:flex;  
-justify-content:space-between;  
-align-items:center;  
-padding:15px;  
-border-bottom:1px solid var(--blue);  
-background:#020617;  
-position:sticky;  
-top:0;  
-z-index:10;  
-}  
-  
-/* CONTAINER */  
-.container{  
-padding:10px;  
-max-width:1200px;  
-margin:auto;  
-}  
-  
-/* GRID */  
-.grid{  
-display:grid;  
-grid-template-columns:repeat(auto-fit,minmax(280px,1fr));  
-gap:12px;  
-}  
-  
-/* CARD */  
-.card{  
-background:var(--glass);  
-border:1px solid rgba(0,210,255,0.2);  
-border-radius:15px;  
-padding:12px;  
-backdrop-filter:blur(10px);  
-transition:0.3s;  
-}  
-  
-.card:hover{  
-border-color:var(--blue);  
-box-shadow:0 0 15px rgba(0,210,255,0.2);  
-}  
-  
-/* LIST */  
-.list{  
-max-height:300px;  
-overflow:auto;  
-}  
-  
-/* INPUT */  
-input, textarea{  
-width:100%;  
-padding:10px;  
-margin:6px 0;  
-border-radius:8px;  
-border:none;  
-background:rgba(255,255,255,0.1);  
-color:white;  
-}  
-  
-/* BUTTON */  
-button{  
-padding:8px;  
-border:none;  
-border-radius:8px;  
-cursor:pointer;  
-font-weight:bold;  
-transition:0.3s;  
-}  
-  
-button:hover{opacity:0.85;}  
-  
-.mainBtn{  
-width:100%;  
-background:var(--blue);  
-color:black;  
-}  
-  
-.broadcastBtn{  
-background:linear-gradient(90deg,#00d2ff,#4facfe);  
-color:black;  
-}  
-  
-.logout{  
-background:var(--red);  
-color:white;  
-}  
-  
-/* BADGE */  
-.badge{  
-background:var(--red);  
-padding:3px 8px;  
-border-radius:10px;  
-font-size:12px;  
-margin-left:auto;  
-}  
-  
-/* LOGIN */  
-#loginBox{  
-display:flex;  
-justify-content:center;  
-align-items:center;  
-height:100vh;  
-}  
-  
-/* ERROR */  
-#error{  
-color:#ff4d4d;  
-}  
-</style>  </head>  <body>  <!-- LOADING -->  <div id="loading">  
-<h3>Chargement...</h3>  
-</div>  <!-- LOGIN -->  <div id="loginBox">  
-<div class="card" style="max-width:350px;width:90%;">  
-<h3><i data-lucide="lock"></i> Connexion Admin</h3>  <input id="adminPhone" placeholder="Numéro" autocomplete="off">  
-<input id="adminPass" type="password" placeholder="Mot de passe" autocomplete="off">  <button class="mainBtn" onclick="loginAdmin()">Connexion</button>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADMIN PANEL PRO</title>
 
-<p id="error"></p>  
-</div>  
-</div>  <!-- PANEL -->  <div id="adminPanel" style="display:none;">  <div class="header">  
-<div style="display:flex;align-items:center;gap:10px;">  
-<i data-lucide="shield"></i>  
-<h2>ADMIN PANEL PRO</h2>  
-</div>  <button class="logout" onclick="logoutAdmin()">  
-<i data-lucide="log-out"></i>  
-</button>  
-</div>  <div class="container">  
-<div class="grid">  <!-- NOTIFICATION -->  <div class="card">  
-<h3><i data-lucide="bell"></i> Notification globale</h3>  <textarea id="globalMsg" placeholder="Message pour tous"></textarea>  <input type="file" id="globalFile">  <button class="mainBtn broadcastBtn" onclick="sendGlobalNotif()">  
-Envoyer à tous  
-</button>  
-</div>  <!-- USERS -->  <div class="card">  
-<h3><i data-lucide="users"></i> Utilisateurs</h3>  
-<div id="users" class="list"></div>  
-</div>  <!-- COMMANDES -->  <div class="card">  
-<h3>  
-<i data-lucide="package"></i> Commandes  
-<span class="badge" id="cmdBadge" style="display:none">0</span>  
-</h3>  
-<div id="commandes" class="list"></div>  
-</div>  <!-- RECHARGES -->  <div class="card">  
-<h3>  
-<i data-lucide="wallet"></i> Recharges  
-<span class="badge" id="rechBadge" style="display:none">0</span>  
-</h3>  
-<div id="recharges" class="list"></div>  
-</div>  <!-- TRANSFERTS -->  <div class="card">  
-<h3><i data-lucide="repeat"></i> Transferts</h3>  
-<div id="transferts" class="list"></div>  
-</div>  <!-- MONETISATION -->  <div class="card">  
-<h3><i data-lucide="trending-up"></i> Monétisation</h3>  
-<div id="monetisations" class="list"></div>  
-</div>  <!-- MESSAGE -->  <div class="card">  
-<h3><i data-lucide="send"></i> Envoyer message</h3>  <input id="target" placeholder="Numéro utilisateur">  
-<textarea id="msg" placeholder="Message"></textarea>  
-<input type="file" id="uploadFile">  <button class="mainBtn" onclick="sendMsg()">Envoyer</button>
+<!-- ICONS -->
+<script src="https://unpkg.com/lucide@latest"></script>
 
-</div>  <!-- MESSAGES -->  <div class="card">  
-<h3><i data-lucide="mail"></i> Messages utilisateurs</h3>  
-<div id="userMessages" class="list"></div>  
-</div>  </div>  
-</div>  
-</div>  <!-- ICONS -->  <script>  
-lucide.createIcons();  
-</script>  <!-- 🔥 JS MODULES (IMPORTANT) -->  <script type="module">  
-import "./admin.js";  
-import "./message.js";  
-import "./noti.js";  
-</script>  <!-- LOAD -->  <script>  
-window.addEventListener("load",()=>{  
-document.getElementById("loading").style.display="none";  
-});  
-</script>  </body>  
-</html>  
+<style>
+:root {
+--blue:#00d2ff;
+--dark:#050a14;
+--green:#4caf50;
+--red:#f44336;
+--glass:rgba(255,255,255,0.05);
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI', sans-serif;
+}
+
+body{
+background:var(--dark);
+color:white;
+}
+
+/* LOADING */
+#loading{
+position:fixed;
+inset:0;
+background:#050a14;
+display:flex;
+align-items:center;
+justify-content:center;
+z-index:999;
+}
+
+/* HEADER */
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:15px;
+border-bottom:1px solid var(--blue);
+background:#020617;
+position:sticky;
+top:0;
+z-index:10;
+}
+
+/* CONTAINER */
+.container{
+padding:10px;
+max-width:1200px;
+margin:auto;
+}
+
+/* GRID */
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+gap:12px;
+}
+
+/* CARD */
+.card{
+background:var(--glass);
+border:1px solid rgba(0,210,255,0.2);
+border-radius:15px;
+padding:12px;
+backdrop-filter:blur(10px);
+transition:0.3s;
+}
+
+.card:hover{
+border-color:var(--blue);
+box-shadow:0 0 15px rgba(0,210,255,0.2);
+}
+
+/* LIST */
+.list{
+max-height:300px;
+overflow:auto;
+}
+
+/* INPUT */
+input, textarea{
+width:100%;
+padding:10px;
+margin:6px 0;
+border-radius:8px;
+border:none;
+background:rgba(255,255,255,0.1);
+color:white;
+}
+
+button{
+padding:8px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.mainBtn{
+width:100%;
+background:var(--blue);
+color:black;
+}
+
+.logout{
+background:var(--red);
+color:white;
+}
+
+.badge{
+background:var(--red);
+padding:3px 8px;
+border-radius:10px;
+font-size:12px;
+margin-left:auto;
+}
+
+#error{
+color:#ff4d4d;
+text-align:center;
+}
+</style>
+
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+<h3>Chargement...</h3>
+</div>
+
+<!-- LOGIN -->
+<div id="loginBox">
+<div class="card" style="max-width:350px;width:90%;margin:auto;margin-top:100px;">
+<h3>Connexion Admin</h3>
+
+<input id="adminPhone" placeholder="Numéro">
+<input id="adminPass" type="password" placeholder="Mot de passe">
+
+<button class="mainBtn" onclick="loginAdmin()">Connexion</button>
+<p id="error"></p>
+
+</div>
+</div>
+
+<!-- PANEL -->
+<div id="adminPanel" style="display:none;">
+
+<div class="header">
+<h2>ADMIN PANEL</h2>
+<button class="logout" onclick="logoutAdmin()">Déconnexion</button>
+</div>
+
+<div class="container">
+
+<!-- STATS -->
+<div class="grid">
+
+<div class="card">
+<h4>👥 Utilisateurs</h4>
+<h2 id="statUsers">0</h2>
+</div>
+
+<div class="card">
+<h4>💰 Total</h4>
+<h2 id="statMoney">0 FC</h2>
+</div>
+
+<div class="card">
+<h4>📦 Commandes</h4>
+<h2 id="statCmd">0</h2>
+</div>
+
+<div class="card">
+<h4>💳 Recharges</h4>
+<h2 id="statRech">0</h2>
+</div>
+
+</div>
+
+<br>
+
+<!-- GRID MAIN -->
+<div class="grid">
+
+<!-- USERS -->
+<div class="card">
+<h3>Utilisateurs</h3>
+<div id="users" class="list"></div>
+</div>
+
+<!-- COMMANDES -->
+<div class="card">
+<h3>Commandes</h3>
+<div id="commandes" class="list"></div>
+</div>
+
+<!-- RECHARGES -->
+<div class="card">
+<h3>Recharges</h3>
+<div id="recharges" class="list"></div>
+</div>
+
+<!-- TRANSFERTS -->
+<div class="card">
+<h3>Transferts</h3>
+<div id="transferts" class="list"></div>
+</div>
+
+<!-- MONETISATION -->
+<div class="card">
+<h3>Monétisation</h3>
+<div id="monetisations" class="list"></div>
+</div>
+
+<!-- MESSAGE -->
+<div class="card">
+<h3>Envoyer message</h3>
+
+<input id="target" placeholder="Numéro utilisateur">
+<textarea id="msg" placeholder="Message"></textarea>
+
+<button class="mainBtn" onclick="sendMsg()">Envoyer</button>
+</div>
+
+</div>
+
+</div>
+</div>
+
+<!-- ICONS -->
+<script>
+lucide.createIcons();
+</script>
+
+<!-- MODULE JS -->
+<script type="module" src="./admin.js"></script>
+
+<!-- LOADING HIDE -->
+<script>
+window.addEventListener("load",()=>{
+document.getElementById("loading").style.display="none";
+});
+</script>
+
+</body>
+</html>
