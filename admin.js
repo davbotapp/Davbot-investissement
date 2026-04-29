@@ -80,6 +80,58 @@ type,...data,date:Date.now()
 });
 }
 
+// ================= 📊 DASHBOARD =================
+
+// 🔥 cache global (rapide)
+let usersCache = {};
+let ordersCache = {};
+let rechargesCache = {};
+
+// ================= USERS + MONEY =================
+onValue(ref(db,"users"), snap=>{
+
+usersCache = snap.val() || {};
+
+let totalUsers = 0;
+let totalMoney = 0;
+
+Object.values(usersCache).forEach(u=>{
+
+if(!u) return;
+
+// 🛑 ignorer données vides
+if(!u.name && !u.balance && !u.points) return;
+
+totalUsers++;
+totalMoney += Number(u.balance || 0);
+
+});
+
+// 🔥 affichage
+document.getElementById("statUsers").innerText = totalUsers;
+document.getElementById("statMoney").innerText = totalMoney.toLocaleString() + " FC";
+
+});
+
+// ================= ANTI DOUBLE CLICK =================
+const clickLock = {};
+
+window.safeClick = async (id, fn)=>{
+if(clickLock[id]) return;
+
+clickLock[id] = true;
+
+try{
+await fn();
+}catch(e){
+console.error(e);
+alert("Erreur");
+}
+
+setTimeout(()=>delete clickLock[id],800);
+};
+
+
 // ================= USERS =================
 
 // ================= USERS =================
