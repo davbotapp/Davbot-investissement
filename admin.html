@@ -5,98 +5,32 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ADMIN PANEL PRO</title>
 
-<!-- ICONS -->
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <style>
 :root {
 --blue:#00d2ff;
 --dark:#050a14;
---green:#4caf50;
 --red:#f44336;
 --glass:rgba(255,255,255,0.05);
-}
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:'Segoe UI', sans-serif;
 }
 
 body{
 background:var(--dark);
 color:white;
+font-family:Segoe UI;
 }
 
-/* LOADING */
-#loading{
-position:fixed;
-inset:0;
-background:#050a14;
-display:flex;
-align-items:center;
-justify-content:center;
-z-index:999;
-}
-
-/* HEADER */
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:15px;
-border-bottom:1px solid var(--blue);
-background:#020617;
-position:sticky;
-top:0;
-z-index:10;
-}
-
-/* CONTAINER */
-.container{
-padding:10px;
-max-width:1200px;
-margin:auto;
-}
-
-/* GRID */
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-gap:12px;
-}
-
-/* CARD */
 .card{
 background:var(--glass);
-border:1px solid rgba(0,210,255,0.2);
-border-radius:15px;
 padding:12px;
-backdrop-filter:blur(10px);
-transition:0.3s;
+border-radius:12px;
+margin:10px;
 }
 
-.card:hover{
-border-color:var(--blue);
-box-shadow:0 0 15px rgba(0,210,255,0.2);
-}
-
-/* LIST */
 .list{
 max-height:300px;
 overflow:auto;
-}
-
-/* INPUT */
-input, textarea{
-width:100%;
-padding:10px;
-margin:6px 0;
-border-radius:8px;
-border:none;
-background:rgba(255,255,255,0.1);
-color:white;
 }
 
 button{
@@ -104,45 +38,26 @@ padding:8px;
 border:none;
 border-radius:8px;
 cursor:pointer;
-font-weight:bold;
 }
 
 .mainBtn{
-width:100%;
 background:var(--blue);
 color:black;
+width:100%;
 }
 
 .logout{
 background:var(--red);
 color:white;
 }
-
-.badge{
-background:var(--red);
-padding:3px 8px;
-border-radius:10px;
-font-size:12px;
-margin-left:auto;
-}
-
-#error{
-color:#ff4d4d;
-text-align:center;
-}
 </style>
-
 </head>
-<body>
 
-<!-- LOADING -->
-<div id="loading">
-<h3>Chargement...</h3>
-</div>
+<body>
 
 <!-- LOGIN -->
 <div id="loginBox">
-<div class="card" style="max-width:350px;width:90%;margin:auto;margin-top:100px;">
+<div class="card">
 <h3>Connexion Admin</h3>
 
 <input id="adminPhone" placeholder="Numéro">
@@ -157,42 +72,18 @@ text-align:center;
 <!-- PANEL -->
 <div id="adminPanel" style="display:none;">
 
-<div class="header">
+<div class="card">
 <h2>ADMIN PANEL</h2>
 <button class="logout" onclick="logoutAdmin()">Déconnexion</button>
 </div>
 
-<div class="container">
-
 <!-- STATS -->
-<div class="grid">
-
 <div class="card">
-<h4>👥 Utilisateurs</h4>
-<h2 id="statUsers">0</h2>
+👥 <span id="statUsers">0</span> |
+💰 <span id="statMoney">0</span> |
+📦 <span id="statCmd">0</span> |
+💳 <span id="statRech">0</span>
 </div>
-
-<div class="card">
-<h4>💰 Total</h4>
-<h2 id="statMoney">0 FC</h2>
-</div>
-
-<div class="card">
-<h4>📦 Commandes</h4>
-<h2 id="statCmd">0</h2>
-</div>
-
-<div class="card">
-<h4>💳 Recharges</h4>
-<h2 id="statRech">0</h2>
-</div>
-
-</div>
-
-<br>
-
-<!-- GRID MAIN -->
-<div class="grid">
 
 <!-- USERS -->
 <div class="card">
@@ -224,34 +115,35 @@ text-align:center;
 <div id="monetisations" class="list"></div>
 </div>
 
-<!-- MESSAGE -->
+<!-- 🔥 MESSAGE (IMPORTANT POUR message.js) -->
 <div class="card">
 <h3>Envoyer message</h3>
 
 <input id="target" placeholder="Numéro utilisateur">
 <textarea id="msg" placeholder="Message"></textarea>
+<input type="file" id="uploadFile">
 
 <button class="mainBtn" onclick="sendMsg()">Envoyer</button>
 </div>
 
+<!-- 🔥 LISTE MESSAGES -->
+<div class="card">
+<h3>Messages utilisateurs</h3>
+<div id="userMessages" class="list"></div>
 </div>
 
 </div>
-</div>
 
-<!-- ICONS -->
 <script>
 lucide.createIcons();
 </script>
 
-<!-- MODULE JS -->
-<script type="module" src="./admin.js"></script>
-
-<!-- LOADING HIDE -->
-<script>
-window.addEventListener("load",()=>{
-document.getElementById("loading").style.display="none";
-});
+<!-- 🔥 IMPORT MODULES -->
+<script type="module">
+import "./admin.js";
+import "./adminuser.js";
+import "./admincmd.js";
+import "./message.js"; // 🔥 OBLIGATOIRE
 </script>
 
 </body>
