@@ -627,24 +627,51 @@ unlock(key);
 
 // ================= REF CMD =================
 window.refCmd = async(user,id,price)=>{
-const key="cmd-"+id;
+
+const key = "cmd-" + id;
 if(lock(key)) return;
 
 try{
 
-const u = await safeGet("users/"+user);
-if(!u) throw "User introuvable";
+// 🔥 récupérer commande
+const cmd = await safeGet(`orders/pending/${user}/${id}`);
+if(!cmd) throw "Commande déjà traitée";
 
+// 🔥 récupérer user
+const u = await safeGet("users/"+user);
+if(!u) throw "Utilisateur introuvable";
+
+// 🔥 sécuriser balance
+let currentBalance = Number(u.balance);
+if(isNaN(currentBalance)) currentBalance = 0;
+
+// 🔥 sécuriser prix
+let refund = Number(price);
+if(isNaN(refund) || refund <= 0) refund = 0;
+
+// 🔥 nouveau solde
+const newBalance = currentBalance + refund;
+
+// 🔥 update Firebase
 await update(ref(db,"users/"+user),{
-balance:(u.balance||0)+Number(price||0)
+balance: newBalance
 });
 
+// 🔥 supprimer commande
 await remove(ref(db,`orders/pending/${user}/${id}`));
 
-alert("Refusé + remboursé");
+// 🔥 LOG (optionnel PRO)
+await logAction("REF_CMD",{
+user,
+amount: refund,
+cmdId: id
+});
+
+alert("❌ Refusé + remboursé " + refund + " FC");
 
 }catch(e){
-alert(e);
+console.error(e);
+alert("Erreur: " + e);
 }
 
 unlock(key);
