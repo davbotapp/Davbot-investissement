@@ -389,94 +389,198 @@ alert("Refusé");
 
 // ================= COMMANDES =================
 
-onValue(ref(db,"orders/pending"), async snap=>{
+onValue(ref(db, "orders/pending"), async (snap) => {
 
 const box = document.getElementById("commandes");
-if(!box) return;
+if (!box) return;
 
-if(!snap.exists()){
-box.innerHTML = "<small>Aucune commande</small>";
-return;
+box.innerHTML = "<small>⏳ Chargement...</small>";
+
+try {
+
+if (!snap.exists()) {
+    box.innerHTML = "<small>Aucune commande</small>";
+    return;
 }
 
-const usersSnap = await get(ref(db,"users"));
+// 🔥 charger users UNE FOIS
+const usersSnap = await get(ref(db, "users"));
 const usersData = usersSnap.exists() ? usersSnap.val() : {};
 
 let html = "";
+let totalCmd = 0;
 
-for(const [user, cmds] of Object.entries(snap.val())){
+// ================= LOOP USERS =================
+for (const [user, cmds] of Object.entries(snap.val())) {
 
-// 🛑 sécuriser cmds
-if(!cmds || typeof cmds !== "object") continue;
+    if (!cmds || typeof cmds !== "object") continue;
 
-// 🛑 user supprimé
-const u = usersData[user];
-if(!u) continue;
+    const u = usersData[user];
+    if (!u) continue;
 
-const name = u.name || "Utilisateur";
-const photo = u.photo || "";
+    const name = u.name || "Utilisateur";
+    const photo = u.photo || "";
 
-const avatar = photo
-? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;">`
-: `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
-${name.substring(0,2).toUpperCase()}
-</div>`;
+    const avatar = photo
+        ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+        : `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+            ${name.substring(0,2).toUpperCase()}
+          </div>`;
 
-for(const [id, c] of Object.entries(cmds)){
+    // ================= LOOP COMMANDES =================
+    for (const [id, c] of Object.entries(cmds)) {
 
-// 🛑 data invalide
-if(!c || !id || typeof c !== "object" || !c.service) continue;
+        if (!c || !id || !c.service) continue;
 
-const price = Number(c.price || 0);
-const date = c.date ? new Date(c.date).toLocaleString() : "";
+        totalCmd++;
 
-let details = "";
+        const price = Number(c.price || 0);
+        const date = c.date ? new Date(c.date).toLocaleString() : "Non défini";
 
-// ===== DETAILS SIMPLE =====
-details += `🧾 Service : ${c.service}<br>`;
-if(c.name) details += `📌 Nom : ${c.name}<br>`;
-if(c.type) details += `⚡ Type : ${c.type}<br>`;
+        let details = "";
 
-// ===== IMAGES =====
-Object.values(c).forEach(v=>{
-if(typeof v === "string" && v.startsWith("data:image")){
-details += `<img src="${v}" style="width:100%;border-radius:10px;margin-top:10px;">`;
+        // ================= SERVICES =================
+
+        if (c.service === "Application" || c.service === "Site Web Pro") {
+            details += `
+            📱 Nom : ${c.name || "-"}<br>
+            🎨 Couleur : ${c.color || "-"}<br>
+            ⚡ Type : ${c.type || "-"}<br>
+            `;
+        }
+
+        if (c.service === "Mini Jeux") {
+            const d = c.details || {};
+
+            details += `
+            🎮 Jeu : ${d.name || c.type || "-"}<br>
+            ⚡ Mode : ${c.mode || "-"}<br>
+            ${
+                Object.entries(d)
+                .filter(([k]) => k !== "name")
+                .map(([k,v])=>`🔹 ${k} : ${v}<br>`)
+                .join("")
+            }
+            `;
+        }
+
+        if (c.service === "IA Bot") {
+            const d = c.details || {};
+
+            details += `
+            🤖 Type : ${c.botType || "-"}<br>
+            ${
+                Object.entries(d)
+                .map(([k,v])=>`🔹 ${k} : ${v}<br>`)
+                .join("")
+            }
+            `;
+        }
+
+        // ✅ FIX IMPORTANT → LIEN CLIQUABLE
+        if (c.service === "Réseaux Sociaux") {
+
+            let linkHTML = "Non défini";
+
+            if (c.link && c.link.startsWith("http")) {
+                linkHTML = `<a href="${c.link}" target="_blank" style="color:#00d2ff;">🔗 Ouvrir</a>`;
+            } else if (c.link) {
+                linkHTML = c.link;
+            }
+
+            details += `
+            📱 Plateforme : ${c.platform || "-"}<br>
+            📊 Type : ${c.type || "-"}<br>
+            🔢 Quantité : ${c.quantity || 0}<br>
+            🔗 Lien : ${linkHTML}<br>
+            🆔 Plan : ${c.plan || "-"}<br>
+            `;
+        }
+
+        if (c.service === "VPN") {
+            const d = c.details || {};
+
+            details += `
+            🔐 VPN : ${c.vpnType || "-"}<br>
+            📡 Réseau : ${d.reseau || "-"}<br>
+            🏷️ Nom : ${d.vpnName || "-"}<br>
+            ⚙️ Config : ${d.config || "-"}<br>
+            📦 Plan : ${c.plan || "-"}<br>
+            `;
+        }
+
+        // ================= IMAGES =================
+        Object.values(c).forEach(v => {
+            if (typeof v === "string" && v.startsWith("data:image")) {
+                details += `
+                <div style="margin-top:10px;">
+                    <img src="${v}" style="width:100%;border-radius:10px;">
+                </div>
+                `;
+            }
+        });
+
+        // ================= CARD =================
+        html += `
+        <div class="card" style="
+        background:rgba(255,255,255,0.03);
+        padding:15px;
+        border-radius:15px;
+        margin-bottom:10px;
+        border:1px solid rgba(255,255,255,0.05);
+        ">
+
+        <div style="display:flex;gap:10px;align-items:center;">
+            ${avatar}
+            <div>
+                <b>${name}</b><br>
+                <small style="opacity:0.6;">📱 ${user}</small>
+            </div>
+        </div>
+
+        <hr style="opacity:0.1;margin:10px 0;">
+
+        📦 <b>${c.service}</b><br>
+        💰 <b style="color:#00d2ff">${price.toLocaleString()} FC</b><br>
+        📅 ${date}
+
+        <div style="margin-top:10px;line-height:1.6;">
+            ${details}
+        </div>
+
+        <div style="margin-top:12px;display:flex;gap:6px;">
+            <button onclick="safeClick('cmd-ok-${id}',()=>valCmd('${user}','${id}'))" style="background:#4caf50;">✅</button>
+            <button onclick="safeClick('cmd-no-${id}',()=>refCmd('${user}','${id}',${price}))" style="background:#ff4d4d;">❌</button>
+        </div>
+
+        </div>
+        `;
+    }
 }
-});
 
-// ===== CARD =====
-html += `
-<div class="card">
-
-<div style="display:flex;gap:10px;">
-${avatar}
-<div>
-<b>${name}</b><br>
-📱 ${user}
-</div>
-</div>
-
-<hr>
-
-📦 ${c.service}<br>
-💰 ${price.toLocaleString()} FC<br>
-${date ? "📅 "+date : ""}
-
-<div>${details}</div>
-
-<div style="margin-top:10px;">
-<button onclick="safeClick('ok-${id}',()=>valCmd('${user}','${id}'))">✅</button>
-<button onclick="safeClick('no-${id}',()=>refCmd('${user}','${id}',${price}))">❌</button>
-</div>
-
-</div>
-`;
-}
-}
-
+// 🔥 FINAL
 box.innerHTML = html || "<small>Aucune commande valide</small>";
 
+// 🔥 STAT
+const statCmd = document.getElementById("statCmd");
+if (statCmd) statCmd.innerText = totalCmd;
+
+} catch (e) {
+console.error("❌ Erreur commandes:", e);
+box.innerHTML = "<small>❌ Erreur chargement</small>";
+}
+
 });
+
+
+
+
+
+
+
+
+
+
 // ================= SAFE CLICK =================
 const clickLock = {};
 
