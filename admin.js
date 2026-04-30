@@ -634,7 +634,7 @@ status:"approved"
 await remove(ref(db,`orders/pending/${user}/${id}`));
 
 // 🔥 notification
-await sendNotification(user,"🚀 Votre commande (${cmd.service}) est prête !\n\nElle a été traitée avec succès par notre équipe.\n\n🎯 Vous pouvez maintenant en profiter.\nMerci pour votre confiance ❤️"
+await sendNotification(user,`🚀 Votre commande (${cmd.service}) est prête !\n\nElle a été traitée avec succès par notre équipe.\n\n🎯 Vous pouvez maintenant en profiter.\nMerci pour votre confiance ❤️`
 );
 
 alert("Validé");
