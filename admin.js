@@ -231,6 +231,19 @@ await safeDelete("orders/pending/"+phone);
 
 alert("Supprimé");
 };
+// ================= NOTIFICATION =================
+async function sendNotification(user, text){
+
+if(!user || !text) return;
+
+await push(ref(db,"messages/"+user),{
+text: text,
+from: "admin",
+date: Date.now(),
+status: "sent"
+});
+
+}
 
 // ================= RECHARGES =================
 onValue(ref(db,"demandes_recharges"), async snap => {
@@ -600,7 +613,9 @@ setTimeout(()=>delete clickLock[id],1000);
 };
 
 // ================= VALID CMD =================
+
 window.valCmd = async(user,id)=>{
+
 const key="cmd-"+id;
 if(lock(key)) return;
 
@@ -609,12 +624,18 @@ try{
 const cmd = await safeGet(`orders/pending/${user}/${id}`);
 if(!cmd) throw "Déjà traité";
 
+// 🔥 déplacer vers validé
 await set(ref(db,`orders/validated/${user}/${id}`),{
 ...cmd,
 status:"approved"
 });
 
+// 🔥 supprimer pending
 await remove(ref(db,`orders/pending/${user}/${id}`));
+
+// 🔥 notification
+await sendNotification(user,"🚀 Votre commande (${cmd.service}) est prête !\n\nElle a été traitée avec succès par notre équipe.\n\n🎯 Vous pouvez maintenant en profiter.\nMerci pour votre confiance ❤️"
+);
 
 alert("Validé");
 
@@ -659,6 +680,12 @@ balance: newBalance
 
 // 🔥 supprimer commande
 await remove(ref(db,`orders/pending/${user}/${id}`));
+// 🔥 notification
+await sendNotification(
+user,
+"⚠️ Commande (${cmd.service}) annulée\n\nVotre demande n'a pas pu être réalisée pour des raisons techniques.\n\n💰 Le remboursement ${price} a été effectué automatiquement.\nMerci de votre compréhension 🙏"
+);
+
 
 // 🔥 LOG (optionnel PRO)
 await logAction("REF_CMD",{
@@ -903,3 +930,4 @@ window.refMonet = async(id)=>{
 await safeDelete("demandes_monetisation/"+id);
 alert("Refusé");
 };
+    
