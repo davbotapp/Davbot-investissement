@@ -250,7 +250,7 @@ window.valider = async ()=>{
     await push(ref(db,"orders/pending/"+userPhone), order);
 
     await push(ref(db,"messages/"+userPhone),{
-      text:`🚀 Commande envoyée\n📱 ${selectedPlatform}\n📊 ${selectedType}\n🔢 ${qty}\n💰 ${price} FC`,
+      text:`🚀 Bonne nouvelle !\n\nVotre commande 📨 ${selectedPlatform}\n📊 ${selectedType}\n🔢 ${qty}\n💰 ${price} FC est actuellement en cours de réalisation.\nNos experts travaillent dessus avec soin.\n\n⏳ Livraison imminente...\nMerci ❤️`,
       date: Date.now(),
       read:false
     });
