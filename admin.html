@@ -28,17 +28,6 @@ background:var(--dark);
 color:white;
 }
 
-/* LOADING */
-#loading{
-position:fixed;
-inset:0;
-background:#050a14;
-display:flex;
-align-items:center;
-justify-content:center;
-z-index:999;
-}
-
 /* HEADER */
 .header{
 display:flex;
@@ -49,7 +38,6 @@ border-bottom:1px solid var(--blue);
 background:#020617;
 position:sticky;
 top:0;
-z-index:10;
 }
 
 /* CONTAINER */
@@ -59,26 +47,13 @@ max-width:1200px;
 margin:auto;
 }
 
-/* GRID */
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-gap:12px;
-}
-
 /* CARD */
 .card{
 background:var(--glass);
 border:1px solid rgba(0,210,255,0.2);
 border-radius:15px;
 padding:12px;
-backdrop-filter:blur(10px);
-transition:0.3s;
-}
-
-.card:hover{
-border-color:var(--blue);
-box-shadow:0 0 15px rgba(0,210,255,0.2);
+margin-bottom:12px;
 }
 
 /* LIST */
@@ -116,108 +91,99 @@ color:black;
 background:var(--red);
 color:white;
 }
-
-.badge{
-background:var(--red);
-padding:3px 8px;
-border-radius:10px;
-font-size:12px;
-margin-left:auto;
-}
-
-#error{
-color:#ff4d4d;
-text-align:center;
-}
 </style>
 </head>
 
 <body>
-<p>.</p>
+
 <!-- LOGIN -->
 <div id="loginBox">
 <div class="card">
-<h3>Connexion Admin</h3>
+<h3><i data-lucide="lock"></i> Connexion Admin</h3>
 
 <input id="adminPhone" placeholder="Numéro">
 <input id="adminPass" type="password" placeholder="Mot de passe">
 
-<button class="mainBtn" onclick="loginAdmin()">Connexion</button>
-<p id="error"></p>
+<button class="mainBtn" onclick="loginAdmin()">
+<i data-lucide="log-in"></i> Connexion
+</button>
 
+<p id="error"></p>
 </div>
 </div>
 
 <!-- PANEL -->
 <div id="adminPanel" style="display:none;">
 
-<div class="card">
-<h2>ADMIN PANEL</h2>
-<button class="logout" onclick="logoutAdmin()">Déconnexion</button>
+<!-- HEADER -->
+<div class="header">
+<h2><i data-lucide="shield"></i> Admin Panel</h2>
+<button class="logout" onclick="logoutAdmin()">
+<i data-lucide="log-out"></i>
+</button>
 </div>
+
+<div class="container">
 
 <!-- STATS -->
 <div class="card">
-👥 <span id="statUsers">0</span> |
-💰 <span id="statMoney">0</span> |
-📦 <span id="statCmd">0</span> |
-💳 <span id="statRech">0</span>
+<i data-lucide="users"></i> <span id="statUsers">0</span> |
+<i data-lucide="wallet"></i> <span id="statMoney">0</span> |
+<i data-lucide="package"></i> <span id="statCmd">0</span> |
+<i data-lucide="credit-card"></i> <span id="statRech">0</span>
 </div>
 
 <!-- USERS -->
 <div class="card">
-<h3>Utilisateurs</h3>
+<h3><i data-lucide="users"></i> Utilisateurs</h3>
 <div id="users" class="list"></div>
 </div>
 
 <!-- COMMANDES -->
 <div class="card">
-<h3>Commandes</h3>
+<h3><i data-lucide="shopping-cart"></i> Commandes</h3>
 <div id="commandes" class="list"></div>
 </div>
 
 <!-- RECHARGES -->
 <div class="card">
-<h3>Recharges</h3>
+<h3><i data-lucide="credit-card"></i> Recharges</h3>
 <div id="recharges" class="list"></div>
-</div>
-
-<!-- TRANSFERTS -->
-<div class="card">
-<h3>Transferts</h3>
-<div id="transferts" class="list"></div>
 </div>
 
 <!-- MONETISATION -->
 <div class="card">
-<h3>Monétisation</h3>
+<h3><i data-lucide="dollar-sign"></i> Monétisation</h3>
 <div id="monetisations" class="list"></div>
 </div>
 
 <!-- MESSAGE -->
 <div class="card">
-<h3>Envoyer message</h3>
+<h3><i data-lucide="send"></i> Envoyer message</h3>
 
 <input id="target" placeholder="Numéro utilisateur">
 <textarea id="msg" placeholder="Message"></textarea>
 <input type="file" id="uploadFile">
 
-<button class="mainBtn" onclick="sendMsg()">Envoyer</button>
+<button class="mainBtn" onclick="sendMsg()">
+<i data-lucide="send"></i> Envoyer
+</button>
 </div>
 
 <!-- LISTE MESSAGES -->
 <div class="card">
-<h3>Messages utilisateurs</h3>
+<h3><i data-lucide="message-circle"></i> Messages utilisateurs</h3>
 <div id="userMessages" class="list"></div>
 </div>
 
+</div>
 </div>
 
 <script>
 lucide.createIcons();
 </script>
 
-<!-- 🔥 JS -->
+<!-- JS -->
 <script type="module">
 import "./admin.js";
 import "./message.js";
