@@ -704,80 +704,66 @@ alert("Erreur: " + e);
 unlock(key);
 };
 
-// ================= TRANSFERT =================
-onValue(ref(db,"transferts"), async snap=>{
 
-const box = document.getElementById("transferts");
+// ================= MONETISATION =================
+// ================= 💰 MONÉTISATION =================
+onValue(ref(db,"demandes_monetisation"), async snap=>{
+
+const box = document.getElementById("monetisations");
 if(!box) return;
 
-box.innerHTML = "";
+box.innerHTML = "<small>⏳ Chargement...</small>";
+
+try{
 
 if(!snap.exists()){
-box.innerHTML = "<small>Aucun transfert</small>";
+box.innerHTML = "<small>Aucune demande</small>";
 return;
 }
 
-for(const [id,t] of Object.entries(snap.val())){
+// 🔥 charger tous les users UNE FOIS (optimisation)
+const usersSnap = await get(ref(db,"users"));
+const usersData = usersSnap.exists() ? usersSnap.val() : {};
 
-// 🔒 afficher seulement pending
-if(t.status && t.status !== "pending") continue;
+let html = "";
+let count = 0;
 
-// 🔥 récupérer utilisateurs
-const fromSnap = await get(ref(db,"users/"+t.from));
-const toSnap = await get(ref(db,"users/"+t.to));
+for(const [id,m] of Object.entries(snap.val())){
 
-const fromUser = fromSnap.val() || {};
-const toUser = toSnap.val() || {};
+if(!m || !id || !m.user) continue;
 
-// 🔥 infos
-const fromName = fromUser.name || "Expéditeur";
-const toName = toUser.name || "Receveur";
-const fromPhoto = fromUser.photo || "";
-const toPhoto = toUser.photo || "";
+// 🔒 seulement pending
+if(m.status && m.status !== "pending") continue;
 
-const date = t.date ? new Date(t.date).toLocaleString() : "Non défini";
-const amount = t.amount || 0;
-const status = t.status || "pending";
+// 🔥 user
+const u = usersData[m.user] || {};
+const name = u.name || "Utilisateur";
+const photo = u.photo || "";
+const phone = m.user;
 
-// 🔥 avatars
-const fromAvatar = fromPhoto
-? `<img src="${fromPhoto}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-: `<div style="
-width:50px;height:50px;border-radius:50%;
-background:#00d2ff;display:flex;align-items:center;
-justify-content:center;color:black;font-weight:bold;">
-${fromName.substring(0,2)}
+// 🔥 date
+const date = m.date ? new Date(m.date).toLocaleString() : "Non défini";
+
+// 🔥 avatar
+const avatar = photo
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
+: `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+${name.substring(0,2).toUpperCase()}
 </div>`;
 
-const toAvatar = toPhoto
-? `<img src="${toPhoto}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-: `<div style="
-width:50px;height:50px;border-radius:50%;
-background:#00d2ff;display:flex;align-items:center;
-justify-content:center;color:black;font-weight:bold;">
-${toName.substring(0,2)}
-</div>`;
-
-// 🔥 couleur statut
-const statusColor = status === "pending" ? "orange" :
-                    status === "approved" ? "green" : "red";
-
-// 🔥 DETAILS AUTO (images incluses)
+// 🔥 détails dynamiques
 let details = "";
 
-Object.entries(t).forEach(([key,value])=>{
+Object.entries(m).forEach(([key,value])=>{
 
-if(["from","to","amount","status","date"].includes(key)) return;
+if(["user","status","date"].includes(key)) return;
 
-// image détectée
+// 🖼️ image
 if(typeof value === "string" && value.startsWith("data:image")){
 details += `
 📸 ${key} :<br>
 <img src="${value}" style="width:100%;border-radius:10px;margin-top:5px;">
-<br>
-<a href="${value}" download="preuve.png">
-<button style="margin-top:5px;">⬇️ Télécharger</button>
-</a><br><br>
+<br><br>
 `;
 }else{
 details += `<b>${key}</b> : ${value}<br>`;
@@ -785,149 +771,87 @@ details += `<b>${key}</b> : ${value}<br>`;
 
 });
 
-// ================= UI =================
-box.innerHTML += `
+// 🔥 UI CARD
+html += `
 <div class="card">
 
-<!-- EXPEDITEUR -->
 <div style="display:flex;align-items:center;gap:10px;">
-${fromAvatar}
+${avatar}
 <div>
-<b>${fromName}</b><br>
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Titre de la page</title>
-</head>
-<body>
-    <!DOCTYPE html>
-    <html lang="fr">
-    <head>
-        <meta charset="UTF-8">
-        <title>Titre de la page</title>
-    </head>
-    <body>
-        <!DOCTYPE html>
-        <html lang="fr">
-        <head>
-            <meta charset="UTF-8">
-            <title>Titre de la page</title>
-        </head>
-        <body>
-            <!DOCTYPE html>
-            <html lang="fr">
-            <head>
-                <meta charset="UTF-8">
-                <title>Titre de la page</title>
-            </head>
-            <body>
-                
-                
-            </body>
-            </html>
-        </body>
-        </html>
-    </body>
-    </html>
-</body>
-</html>📱 ${t.from}
-</div>
-</div>
-
-<div style="text-align:center;margin:10px 0;">⬇️</div>
-
-<!-- RECEVEUR -->
-<div style="display:flex;align-items:center;gap:10px;">
-${toAvatar}
-<div>
-<b>${toName}</b><br>
-📱 ${t.to}
+<b>${name}</b><br>
+📱 ${phone}
 </div>
 </div>
 
 <hr>
 
-💰 Montant : <b>${amount} FC</b><br>
-📅 Date : <b>${date}</b><br>
-📌 Statut : <b style="color:${statusColor};">${status}</b><br>
+💰 Demande de monétisation<br>
+💵 Montant : <b>${Number(m.amount || 2500).toLocaleString()} FC</b><br>
+📅 ${date}<br>
 🆔 <small>${id}</small>
 
-<div class="details" style="margin-top:10px;">
+<div style="margin-top:10px;">
 ${details || "Aucun détail"}
 </div>
 
 <div style="margin-top:10px;display:flex;gap:5px;">
-<button class="ok" onclick="valTrans('${id}','${t.from}','${t.to}',${amount})">
-✅ Valider
-</button>
-
-<button class="no" onclick="refTrans('${id}')">
-❌ Refuser
-</button>
+<button onclick="safeClick('m-ok-${id}',()=>valMonet('${id}','${phone}'))" style="background:#4caf50;">✅</button>
+<button onclick="safeClick('m-no-${id}',()=>refMonet('${id}','${phone}'))" style="background:#ff4d4d;">❌</button>
 </div>
 
 </div>
 `;
 
+count++;
 }
 
-});
+// 🔥 inject
+box.innerHTML = html || "<small>Aucune demande valide</small>";
 
-// ================= VALID TRANS =================
-window.valTrans = async(id,from,to,amount)=>{
-await update(ref(db,"users/"+to),{
-balance:(await safeGet("users/"+to)).balance + Number(amount)
-});
-
-await safeDelete("transferts/"+id);
-alert("Validé");
-};
-
-window.refTrans = async(id)=>{
-await safeDelete("transferts/"+id);
-alert("Refusé");
-};
-
-// ================= MONETISATION =================
-onValue(ref(db,"demandes_monetisation"), async snap=>{
-const box = document.getElementById("monetisations");
-if(!box) return;
-
-let html="";
-
-if(!snap.exists()){
-box.innerHTML="Aucune";
-return;
+}catch(e){
+console.error("❌ Erreur monetisation:", e);
+box.innerHTML = "<small>❌ Erreur chargement</small>";
 }
-
-for(const [id,m] of Object.entries(snap.val())){
-
-if(!m || m.status!=="pending") continue;
-
-html += `
-<div class="card">
-📱 ${m.user}
-
-<button onclick="safeClick('m-ok-${id}',()=>valMonet('${id}','${m.user}'))">✅</button>
-<button onclick="safeClick('m-no-${id}',()=>refMonet('${id}')">❌</button>
-</div>`;
-}
-
-box.innerHTML = html;
 });
-
 // ================= VALID MONET =================
 window.valMonet = async(id,user)=>{
+
+try{
+
 await update(ref(db,"users/"+user),{
-monetized:true
+monetized: true
 });
-await safeDelete("demandes_monetisation/"+id);
-alert("Activé");
+
+await remove(ref(db,"demandes_monetisation/"+id));
+
+// 🔔 notification
+await sendNotification(user,
+"🟢 Félicitations !\n\nVotre compte est maintenant monétisé 🎉\n\nVous pouvez commencer à générer des revenus 🚀"
+);
+
+alert("Monétisation activée");
+
+}catch(e){
+alert(e);
+}
+
 };
 
-window.refMonet = async(id)=>{
-await safeDelete("demandes_monetisation/"+id);
+window.refMonet = async(id,user)=>{
+
+try{
+
+await remove(ref(db,"demandes_monetisation/"+id));
+
+// 🔔 notification
+await sendNotification(user,
+"❌ Votre demande de monétisation a été refusée.\n\nVeuillez vérifier les conditions requises puis réessayer."
+);
+
 alert("Refusé");
+
+}catch(e){
+alert(e);
+}
+
 };
-    
