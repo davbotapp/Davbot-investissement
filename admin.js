@@ -634,8 +634,20 @@ status:"approved"
 await remove(ref(db,`orders/pending/${user}/${id}`));
 
 // 🔥 notification
-await sendNotification(user,`🚀 Votre commande (${cmd.service}) est prête !\n\nElle a été traitée avec succès par notre équipe.\n\n🎯 Vous pouvez maintenant en profiter.\nMerci pour votre confiance ❤️`
+
+const serviceName =
+cmd.service || cmd.name || cmd.title || cmd.type || "Service inconnu";
+
+await sendNotification(
+user,
+`🚀 Votre commande (${serviceName}) est prête !
+
+Elle a été traitée avec succès par notre équipe.
+
+🎯 Vous pouvez maintenant en profiter.
+Merci pour votre confiance ❤️`
 );
+
 
 alert("Validé");
 
@@ -706,8 +718,8 @@ unlock(key);
 
 
 // ================= MONETISATION =================
-// ================= 💰 MONÉTISATION =================
-onValue(ref(db,"demandes_monetisation"), async snap=>{
+// =============== 💰 MONÉTISATION ===============
+onValue(ref(db,"monetisation_requests"), async snap=>{
 
 const box = document.getElementById("monetisations");
 if(!box) return;
@@ -721,61 +733,37 @@ box.innerHTML = "<small>Aucune demande</small>";
 return;
 }
 
-// 🔥 charger tous les users UNE FOIS (optimisation)
 const usersSnap = await get(ref(db,"users"));
 const usersData = usersSnap.exists() ? usersSnap.val() : {};
 
 let html = "";
-let count = 0;
 
 for(const [id,m] of Object.entries(snap.val())){
 
-if(!m || !id || !m.user) continue;
+if(!m || !m.user) continue;
 
-// 🔒 seulement pending
-if(m.status && m.status !== "pending") continue;
+// 🔥 seulement pending
+if(m.status !== "pending") continue;
 
-// 🔥 user
 const u = usersData[m.user] || {};
+
 const name = u.name || "Utilisateur";
 const photo = u.photo || "";
 const phone = m.user;
 
-// 🔥 date
 const date = m.date ? new Date(m.date).toLocaleString() : "Non défini";
 
-// 🔥 avatar
+// avatar
 const avatar = photo
-? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-: `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
+? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%">`
+: `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;">
 ${name.substring(0,2).toUpperCase()}
 </div>`;
 
-// 🔥 détails dynamiques
-let details = "";
-
-Object.entries(m).forEach(([key,value])=>{
-
-if(["user","status","date"].includes(key)) return;
-
-// 🖼️ image
-if(typeof value === "string" && value.startsWith("data:image")){
-details += `
-📸 ${key} :<br>
-<img src="${value}" style="width:100%;border-radius:10px;margin-top:5px;">
-<br><br>
-`;
-}else{
-details += `<b>${key}</b> : ${value}<br>`;
-}
-
-});
-
-// 🔥 UI CARD
 html += `
 <div class="card">
 
-<div style="display:flex;align-items:center;gap:10px;">
+<div style="display:flex;gap:10px;">
 ${avatar}
 <div>
 <b>${name}</b><br>
@@ -785,33 +773,26 @@ ${avatar}
 
 <hr>
 
-💰 Demande de monétisation<br>
-💵 Montant : <b>${Number(m.amount || 2500).toLocaleString()} FC</b><br>
-📅 ${date}<br>
-🆔 <small>${id}</small>
-
-<div style="margin-top:10px;">
-${details || "Aucun détail"}
-</div>
+💰 Montant : <b>${(m.amount || 2500).toLocaleString()} FC</b><br>
+📅 ${date}
 
 <div style="margin-top:10px;display:flex;gap:5px;">
-<button onclick="safeClick('m-ok-${id}',()=>valMonet('${id}','${phone}'))" style="background:#4caf50;">✅</button>
-<button onclick="safeClick('m-no-${id}',()=>refMonet('${id}','${phone}'))" style="background:#ff4d4d;">❌</button>
+<button onclick="valMonet('${id}','${phone}')" style="background:#4caf50;">✅</button>
+<button onclick="refMonet('${id}','${phone}')" style="background:#ff4d4d;">❌</button>
 </div>
 
 </div>
 `;
 
-count++;
 }
 
-// 🔥 inject
-box.innerHTML = html || "<small>Aucune demande valide</small>";
+box.innerHTML = html || "<small>Aucune demande</small>";
 
 }catch(e){
-console.error("❌ Erreur monetisation:", e);
-box.innerHTML = "<small>❌ Erreur chargement</small>";
+console.error(e);
+box.innerHTML = "❌ Erreur";
 }
+
 });
 // ================= VALID MONET =================
 window.valMonet = async(id,user)=>{
