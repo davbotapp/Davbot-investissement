@@ -5,322 +5,295 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profil - Davbot</title>
 
-<!-- 🔥 ICONS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-:root {
-    --blue:#00d2ff;
-    --dark:#050a14;
-    --glass: rgba(255,255,255,0.06);
+:root{
+--blue:#00d2ff;
+--dark:#050a14;
+--glass: rgba(255,255,255,0.06);
 }
 
 body{
-    margin:0;
-    font-family:'Segoe UI', sans-serif;
-    background:var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
-    background-size:cover;
-    color:white;
+margin:0;
+font-family:'Segoe UI', sans-serif;
+background:var(--dark) url('IMG_0870.jpeg') no-repeat center center fixed;
+background-size:cover;
+color:white;
 }
 
 .overlay{
-    background:linear-gradient(to bottom, rgba(5,10,20,0.95), rgba(5,10,20,0.85));
-    min-height:100vh;
-    padding-bottom:80px;
+background:linear-gradient(to bottom, rgba(5,10,20,0.95), rgba(5,10,20,0.85));
+min-height:100vh;
+padding-bottom:100px;
+}
+
+/* 🔔 NOTIFICATION */
+.notif{
+position:fixed;
+top:15px;
+right:15px;
+font-size:22px;
+z-index:999;
+cursor:pointer;
+}
+.notif span{
+position:absolute;
+top:-5px;
+right:-5px;
+background:red;
+font-size:10px;
+padding:3px 6px;
+border-radius:50%;
+}
+
+/* 🤖 BOT FLOAT */
+.bot-float{
+position:fixed;
+bottom:140px;
+right:15px;
+width:55px;
+height:55px;
+background:var(--blue);
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:24px;
+cursor:pointer;
+z-index:999;
+}
+
+/* 💬 ADMIN CHAT */
+.admin-chat{
+position:fixed;
+bottom:210px;
+right:15px;
+width:300px;
+background:#0d1625;
+border-radius:15px;
+display:none;
+flex-direction:column;
+z-index:999;
+overflow:hidden;
+}
+.admin-header{
+background:var(--blue);
+color:black;
+padding:10px;
+font-weight:bold;
+}
+.admin-messages{
+height:200px;
+overflow:auto;
+padding:10px;
+}
+.admin-input{
+display:flex;
+}
+.admin-input input{
+flex:1;
+padding:10px;
+border:none;
+}
+.admin-input button{
+background:var(--blue);
+border:none;
+}
+
+/* 📱 WHATSAPP */
+.whatsapp{
+position:fixed;
+bottom:70px;
+right:15px;
+width:55px;
+height:55px;
+background:#25D366;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:25px;
+color:white;
+text-decoration:none;
+z-index:999;
 }
 
 /* HEADER */
-.header{
-    text-align:center;
-    padding:30px 20px;
-}
-
+.header{text-align:center;padding:30px 20px;}
 .avatar{
-    width:95px;
-    height:95px;
-    border-radius:50%;
-    object-fit:cover;
-    border:2px solid var(--blue);
-    box-shadow:0 0 20px var(--blue);
+width:95px;
+height:95px;
+border-radius:50%;
+border:2px solid var(--blue);
+object-fit:cover;
 }
 
-.badge{
-    display:inline-block;
-    margin-top:10px;
-    padding:6px 12px;
-    border-radius:10px;
-    font-size:12px;
-    background:#00ff88;
-    color:black;
-    font-weight:bold;
-}
-
-/* CARD */
 .card{
-    background:var(--glass);
-    backdrop-filter: blur(12px);
-    margin:15px;
-    padding:18px;
-    border-radius:18px;
-    border:1px solid rgba(0,210,255,0.15);
+background:var(--glass);
+margin:15px;
+padding:18px;
+border-radius:18px;
 }
 
-/* STATS */
-.stat i{
-    color:var(--blue);
-    margin-right:6px;
-}
-
-/* MONET */
-.monet button{
-    width:100%;
-    padding:14px;
-    border:none;
-    border-radius:12px;
-    font-weight:bold;
-    cursor:pointer;
-    margin-top:10px;
-}
-
-.locked{ background:#555; }
-.active{ background:#00ff88; color:black; }
-.wait{ background:#ff9800; }
-
-/* MENU */
 .menu a{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:14px;
-    margin:10px 15px;
-    background:var(--glass);
-    border-radius:12px;
-    text-decoration:none;
-    color:white;
-}
-
-.menu i{
-    color:var(--blue);
-}
-
-/* MESSAGE */
-.msg{
-    background:#0d1625;
-    padding:12px;
-    border-radius:12px;
-    margin-top:10px;
-    border-left:3px solid var(--blue);
-}
-
-/* INPUT */
-textarea{
-    width:100%;
-    padding:12px;
-    border-radius:12px;
-    border:none;
-    background:#0d1625;
-    color:white;
-    margin-top:10px;
+display:flex;
+gap:10px;
+padding:14px;
+margin:10px;
+background:var(--glass);
+border-radius:12px;
+color:white;
+text-decoration:none;
 }
 
 .sendBtn{
-    margin-top:10px;
-    width:100%;
-    padding:13px;
-    border:none;
-    border-radius:12px;
-    background:var(--blue);
-    color:black;
-    font-weight:bold;
-}
-
-/* LOGOUT */
-.logout-btn{
-    display:block;
-    padding:14px;
-    margin:15px;
-    background:#f44336;
-    border-radius:12px;
-    text-align:center;
-    color:white;
-    font-weight:bold;
+width:100%;
+padding:12px;
+background:var(--blue);
+border:none;
+border-radius:100px;
+color:black;
+font-weight:bold;
 }
 
 /* NAVBAR */
 .navbar{
-    position:fixed;
-    bottom:0;
-    width:100%;
-    background:rgba(5,10,20,0.95);
-    display:flex;
-    justify-content:space-around;
-    padding:12px;
-    border-top:1px solid var(--blue);
+position:fixed;
+bottom:0;
+width:100%;
+background:rgba(5,10,20,0.95);
+display:flex;
+justify-content:space-around;
+padding:12px;
 }
 
 .navbar a{
-    color:white;
-    text-decoration:none;
-    font-size:12px;
-    opacity:0.6;
-    text-align:center;
-}
-
-.navbar i{
-    display:block;
-    font-size:18px;
+color:white;
+text-decoration:none;
+font-size:12px;
+opacity:0.6;
+text-align:center;
 }
 
 .navbar a.active{
-    opacity:1;
-    color:var(--blue);
+opacity:1;
+color:var(--blue);
 }
 
-/* CHATBOT STYLES */
-#chatBox {
-    height: 250px;
-    overflow-y: auto;
-    background: #0d1625;
-    padding: 12px;
-    border-radius: 12px;
-    margin-top: 15px;
-    color: white;
-    font-size: 14px;
-}
-
-#chatBox div {
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 12px;
-    font-size: 14px;
-}
-
-#chatBox div.bot {
-    background: #111;
-    border-left: 3px solid var(--blue);
-}
-
-#chatBox div.user {
-    background: var(--blue);
-    color: black;
-    text-align: right;
-}
-
-#chatInput {
-    width: 100%;
-    padding: 12px;
-    border-radius: 12px;
-    border: none;
-    background: #0d1625;
-    color: white;
-    margin-top: 10px;
-}
-
-.sendBtn {
-    margin-top: 10px;
-    width: 100%;
-    padding: 13px;
-    border: none;
-    border-radius: 12px;
-    background: var(--blue);
-    color: black;
-    font-weight: bold;
-}
-
-/* BUTTON STYLES FOR CHAT */
-button {
-    cursor: pointer;
-    transition: background-color 0.3s ease-in-out;
-}
-
-button:hover {
-    background-color: #ff9800;
-    }
 </style>
 </head>
 
 <body>
 
+<!-- 🔔 NOTIF -->
+<div class="notif" onclick="toggleNotif()">
+<i class="fa-solid fa-bell"></i>
+<span id="notifCount">0</span>
+</div>
+
 <div class="overlay">
 
 <!-- HEADER -->
 <div class="header">
-    <img id="avatar" class="avatar" src="">
-    <h3 id="name">Utilisateur</h3>
-    <p id="phone">+243...</p>
-
-    <div id="badgeBox"></div>
+<img id="avatar" class="avatar" src="">
+<h3 id="name">Utilisateur</h3>
+<p id="phone">+243...</p>
+<div id="badgeBox"></div>
 </div>
 
 <!-- STATS -->
-<div class="card stat">
-    <p><i class="fa-solid fa-wallet"></i> Solde : <b id="solde">0</b> FC</p>
-    <p><i class="fa-solid fa-chart-line"></i> Revenus : <b id="revenus">0</b> FC</p>
-    <p><i class="fa-solid fa-star"></i> Points : <b id="points">0</b></p>
+<div class="card">
+💰 Solde : <b id="solde">0</b> FC<br>
+📈 Revenus : <b id="revenus">0</b> FC<br>
+⭐ Points : <b id="points">0</b>
 </div>
 
 <!-- MONET -->
-<div class="card monet">
-    <h3>💰 Monétisation</h3>
-    <button id="monetBtn" class="locked">🔒 En attente</button>
-    <small id="monetInfo"></small>
+<div class="card">
+<h3>💰 Monétisation</h3>
+<button id="monetBtn" class="sendBtn">Activer</button>
+<small id="monetInfo"></small>
 </div>
 
 <!-- MENU -->
 <div class="menu">
-    <a href="recharge.html"><i class="fa-solid fa-arrow-down"></i> Recharger</a>
-    <a href="transf.html"><i class="fa-solid fa-right-left"></i> Transfert</a>
-    <a href="dashboard.html"><i class="fa-solid fa-chart-simple"></i> Dashboard</a>
-    <a href="equipe.html"><i class="fa-solid fa-users"></i> Équipe</a>
+<a href="recharge.html"><i class="fa-solid fa-arrow-down"></i> Recharger</a>
+<a href="dashboard.html"><i class="fa-solid fa-chart-simple"></i> Dashboard</a>
+<a href="equipe.html"><i class="fa-solid fa-users"></i> Équipe</a>
 </div>
 
-    
-<!-- 🤖 ASSISTANT -->
+
+
+<!-- 💬 MESSAGES ADMIN (profil.js utilise inbox) -->
 <div class="card">
-    <h3><i class="fa-solid fa-robot"></i> Assistant Davbot</h3>
-    <p>Besoin d’aide ? Discute avec l’assistant intelligent.</p>
+<h3>📩 Messages Admin</h3>
+<div id="inbox"></div>
 
-    <div id="chatBox" class="chat-box"></div>
-
-    <input id="chatInput" class="chat-input" placeholder="Écrire au bot...">
-
-
-    <button onclick="sendBot()" class="sendBtn">  <i class="fa-solid fa-paper-plane"></i> Envoyer  </button>
+<textarea id="msgInput" placeholder="Écrire..."></textarea>
+<button id="sendBtn" class="sendBtn">Envoyer</button>
 </div>
-<!-- MESSAGES -->
-<div class="card">
-    <h3>📩 Messages Admin</h3>
-    <div id="inbox"></div>
 
-    <textarea id="msgInput" placeholder="Écrire à l'admin..."></textarea>
-    <button id="sendBtn" class="sendBtn">Envoyer</button>
+<!-- 💬 CHAT FLOAT -->
+<div id="adminChat" class="admin-chat">
+<div class="admin-header">Support Admin</div>
+<div id="adminMsgs" class="admin-messages"></div>
+<div class="admin-input">
+<input id="adminInput" placeholder="Message...">
+<button onclick="sendAdmin()">➤</button>
+</div>
 </div>
 
 <!-- LOGOUT -->
-<a href="#" id="logout" class="logout-btn">🚪 Déconnexion</a>
+<a href="#" id="logout" class="sendBtn">Déconnexion</a>
 
 </div>
 
+<!-- 🤖 FLOAT -->
+<div class="bot-float" onclick="toggleBot()">🤖</div>
+
+<!-- 📱 WHATSAPP -->
+<a href="https://wa.me/243982697752" class="whatsapp">
+<i class="fa-brands fa-whatsapp"></i>
+</a>
+
 <!-- NAVBAR -->
 <div class="navbar">
-    <a href="dashboard.html">
-        <i class="fa-solid fa-chart-pie"></i>
-        Dash
-    </a>
+<a href="dashboard.html">
+<i class="fa-solid fa-chart-pie"></i><br>Dash
+</a>
 
-    <a href="service.html">
-        <i class="fa-solid fa-store"></i>
-        Shop
-    </a>
+<a href="service.html">
+<i class="fa-solid fa-store"></i><br>Shop
+</a>
 
-    <a href="profil.html" class="active">
-        <i class="fa-solid fa-user"></i>
-        Profil
-    </a>
+<a href="profil.html" class="active">
+<i class="fa-solid fa-user"></i><br>Profil
+</a>
 </div>
 
 <script type="module" src="profil.js"></script>
 
+<script>
+// UI seulement (pas conflit avec profil.js)
+function toggleNotif(){
+alert("Notifications");
+}
+
+function toggleBot(){
+document.getElementById("adminChat").style.display="flex";
+}
+
+function sendAdmin(){
+let input=document.getElementById("adminInput");
+let box=document.getElementById("adminMsgs");
+
+if(!input.value) return;
+
+box.innerHTML+=`<div style="text-align:right">${input.value}</div>`;
+input.value="";
+}
+</script>
+
 </body>
-                                                     </html>
-    
+</html>
