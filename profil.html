@@ -11,7 +11,7 @@
 :root{
 --blue:#00d2ff;
 --dark:#050a14;
---glass: rgba(255,255,255,0.06);
+--glass:rgba(255,255,255,0.06);
 }
 
 body{
@@ -25,10 +25,10 @@ color:white;
 .overlay{
 background:linear-gradient(to bottom, rgba(5,10,20,0.95), rgba(5,10,20,0.85));
 min-height:100vh;
-padding-bottom:100px;
+padding-bottom:90px;
 }
 
-/* 🔔 NOTIFICATION */
+/* 🔔 NOTIF */
 .notif{
 position:fixed;
 top:15px;
@@ -47,7 +47,98 @@ padding:3px 6px;
 border-radius:50%;
 }
 
-/* 🤖 BOT FLOAT */
+/* HEADER */
+.header{
+text-align:center;
+padding:30px 20px;
+}
+
+.avatar{
+width:95px;
+height:95px;
+border-radius:50%;
+object-fit:cover;
+border:2px solid var(--blue);
+box-shadow:0 0 20px var(--blue);
+}
+
+.card{
+background:var(--glass);
+margin:15px;
+padding:18px;
+border-radius:18px;
+border:1px solid rgba(0,210,255,0.15);
+backdrop-filter:blur(10px);
+}
+
+/* MENU */
+.menu a{
+display:flex;
+align-items:center;
+gap:10px;
+padding:14px;
+margin:10px;
+background:var(--glass);
+border-radius:12px;
+text-decoration:none;
+color:white;
+}
+
+/* BUTTON */
+.sendBtn{
+width:100%;
+padding:12px;
+background:var(--blue);
+border:none;
+border-radius:12px;
+color:black;
+font-weight:bold;
+cursor:pointer;
+}
+
+/* CHAT ADMIN */
+#adminChat{
+position:fixed;
+bottom:200px;
+right:15px;
+width:300px;
+background:#0d1625;
+border-radius:15px;
+display:none;
+flex-direction:column;
+z-index:999;
+overflow:hidden;
+}
+
+.admin-header{
+background:var(--blue);
+color:black;
+padding:10px;
+font-weight:bold;
+}
+
+.admin-messages{
+height:200px;
+overflow:auto;
+padding:10px;
+}
+
+.admin-input{
+display:flex;
+}
+
+.admin-input input{
+flex:1;
+padding:10px;
+border:none;
+}
+
+.admin-input button{
+background:var(--blue);
+border:none;
+}
+
+/* FLOAT BOT */
 .bot-float{
 position:fixed;
 bottom:140px;
@@ -64,44 +155,7 @@ cursor:pointer;
 z-index:999;
 }
 
-/* 💬 ADMIN CHAT */
-.admin-chat{
-position:fixed;
-bottom:210px;
-right:15px;
-width:300px;
-background:#0d1625;
-border-radius:15px;
-display:none;
-flex-direction:column;
-z-index:999;
-overflow:hidden;
-}
-.admin-header{
-background:var(--blue);
-color:black;
-padding:10px;
-font-weight:bold;
-}
-.admin-messages{
-height:200px;
-overflow:auto;
-padding:10px;
-}
-.admin-input{
-display:flex;
-}
-.admin-input input{
-flex:1;
-padding:10px;
-border:none;
-}
-.admin-input button{
-background:var(--blue);
-border:none;
-}
-
-/* 📱 WHATSAPP */
+/* WHATSAPP */
 .whatsapp{
 position:fixed;
 bottom:70px;
@@ -113,48 +167,10 @@ border-radius:50%;
 display:flex;
 align-items:center;
 justify-content:center;
-font-size:25px;
+font-size:26px;
 color:white;
 text-decoration:none;
 z-index:999;
-}
-
-/* HEADER */
-.header{text-align:center;padding:30px 20px;}
-.avatar{
-width:95px;
-height:95px;
-border-radius:50%;
-border:2px solid var(--blue);
-object-fit:cover;
-}
-
-.card{
-background:var(--glass);
-margin:15px;
-padding:18px;
-border-radius:18px;
-}
-
-.menu a{
-display:flex;
-gap:10px;
-padding:14px;
-margin:10px;
-background:var(--glass);
-border-radius:12px;
-color:white;
-text-decoration:none;
-}
-
-.sendBtn{
-width:100%;
-padding:12px;
-background:var(--blue);
-border:none;
-border-radius:100px;
-color:black;
-font-weight:bold;
 }
 
 /* NAVBAR */
@@ -186,7 +202,7 @@ color:var(--blue);
 
 <body>
 
-<!-- 🔔 NOTIF -->
+<!-- 🔔 NOTIF ICON -->
 <div class="notif" onclick="toggleNotif()">
 <i class="fa-solid fa-bell"></i>
 <span id="notifCount">0</span>
@@ -196,7 +212,7 @@ color:var(--blue);
 
 <!-- HEADER -->
 <div class="header">
-<img id="avatar" class="avatar" src="">
+<img id="avatar" class="avatar">
 <h3 id="name">Utilisateur</h3>
 <p id="phone">+243...</p>
 <div id="badgeBox"></div>
@@ -223,9 +239,7 @@ color:var(--blue);
 <a href="equipe.html"><i class="fa-solid fa-users"></i> Équipe</a>
 </div>
 
-
-
-<!-- 💬 MESSAGES ADMIN (profil.js utilise inbox) -->
+<!-- 💬 MESSAGES ADMIN (profil.js -> inbox) -->
 <div class="card">
 <h3>📩 Messages Admin</h3>
 <div id="inbox"></div>
@@ -234,8 +248,8 @@ color:var(--blue);
 <button id="sendBtn" class="sendBtn">Envoyer</button>
 </div>
 
-<!-- 💬 CHAT FLOAT -->
-<div id="adminChat" class="admin-chat">
+<!-- 💬 CHAT ADMIN FLOAT -->
+<div id="adminChat">
 <div class="admin-header">Support Admin</div>
 <div id="adminMsgs" class="admin-messages"></div>
 <div class="admin-input">
@@ -249,7 +263,7 @@ color:var(--blue);
 
 </div>
 
-<!-- 🤖 FLOAT -->
+<!-- 🤖 FLOAT BOT -->
 <div class="bot-float" onclick="toggleBot()">🤖</div>
 
 <!-- 📱 WHATSAPP -->
@@ -259,25 +273,16 @@ color:var(--blue);
 
 <!-- NAVBAR -->
 <div class="navbar">
-<a href="dashboard.html">
-<i class="fa-solid fa-chart-pie"></i><br>Dash
-</a>
-
-<a href="service.html">
-<i class="fa-solid fa-store"></i><br>Shop
-</a>
-
-<a href="profil.html" class="active">
-<i class="fa-solid fa-user"></i><br>Profil
-</a>
+<a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i><br>Dash</a>
+<a href="service.html"><i class="fa-solid fa-store"></i><br>Shop</a>
+<a href="profil.html" class="active"><i class="fa-solid fa-user"></i><br>Profil</a>
 </div>
 
 <script type="module" src="profil.js"></script>
 
 <script>
-// UI seulement (pas conflit avec profil.js)
 function toggleNotif(){
-alert("Notifications");
+alert("Notifications ouvertes");
 }
 
 function toggleBot(){
