@@ -11,7 +11,7 @@
 :root{
 --blue:#00d2ff;
 --dark:#050a14;
---glass:rgba(255,255,255,0.06);
+--glass: rgba(255,255,255,0.06);
 }
 
 body{
@@ -25,10 +25,10 @@ color:white;
 .overlay{
 background:linear-gradient(to bottom, rgba(5,10,20,0.95), rgba(5,10,20,0.85));
 min-height:100vh;
-padding-bottom:90px;
+padding-bottom:100px;
 }
 
-/* 🔔 NOTIF */
+/* 🔔 NOTIF BELL */
 .notif{
 position:fixed;
 top:15px;
@@ -39,12 +39,47 @@ cursor:pointer;
 }
 .notif span{
 position:absolute;
-top:-5px;
-right:-5px;
+top:-6px;
+right:-6px;
 background:red;
 font-size:10px;
 padding:3px 6px;
 border-radius:50%;
+}
+
+/* 🤖 FLOAT BOT */
+.bot-float{
+position:fixed;
+bottom:140px;
+right:15px;
+width:55px;
+height:55px;
+background:var(--blue);
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:24px;
+z-index:999;
+cursor:pointer;
+}
+
+/* 📱 WHATSAPP */
+.whatsapp{
+position:fixed;
+bottom:70px;
+right:15px;
+width:55px;
+height:55px;
+background:#25D366;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:25px;
+color:white;
+text-decoration:none;
+z-index:999;
 }
 
 /* HEADER */
@@ -62,13 +97,14 @@ border:2px solid var(--blue);
 box-shadow:0 0 20px var(--blue);
 }
 
+/* CARD */
 .card{
 background:var(--glass);
+backdrop-filter: blur(12px);
 margin:15px;
 padding:18px;
 border-radius:18px;
 border:1px solid rgba(0,210,255,0.15);
-backdrop-filter:blur(10px);
 }
 
 /* MENU */
@@ -77,12 +113,14 @@ display:flex;
 align-items:center;
 gap:10px;
 padding:14px;
-margin:10px;
+margin:10px 15px;
 background:var(--glass);
 border-radius:12px;
 text-decoration:none;
 color:white;
 }
+
+.menu i{color:var(--blue);}
 
 /* BUTTON */
 .sendBtn{
@@ -90,87 +128,47 @@ width:100%;
 padding:12px;
 background:var(--blue);
 border:none;
-border-radius:12px;
+border-radius:120p#x;
 color:black;
 font-weight:bold;
-cursor:pointer;
 }
 
 /* CHAT ADMIN */
-#adminChat{
+.admin-chat{
 position:fixed;
-bottom:200px;
+bottom:210px;
 right:15px;
 width:300px;
 background:#0d1625;
 border-radius:15px;
 display:none;
 flex-direction:column;
-z-index:999;
 overflow:hidden;
+z-index:999;
 }
-
 .admin-header{
 background:var(--blue);
 color:black;
 padding:10px;
 font-weight:bold;
 }
-
 .admin-messages{
 height:200px;
 overflow:auto;
 padding:10px;
 }
-
 .admin-input{
 display:flex;
 }
-
 .admin-input input{
 flex:1;
 padding:10px;
 border:none;
 }
-
 .admin-input button{
 background:var(--blue);
 border:none;
-}
-
-/* FLOAT BOT */
-.bot-float{
-position:fixed;
-bottom:140px;
-right:15px;
-width:55px;
-height:55px;
-background:var(--blue);
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:24px;
-cursor:pointer;
-z-index:999;
-}
-
-/* WHATSAPP */
-.whatsapp{
-position:fixed;
-bottom:70px;
-right:15px;
-width:55px;
-height:55px;
-background:#25D366;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:26px;
-color:white;
-text-decoration:none;
-z-index:999;
+padding:10px;
 }
 
 /* NAVBAR */
@@ -202,7 +200,7 @@ color:var(--blue);
 
 <body>
 
-<!-- 🔔 NOTIF ICON -->
+<!-- 🔔 NOTIFICATION BELL -->
 <div class="notif" onclick="toggleNotif()">
 <i class="fa-solid fa-bell"></i>
 <span id="notifCount">0</span>
@@ -239,7 +237,7 @@ color:var(--blue);
 <a href="equipe.html"><i class="fa-solid fa-users"></i> Équipe</a>
 </div>
 
-<!-- 💬 MESSAGES ADMIN (profil.js -> inbox) -->
+<!-- MESSAGES ADMIN (profil.js -> inbox) -->
 <div class="card">
 <h3>📩 Messages Admin</h3>
 <div id="inbox"></div>
@@ -248,8 +246,8 @@ color:var(--blue);
 <button id="sendBtn" class="sendBtn">Envoyer</button>
 </div>
 
-<!-- 💬 CHAT ADMIN FLOAT -->
-<div id="adminChat">
+<!-- ADMIN CHAT FLOAT -->
+<div class="admin-chat" id="adminChat">
 <div class="admin-header">Support Admin</div>
 <div id="adminMsgs" class="admin-messages"></div>
 <div class="admin-input">
@@ -263,7 +261,7 @@ color:var(--blue);
 
 </div>
 
-<!-- 🤖 FLOAT BOT -->
+<!-- 🤖 BOT FLOAT -->
 <div class="bot-float" onclick="toggleBot()">🤖</div>
 
 <!-- 📱 WHATSAPP -->
@@ -282,7 +280,7 @@ color:var(--blue);
 
 <script>
 function toggleNotif(){
-alert("Notifications ouvertes");
+alert("Ouvre profil.js pour charger les messages 🔔");
 }
 
 function toggleBot(){
@@ -290,12 +288,11 @@ document.getElementById("adminChat").style.display="flex";
 }
 
 function sendAdmin(){
-let input=document.getElementById("adminInput");
-let box=document.getElementById("adminMsgs");
-
+const input=document.getElementById("adminInput");
+const box=document.getElementById("adminMsgs");
 if(!input.value) return;
 
-box.innerHTML+=`<div style="text-align:right">${input.value}</div>`;
+box.innerHTML += `<div style="text-align:right">${input.value}</div>`;
 input.value="";
 }
 </script>
