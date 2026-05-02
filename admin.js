@@ -1,838 +1,486 @@
-// ================= FIREBASE =================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import {
-getDatabase, ref, onValue, update, remove, push, set, get
+getDatabase, ref, onValue, remove, update, push, get
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// ================= CONFIG =================
 const firebaseConfig = {
-apiKey:"AIza...",
-authDomain:"starlink-investit.firebaseapp.com",
-databaseURL:"https://starlink-investit-default-rtdb.firebaseio.com",
-projectId:"starlink-investit"
+    apiKey: "AIzaSyA24pBo8mBWiZssPtep--MMBdB7c8_Lu4U",
+    authDomain: "starlink-investit.firebaseapp.com",
+    databaseURL: "https://starlink-investit-default-rtdb.firebaseio.com",
+    projectId: "starlink-investit"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ================= ERROR =================
-window.addEventListener("unhandledrejection", e=>{
-console.error("🔥 Error:", e.reason);
-});
+// ================= USER =================
+const userPhone = localStorage.getItem("userPhone");
 
-// ================= LOCK =================
-let loading = {};
-
-function lock(id){
-if(loading[id]) return true;
-loading[id] = true;
-return false;
+if(!userPhone){
+    window.location.href = "index.html";
 }
 
-function unlock(id){
-delete loading[id];
-}
+// ================= ELEMENTS =================
+const phoneEl = document.getElementById("phone");
+const nameEl = document.getElementById("name");
+const avatarEl = document.getElementById("avatar");
 
-function safeClick(id, fn){
-if(lock(id)) return alert("⏳ Traitement...");
-Promise.resolve(fn()).finally(()=>unlock(id));
-}
+const soldeEl = document.getElementById("solde");
+const pointsEl = document.getElementById("points");
+const inboxEl = document.getElementById("inbox");
 
-// ================= AUTH =================
-const ADMIN_PHONE = "0982697752";
-const ADMIN_PASS = "Davbotadmin123";
+// 🔥 NOUVEAUX
+const monetBtn = document.getElementById("monetBtn");
+const monetInfo = document.getElementById("monetInfo");
+const badgeBox = document.getElementById("badgeBox");
 
-window.loginAdmin = ()=>{
-if(adminPhone.value === ADMIN_PHONE && adminPass.value === ADMIN_PASS){
-localStorage.setItem("adminAuth","true");
-location.reload();
-}else{
-error.innerText = "❌ Accès refusé";
-}
-};
+// ================= USER =================
+let currentUser = {};
 
-window.logoutAdmin = ()=>{
-localStorage.removeItem("adminAuth");
-location.reload();
-};
+// ================= USER DATA =================
+onValue(ref(db, "users/" + userPhone), async snap=>{
 
-window.onload = ()=>{
-if(localStorage.getItem("adminAuth")==="true"){
-loginBox.style.display="none";
-adminPanel.style.display="block";
-}
-};
+    if(!snap.exists()) return;
 
-// ================= TOOLS =================
-async function safeGet(path){
-const snap = await get(ref(db,path));
-return snap.exists() ? snap.val() : null;
-}
+    const data = snap.val();
+    currentUser = data;
 
-async function safeDelete(path){
-const snap = await get(ref(db,path));
-if(!snap.exists()) return;
-await remove(ref(db,path));
-}
+    phoneEl.innerText = userPhone;
+    nameEl.innerText = data.name || "Utilisateur";
 
-async function logAction(type,data){
-await push(ref(db,"admin_logs"),{
-type,...data,date:Date.now()
-});
-}
+    const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-// ================= 📊 DASHBOARD =================
+    avatarEl.src = data.photo && data.photo.trim()
+        ? data.photo
+        : defaultAvatar;
 
-// 🔥 cache global (rapide)
-let usersCache = {};
-let ordersCache = {};
-let rechargesCache = {};
+    soldeEl.innerText = (data.balance || 0).toLocaleString();
+    pointsEl.innerText = data.points || 0;
 
-// ================= USERS + MONEY =================
-onValue(ref(db,"users"), snap=>{
+}); // ✅ 🔥 TRÈS IMPORTANT (FERMETURE)
 
-usersCache = snap.val() || {};
+  
+// ================= 📩 INBOX =================
+onValue(ref(db,"messages/"+userPhone), snap=>{
 
-let totalUsers = 0;
-let totalMoney = 0;
-
-Object.values(usersCache).forEach(u=>{
-
-if(!u) return;
-
-// 🛑 ignorer données vides
-if(!u.name && !u.balance && !u.points) return;
-
-totalUsers++;
-totalMoney += Number(u.balance || 0);
-
-});
-
-// 🔥 affichage
-document.getElementById("statUsers").innerText = totalUsers;
-document.getElementById("statMoney").innerText = totalMoney.toLocaleString() + " FC";
-
-});
-
-
-// ================= USERS =================
-
-// ================= USERS =================
-onValue(ref(db,"users"), snap=>{
-
-const box = document.getElementById("users");
-if(!box) return;
-
-box.innerHTML = "<small>⏳ Chargement...</small>";
+inboxEl.innerHTML = "";
 
 if(!snap.exists()){
-    box.innerHTML = "<small>Aucun utilisateur</small>";
-    return;
-}
-
-let html = "";
-
-Object.entries(snap.val()).forEach(([phone,u])=>{
-
-// 🔒 sécurité données
-if(!u || !phone) return;
-if(!u.name && !u.balance && !u.points) return;
-
-const name = u.name || "Utilisateur";
-const photo = u.photo || "";
-const pass = u.password ? "••••••••" : "-";
-
-const balance = Number(u.balance || 0);
-const points = Number(u.points || 0);
-const revenue = Number(u.revenus || 0);
-const monetized = u.monetized ? "✅ Oui" : "❌ Non";
-
-// 🔥 avatar
-const avatar = photo
-? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-: `<div style="
-width:50px;height:50px;border-radius:50%;
-background:#00d2ff;display:flex;
-align-items:center;justify-content:center;
-color:black;font-weight:bold;">
-${name.substring(0,2).toUpperCase()}
-</div>`;
-
-// 🔥 CARD
-html += `
-<div class="card">
-
-<div style="display:flex;align-items:center;gap:10px;">
-${avatar}
-<div>
-<b>${name}</b><br>
-<small>📱 ${phone}</small>
-</div>
-</div>
-
-<hr>
-
-💰 <b>${balance.toLocaleString()} FC</b><br>
-⭐ ${points} pts<br>
-📈 ${revenue.toLocaleString()} FC<br>
-💸 ${monetized}
-
-<div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap;">
-
-<button onclick="safeClick('add-${phone}',()=>addMoney('${phone}'))">➕</button>
-
-<button onclick="safeClick('remove-${phone}',()=>removeMoney('${phone}'))">➖</button>
-
-<button onclick="openMsg('${phone}')">💬</button>
-
-<button onclick="safeClick('del-${phone}',()=>delUser('${phone}'))">❌</button>
-
-</div>
-
-</div>
-`;
-
-});
-
-box.innerHTML = html || "<small>Aucun utilisateur valide</small>";
-
-});
-// ================= MONEY =================
-window.addMoney = async(phone)=>{
-const u = await safeGet("users/"+phone);
-if(!u) return alert("User introuvable");
-
-await update(ref(db,"users/"+phone),{
-balance:(u.balance||0)+1000
-});
-
-alert("+1000 FC");
-};
-
-window.removeMoney = async(phone)=>{
-const u = await safeGet("users/"+phone);
-if(!u) return;
-
-if((u.balance||0)<1000) return alert("Solde insuffisant");
-
-await update(ref(db,"users/"+phone),{
-balance:u.balance-1000
-});
-
-alert("-1000 FC");
-};
-
-// ================= DELETE USER =================
-window.delUser = async(phone)=>{
-if(!confirm("Supprimer ?")) return;
-
-await remove(ref(db,"users/"+phone));
-await safeDelete("messages/"+phone);
-await safeDelete("orders/pending/"+phone);
-
-alert("Supprimé");
-};
-// ================= NOTIFICATION =================
-async function sendNotification(user, text){
-
-if(!user || !text) return;
-
-await push(ref(db,"messages/"+user),{
-text: text,
-from: "admin",
-date: Date.now(),
-status: "sent"
-});
-
-}
-
-// ================= RECHARGES =================
-onValue(ref(db,"demandes_recharges"), async snap => {
-
-const box = document.getElementById("recharges");
-if(!box) return;
-
-box.innerHTML = "<small>⏳ Chargement...</small>";
-
-try{
-
-const data = snap.val() || {};
-
-// 🔥 charger users UNE SEULE FOIS
-const usersData = (await get(ref(db,"users"))).val() || {};
-
-let html = "";
-let count = 0;
-
-// 🔥 loop rapide (pas de await dedans)
-Object.entries(data).forEach(([id,r])=>{
-
-// 🛑 sécurités
-if(!r || !id || !r.user) return;
-
-const amount = Number(r.amount || 0);
-if(amount <= 0) return;
-
-if(r.status && r.status !== "pending") return;
-
-const u = usersData[r.user];
-if(!u) return;
-
-// 🔥 data
-const name = u.name || "Utilisateur";
-const phone = r.user;
-const balance = Number(u.balance || 0);
-
-// 🔥 date safe
-const date = r.date
-? new Date(r.date).toLocaleString()
-: "Non défini";
-
-// 🔥 avatar
-const avatar = u.photo
-? `<img src="${u.photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-: `<div style="
-width:50px;height:50px;border-radius:50%;
-background:#00d2ff;display:flex;
-align-items:center;justify-content:center;
-color:black;font-weight:bold;">
-${name.substring(0,2).toUpperCase()}
-</div>`;
-
-// 🔥 preuve sécurisée
-let proofHTML = "";
-if(typeof r.proof === "string" && r.proof.startsWith("data:image")){
-proofHTML = `
-<br><br>📸 Preuve :
-<br><img src="${r.proof}" style="width:100%;border-radius:10px;">
-`;
-}
-
-// 🔥 CARD
-html += `
-<div class="card">
-
-<div style="display:flex;align-items:center;gap:10px;">
-${avatar}
-<div>
-<b>${name}</b><br>
-📱 ${phone}
-</div>
-</div>
-
-<hr>
-
-💰 <b>${amount.toLocaleString()} FC</b><br>
-💳 ${balance.toLocaleString()} FC<br>
-📅 ${date}<br>
-
-${proofHTML}
-
-<div style="margin-top:12px;display:flex;gap:5px;">
-
-<button onclick="safeClick('val-${id}',()=>valRecharge('${id}','${phone}',${amount}))">
-✅
-</button>
-
-<button onclick="safeClick('ref-${id}',()=>refRecharge('${id}'))">
-❌
-</button>
-
-</div>
-
-</div>
-`;
-
-count++;
-
-});
-
-// 🔥 inject
-box.innerHTML = html || "<small>Aucune recharge valide</small>";
-
-// 🔥 badge
-const badge = document.getElementById("rechBadge");
-if(badge){
-badge.style.display = count ? "inline-block" : "none";
-badge.innerText = count;
-}
-
-}catch(e){
-console.error("❌ Recharge error:", e);
-box.innerHTML = "<small>Erreur chargement</small>";
-}
-
-});
-// ================= VALID RECHARGE =================
-window.valRecharge = async(id,user,amount)=>{
-
-const key="rech-"+id;
-if(lock(key)) return;
-
-try{
-
-const recharge = await safeGet("demandes_recharges/"+id);
-if(!recharge) throw "Déjà traité";
-
-const u = await safeGet("users/"+user);
-if(!u) throw "User introuvable";
-
-const amt = Number(amount||0);
-if(amt<=0) throw "Montant invalide";
-
-await update(ref(db,"users/"+user),{
-balance:(u.balance||0)+amt
-});
-
-await remove(ref(db,"demandes_recharges/"+id));
-
-alert("Recharge validée");
-
-}catch(e){
-alert(e);
-}
-
-unlock(key);
-};
-
-// ================= REFUSE RECHARGE =================
-window.refRecharge = async(id)=>{
-await safeDelete("demandes_recharges/"+id);
-alert("Refusé");
-};
-
-// ================= COMMANDES =================
-
-onValue(ref(db, "orders/pending"), async (snap) => {
-
-const box = document.getElementById("commandes");
-if (!box) return;
-
-box.innerHTML = "<small>⏳ Chargement...</small>";
-
-try {
-
-if (!snap.exists()) {
-    box.innerHTML = "<small>Aucune commande</small>";
-    return;
-}
-
-// 🔥 charger users UNE FOIS
-const usersSnap = await get(ref(db, "users"));
-const usersData = usersSnap.exists() ? usersSnap.val() : {};
-
-let html = "";
-let totalCmd = 0;
-
-// ================= LOOP USERS =================
-for (const [user, cmds] of Object.entries(snap.val())) {
-
-    if (!cmds || typeof cmds !== "object") continue;
-
-    const u = usersData[user];
-    if (!u) continue;
-
-    const name = u.name || "Utilisateur";
-    const photo = u.photo || "";
-
-    const avatar = photo
-        ? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">`
-        : `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;font-weight:bold;">
-            ${name.substring(0,2).toUpperCase()}
-          </div>`;
-
-    // ================= LOOP COMMANDES =================
-    for (const [id, c] of Object.entries(cmds)) {
-
-        if (!c || !id || !c.service) continue;
-
-        totalCmd++;
-
-        const price = Number(c.price || 0);
-        const date = c.date ? new Date(c.date).toLocaleString() : "Non défini";
-
-        let details = "";
-
-        // ================= SERVICES =================
-
-        if (c.service === "Application" || c.service === "Site Web Pro") {
-            details += `
-            📱 Nom : ${c.name || "-"}<br>
-            🎨 Couleur : ${c.color || "-"}<br>
-            ⚡ Type : ${c.type || "-"}<br>
-            `;
-        }
-
-        if (c.service === "Mini Jeux") {
-            const d = c.details || {};
-
-            details += `
-            🎮 Jeu : ${d.name || c.type || "-"}<br>
-            ⚡ Mode : ${c.mode || "-"}<br>
-            ${
-                Object.entries(d)
-                .filter(([k]) => k !== "name")
-                .map(([k,v])=>`🔹 ${k} : ${v}<br>`)
-                .join("")
-            }
-            `;
-        }
-
-        if (c.service === "IA Bot") {
-            const d = c.details || {};
-
-            details += `
-            🤖 Type : ${c.botType || "-"}<br>
-            ${
-                Object.entries(d)
-                .map(([k,v])=>`🔹 ${k} : ${v}<br>`)
-                .join("")
-            }
-            `;
-        }
-
-        // ✅ FIX IMPORTANT → LIEN CLIQUABLE
-        if (c.service === "Réseaux Sociaux") {
-
-            let linkHTML = "Non défini";
-
-            if (c.link && c.link.startsWith("http")) {
-                linkHTML = `<a href="${c.link}" target="_blank" style="color:#00d2ff;">🔗 Ouvrir</a>`;
-            } else if (c.link) {
-                linkHTML = c.link;
-            }
-
-            details += `
-            📱 Plateforme : ${c.platform || "-"}<br>
-            📊 Type : ${c.type || "-"}<br>
-            🔢 Quantité : ${c.quantity || 0}<br>
-            🔗 Lien : ${linkHTML}<br>
-            🆔 Plan : ${c.plan || "-"}<br>
-            `;
-        }
-
-        if (c.service === "VPN") {
-            const d = c.details || {};
-
-            details += `
-            🔐 VPN : ${c.vpnType || "-"}<br>
-            📡 Réseau : ${d.reseau || "-"}<br>
-            🏷️ Nom : ${d.vpnName || "-"}<br>
-            ⚙️ Config : ${d.config || "-"}<br>
-            📦 Plan : ${c.plan || "-"}<br>
-            `;
-        }
-
-        // ================= IMAGES =================
-        Object.values(c).forEach(v => {
-            if (typeof v === "string" && v.startsWith("data:image")) {
-                details += `
-                <div style="margin-top:10px;">
-                    <img src="${v}" style="width:100%;border-radius:10px;">
-                </div>
-                `;
-            }
-        });
-
-        // ================= CARD =================
-        html += `
-        <div class="card" style="
-        background:rgba(255,255,255,0.03);
-        padding:15px;
-        border-radius:15px;
-        margin-bottom:10px;
-        border:1px solid rgba(255,255,255,0.05);
-        ">
-
-        <div style="display:flex;gap:10px;align-items:center;">
-            ${avatar}
-            <div>
-                <b>${name}</b><br>
-                <small style="opacity:0.6;">📱 ${user}</small>
-            </div>
-        </div>
-
-        <hr style="opacity:0.1;margin:10px 0;">
-
-        📦 <b>${c.service}</b><br>
-        💰 <b style="color:#00d2ff">${price.toLocaleString()} FC</b><br>
-        📅 ${date}
-
-        <div style="margin-top:10px;line-height:1.6;">
-            ${details}
-        </div>
-
-        <div style="margin-top:12px;display:flex;gap:6px;">
-            <button onclick="safeClick('cmd-ok-${id}',()=>valCmd('${user}','${id}'))" style="background:#4caf50;">✅</button>
-            <button onclick="safeClick('cmd-no-${id}',()=>refCmd('${user}','${id}',${price}))" style="background:#ff4d4d;">❌</button>
-        </div>
-
-        </div>
-        `;
-    }
-}
-
-// 🔥 FINAL
-box.innerHTML = html || "<small>Aucune commande valide</small>";
-
-// 🔥 STAT
-const statCmd = document.getElementById("statCmd");
-if (statCmd) statCmd.innerText = totalCmd;
-
-} catch (e) {
-console.error("❌ Erreur commandes:", e);
-box.innerHTML = "<small>❌ Erreur chargement</small>";
-}
-
-});
-
-
-
-
-
-
-
-
-
-
-// ================= SAFE CLICK =================
-const clickLock = {};
-
-window.safeClick = async (id, fn)=>{
-if(clickLock[id]) return;
-
-clickLock[id] = true;
-
-try{
-await fn();
-}catch(e){
-console.error(e);
-alert("Erreur");
-}
-
-setTimeout(()=>delete clickLock[id],1000);
-};
-
-// ================= VALID CMD =================
-
-window.valCmd = async(user,id)=>{
-
-const key="cmd-"+id;
-if(lock(key)) return;
-
-try{
-
-const cmd = await safeGet(`orders/pending/${user}/${id}`);
-if(!cmd) throw "Déjà traité";
-
-// 🔥 déplacer vers validé
-await set(ref(db,`orders/validated/${user}/${id}`),{
-...cmd,
-status:"approved"
-});
-
-// 🔥 supprimer pending
-await remove(ref(db,`orders/pending/${user}/${id}`));
-
-// 🔥 notification
-
-const serviceName =
-cmd.service || cmd.name || cmd.title || cmd.type || "Service inconnu";
-
-await sendNotification(
-user,
-`🚀 Votre commande (${serviceName}) est prête !
-
-Elle a été traitée avec succès par notre équipe.
-
-🎯 Vous pouvez maintenant en profiter.
-Merci pour votre confiance ❤️`
-);
-
-
-alert("Validé");
-
-}catch(e){
-alert(e);
-}
-
-unlock(key);
-};
-
-// ================= REF CMD =================
-window.refCmd = async(user,id,price)=>{
-
-const key = "cmd-" + id;
-if(lock(key)) return;
-
-try{
-
-// 🔥 récupérer commande
-const cmd = await safeGet(`orders/pending/${user}/${id}`);
-if(!cmd) throw "Commande déjà traitée";
-
-// 🔥 récupérer user
-const u = await safeGet("users/"+user);
-if(!u) throw "Utilisateur introuvable";
-
-// 🔥 sécuriser balance
-let currentBalance = Number(u.balance);
-if(isNaN(currentBalance)) currentBalance = 0;
-
-// 🔥 sécuriser prix
-let refund = Number(price);
-if(isNaN(refund) || refund <= 0) refund = 0;
-
-// 🔥 nouveau solde
-const newBalance = currentBalance + refund;
-
-// 🔥 update Firebase
-await update(ref(db,"users/"+user),{
-balance: newBalance
-});
-
-// 🔥 supprimer commande
-await remove(ref(db,`orders/pending/${user}/${id}`));
-// 🔥 notification
-await sendNotification(
-user,
-"⚠️ Commande (${cmd.service}) annulée\n\nVotre demande n'a pas pu être réalisée pour des raisons techniques.\n\n💰 Le remboursement ${price} a été effectué automatiquement.\nMerci de votre compréhension 🙏"
-);
-
-
-// 🔥 LOG (optionnel PRO)
-await logAction("REF_CMD",{
-user,
-amount: refund,
-cmdId: id
-});
-
-alert("❌ Refusé + remboursé " + refund + " FC");
-
-}catch(e){
-console.error(e);
-alert("Erreur: " + e);
-}
-
-unlock(key);
-};
-
-
-// ================= MONETISATION =================
-// =============== 💰 MONÉTISATION ===============
-onValue(ref(db,"monetisation_requests"), async snap=>{
-
-const box = document.getElementById("monetisations");
-if(!box) return;
-
-box.innerHTML = "<small>⏳ Chargement...</small>";
-
-try{
-
-if(!snap.exists()){
-box.innerHTML = "<small>Aucune demande</small>";
+inboxEl.innerHTML = "<p style='text-align:center'>Aucun message</p>";
 return;
 }
 
-const usersSnap = await get(ref(db,"users"));
-const usersData = usersSnap.exists() ? usersSnap.val() : {};
+Object.entries(snap.val()).reverse().forEach(([id,msg])=>{
 
-let html = "";
+const type = msg.from || "system";
 
-for(const [id,m] of Object.entries(snap.val())){
+// 🎨 STYLE
+let color = "#111";
+if(type === "admin") color = "#003b4d";
+if(type === "system") color = "#1a1a1a";
 
-if(!m || !m.user) continue;
+inboxEl.innerHTML += `
+<div style="
+background:${color};
+padding:12px;
+border-radius:10px;
+margin-top:10px;
+border-left:3px solid ${msg.read ? "#444" : "#00d2ff"};
+">
 
-// 🔥 seulement pending
-if(m.status !== "pending") continue;
+<b>${type === "admin" ? "🛡️ ADMIN" : type === "user" ? "👤 VOUS" : "⚙️ SYSTEM"}</b><br>
 
-const u = usersData[m.user] || {};
+${msg.text ? `<b>${msg.text}</b>` : ""}
 
-const name = u.name || "Utilisateur";
-const photo = u.photo || "";
-const phone = m.user;
+${msg.image ? `<img src="${msg.image}" style="width:100%;margin-top:5px;border-radius:8px;">` : ""}
 
-const date = m.date ? new Date(m.date).toLocaleString() : "Non défini";
+<small style="display:block;margin-top:5px;opacity:0.7;">
+${msg.date ? new Date(msg.date).toLocaleString() : ""}
+</small>
 
-// avatar
-const avatar = photo
-? `<img src="${photo}" style="width:50px;height:50px;border-radius:50%">`
-: `<div style="width:50px;height:50px;border-radius:50%;background:#00d2ff;display:flex;align-items:center;justify-content:center;color:black;">
-${name.substring(0,2).toUpperCase()}
-</div>`;
-
-html += `
-<div class="card">
-
-<div style="display:flex;gap:10px;">
-${avatar}
-<div>
-<b>${name}</b><br>
-📱 ${phone}
-</div>
-</div>
-
-<hr>
-
-💰 Montant : <b>${(m.amount || 2500).toLocaleString()} FC</b><br>
-📅 ${date}
-
-<div style="margin-top:10px;display:flex;gap:5px;">
-<button onclick="valMonet('${id}','${phone}')" style="background:#4caf50;">✅</button>
-<button onclick="refMonet('${id}','${phone}')" style="background:#ff4d4d;">❌</button>
+<div style="margin-top:8px;display:flex;gap:5px;">
+<button onclick="copyMsg(\`${msg.text || ""}\`)">📋</button>
+<button onclick="deleteMsg('${id}')">🗑️</button>
 </div>
 
 </div>
 `;
 
-}
+});
 
-box.innerHTML = html || "<small>Aucune demande</small>";
+});
+
+
+
+
+
+
+
+// ================= ACTIONS =================
+
+// 📋 Copier
+window.copyMsg = (text)=>{
+if(!text) return alert("Vide");
+
+navigator.clipboard.writeText(text)
+.then(()=> alert("✅ Copié"))
+.catch(()=> alert(text));
+};
+
+// 🗑️ Supprimer
+window.deleteMsg = async(id)=>{
+if(confirm("Supprimer ce message ?")){
+await remove(ref(db,"messages/"+userPhone+"/"+id));
+}
+};
+
+// ================= ✉️ ENVOYER AU SUPPORT =================
+
+// ================= ✉️ ENVOYER MESSAGE (USER → ADMIN) =================
+document.getElementById("sendBtn").onclick = async ()=>{
+
+const text = document.getElementById("msgInput").value.trim();
+
+if(!text) return alert("Message vide");
+
+try{
+
+await push(ref(db,"messages/"+userPhone),{
+text,
+from:"user", // 🔥 IMPORTANT
+name: currentUser.name || "Utilisateur",
+phone: userPhone,
+photo: currentUser.photo || "",
+date: Date.now(),
+read:false
+});
+
+document.getElementById("msgInput").value="";
+
+alert("✅ Message envoyé");
 
 }catch(e){
 console.error(e);
-box.innerHTML = "❌ Erreur";
-}
-
-});
-// ================= VALID MONET =================
-window.valMonet = async(id,user)=>{
-
-try{
-
-await update(ref(db,"users/"+user),{
-monetized: true
-});
-
-await remove(ref(db,"demandes_monetisation/"+id));
-
-// 🔔 notification
-await sendNotification(user,
-"🟢 Félicitations !\n\nVotre compte est maintenant monétisé 🎉\n\nVous pouvez commencer à générer des revenus 🚀"
-);
-
-alert("Monétisation activée");
-
-}catch(e){
-alert(e);
+alert("❌ Erreur");
 }
 
 };
+// ================= LOGOUT =================
 
-window.refMonet = async(id,user)=>{
+document.getElementById("logout").onclick = ()=>{
+    if(confirm("Se déconnecter ?")){
+        localStorage.clear();
+        window.location.href = "index.html";
+    }
+};
 
-try{
+        // ================= 🤖 BOT DAVBOT =================
+// ================= 🤖 DAVBOT ASSISTANT =================
 
-await remove(ref(db,"demandes_monetisation/"+id));
+const API_URL="https://arychauhann.onrender.com/api/gemini-proxy2";
 
-// 🔔 notification
-await sendNotification(user,
-"❌ Votre demande de monétisation a été refusée.\n\nVeuillez vérifier les conditions requises puis réessayer."
-);
+const chatBox = document.getElementById("chatBox");
+const chatInput = document.getElementById("chatInput");
 
-alert("Refusé");
+// 💬 afficher message
+function addMsg(text, type){
+    const div = document.createElement("div");
 
-}catch(e){
-alert(e);
+    div.style.marginTop = "8px";
+    div.style.padding = "10px";
+    div.style.borderRadius = "10px";
+    div.style.fontSize = "13px";
+
+    if(type === "user"){
+        div.style.background = "#111";
+        div.innerHTML = "<b>👤 Vous :</b><br>"+text;
+    }else{
+        div.style.background = "#0d1625";
+        div.innerHTML = "<b>🤖 Davbot :</b><br>"+text;
+    }
+
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
+// 🧠 PROMPT ULTRA INTELLIGENT
+function buildPrompt(userText){
+
+return `
+Tu es Davbot, assistant officiel du site Davbot investissement créé par Ir David Mpongo.
+
+🎯 OBJECTIF :
+Répondre précisément à la question de l'utilisateur, l'aider à comprendre le site et l'accompagner vers la réussite.
+
+========================
+🧠 TON RÔLE
+========================
+Tu es :
+
+• Un expert du site  
+• Un vendeur intelligent  
+• Un guide professionnel  
+• Un assistant rassurant  
+
+Tu dois toujours :
+
+✔ Expliquer clairement  
+✔ Guider étape par étape  
+✔ Donner confiance  
+✔ Encourager à agir  
+
+========================
+🧠 COMPORTEMENT
+========================
+
+Tu dois :
+
+✔ Répondre uniquement à la question posée  
+✔ Être clair et précis  
+✔ Donner des explications utiles  
+✔ Ne pas parler inutilement  
+
+❗ IMPORTANT :
+Tu ne dois PAS donner des informations hors sujet.
+
+========================
+⚠️ INFORMATIONS IMPORTANTES (À UTILISER SI NÉCESSAIRE)
+========================
+
+• L'heure de début peut varier :
+Même si un service est "instantané", il peut y avoir du retard si le serveur est occupé.
+
+• Les services bon marché sont lents :
+Ils ne peuvent pas être accélérés ni annulés.
+Ils sont toujours plus lents.
+
+• Conseil :
+Utiliser service lent = nécessite patience ⏳  
+Utiliser service rapide = résultats rapides 🚀  
+
+• Sois patient :
+Certains services démarrent immédiatement,
+d'autres peuvent prendre des heures ou des jours.
+
+👉 Tu dois utiliser ces informations uniquement si la question concerne :
+(délai, lenteur, problème, commande)
+
+========================
+🛠️ SERVICES
+========================
+
+1. 📱 Création APK  
+→ Crée une application mobile  
+→ Idéal pour business ou projet  
+→ Peut générer de l'argent  
+
+2. 🌐 Création de site  
+→ Permet d'avoir un site web  
+→ Vendre en ligne  
+→ Lancer un business  
+
+3. 🚀 Booster compte  
+→ Augmente visibilité  
+→ Plus de clients / audience  
+→ Utile pour business  
+
+4. 🔐 VPN fichier  
+→ Sécurise connexion  
+→ Accès à plus de services  
+→ Protection en ligne  
+
+5. 🧑‍🏫 Apprendre 
+→ approfondir vos connaissances 
+
+
+🤡 mini jeux 
+→ créé de jeux pour divertissement 
+
+👉 Tu dois expliquer chaque service clairement si demandé.
+
+========================
+💰 TYPES DE SERVICES
+========================
+
+🔥 Rapide :
+20 min à 24h (plus cher)
+
+💸 Lent :
+4h à 120h (moins cher, nécessite patience)
+
+👉 Important :
+
+Si service lent il faut demander pour confirmer quel service il utiliser lent ou rapide, moins cher ou meilleures prix ensuite répond :
+"Vous devez patienter ⏳ car le traitement est plus lent"
+
+========================
+📲 RECHARGE
+========================
+
+Numéro : 243 982697752
+
+Étapes :
+
+1. Envoyer argent  
+2. Aller dans "Recharger"  
+3. Confirmer  
+
+========================
+🧭 GUIDE
+========================
+1. Créer compte  
+2. Recharger  
+3. Acheter service  
+4. Lancer commande  
+5. Attendre  
+6. Gagner
+
+========================
+😌 RASSURER
+========================
+
+Toujours dire :
+
+• "Votre commande est en cours ⏳"  
+• "Tout est automatique"  
+• "Les résultats arrivent progressivement"  
+• "C’est normal si ça prend du temps"  
+
+========================
+💡 STRATÉGIE VENTE
+========================
+
+Si utilisateur hésite :
+
+• Propose petit montant  
+• Explique avantages  
+• Compare rapide vs lent  
+
+Exemple :
+
+"Tu peux commencer avec un petit montant pour tester 👍"
+
+========================
+🚀 INCITER
+========================
+
+Toujours finir par :
+
+• "Tu peux commencer dès maintenant 🔥"  
+• "Recharge ton compte pour accéder aux services 💰"  
+========================
+💰 COMMENT GAGNER ARGENT
+========================
+
+• Acheter services à bas prix  
+• Revendre plus cher  
+• Gagner la différence 💸  
+
+• Proposer services à des clients  
+• Gérer leurs comptes  
+• Gagner sur chaque commande  
+
+• Être actif régulièrement  
+• Plus tu travailles, plus tu gagnes 📈  
+
+========================
+👥 PARRAINAGE
+========================
+
+Étapes :
+
+1. Aller dans Profil  
+2. Cliquer sur Équipe  
+3. Copier ton lien de parrainage  
+
+Exemple de lien :
+
+https://davbot-investissement.vercel.app/?ref=David123  
+
+👉 Dans cet exemple :
+Le code parrain = David123  
+
+4. Partager ton lien  
+
+Important :
+
+Chaque personne doit :  
+• S'inscrire avec ton lien  
+• Utiliser ton code parrain  
+
+🎯 Résultat :
+
+Tu gagnes de l'argent sur leurs activités 💸  
+
+💡 Plus tu invites de personnes actives, plus tes gains augmentent 🚀  
+========================
+❗ RÈGLES
+========================
+
+Tu ne dois jamais :
+
+• décourager  
+• compliquer  
+• répondre vaguement  
+
+Tu dois toujours :
+
+✔ motiver  
+✔ convaincre  
+✔ simplifier  
+
+
+========================
+🚀 FIN DE RÉPONSE
+========================
+
+Tu peux proposer une action seulement si c'est logique.
+
+Exemple :
+
+• "Tu peux essayer avec un petit montant 👍"
+• "Recharge ton compte pour commencer 💰"
+
+
+========================
+QUESTION :
+${userText}
+
+RÉPONSE DAVBOT :
+`;
+    }
+// 🚀 ENVOYER MESSAGE
+window.sendBot = async ()=>{
+
+    const text = chatInput.value.trim();
+    if(!text) return;
+
+    addMsg(text,"user");
+    chatInput.value = "";
+
+    try{
+
+        const prompt = encodeURIComponent(buildPrompt(text));
+
+        const res = await fetch(API_URL+"?prompt="+prompt);
+        const data = await res.json();
+
+        const reply = data.result || data.response || data.reply || "Réponse indisponible";
+
+        addMsg(reply,"bot");
+
+    }catch(e){
+        addMsg("⚠️ Erreur serveur","bot");
+    }
 };
+
+// ⌨️ ENTER
+chatInput.addEventListener("keydown",e=>{
+    if(e.key==="Enter") sendBot();
+});
+
+// 🔥 message automatique
+setTimeout(()=>{
+    addMsg("👋 Bienvenue ! Je peux t'aider à gagner de l'argent avec les outils du site 💰","bot");
+},1000);
