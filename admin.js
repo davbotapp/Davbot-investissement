@@ -62,61 +62,82 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
 
   
 // ================= 📩 INBOX =================
-onValue(ref(db,"messages/"+userPhone), snap=>{
+// ================= 📩 INBOX PRO =================
 
-inboxEl.innerHTML = "";
+const notifCount = document.getElementById("notifCount"); // 🔔 compteur
+const notifBox = document.getElementById("notifBox"); // popup cloche (si existe)
 
-if(!snap.exists()){
-inboxEl.innerHTML = "<p style='text-align:center'>Aucun message</p>";
-return;
-}
+onValue(ref(db, "messages/" + userPhone), snap => {
 
-Object.entries(snap.val()).reverse().forEach(([id,msg])=>{
+    // reset
+    inboxEl.innerHTML = "";
+    let unread = 0;
 
-const type = msg.from || "system";
+    // ❌ aucun message
+    if (!snap.exists()) {
+        inboxEl.innerHTML = "<p style='text-align:center'>Aucun message</p>";
+        if (notifCount) notifCount.innerText = "0";
+        return;
+    }
 
-// 🎨 STYLE
-let color = "#111";
-if(type === "admin") color = "#003b4d";
-if(type === "system") color = "#1a1a1a";
+    const messages = Object.entries(snap.val()).reverse();
 
-inboxEl.innerHTML += `
-<div style="
-background:${color};
-padding:12px;
-border-radius:10px;
-margin-top:10px;
-border-left:3px solid ${msg.read ? "#444" : "#00d2ff"};
-">
+    // 🔥 build HTML
+    let html = "";
 
-<b>${type === "admin" ? "🛡️ ADMIN" : type === "user" ? "👤 VOUS" : "⚙️ SYSTEM"}</b><br>
+    messages.forEach(([id, msg]) => {
 
-${msg.text ? `<b>${msg.text}</b>` : ""}
+        const type = msg.from || "system";
 
-${msg.image ? `<img src="${msg.image}" style="width:100%;margin-top:5px;border-radius:8px;">` : ""}
+        // 🎨 couleurs
+        let color = "#111";
+        if (type === "admin") color = "#003b4d";
+        if (type === "system") color = "#1a1a1a";
 
-<small style="display:block;margin-top:5px;opacity:0.7;">
-${msg.date ? new Date(msg.date).toLocaleString() : ""}
-</small>
+        // 🔔 unread count
+        if (!msg.read) unread++;
 
-<div style="margin-top:8px;display:flex;gap:5px;">
-<button onclick="copyMsg(\`${msg.text || ""}\`)">📋</button>
-<button onclick="deleteMsg('${id}')">🗑️</button>
-</div>
+        html += `
+        <div style="
+            background:${color};
+            padding:12px;
+            border-radius:10px;
+            margin-top:10px;
+            border-left:3px solid ${msg.read ? "#444" : "#00d2ff"};
+        ">
 
-</div>
-`;
+        <b>
+        ${type === "admin" ? "🛡️ ADMIN" : type === "user" ? "👤 VOUS" : "⚙️ SYSTEM"}
+        </b><br>
+
+        ${msg.text ? `<b>${msg.text}</b>` : ""}
+
+        ${msg.image ? `
+        <img src="${msg.image}" style="width:100%;margin-top:5px;border-radius:8px;">
+        ` : ""}
+
+        <small style="display:block;margin-top:5px;opacity:0.7;">
+        ${msg.date ? new Date(msg.date).toLocaleString() : ""}
+        </small>
+
+        <div style="margin-top:8px;display:flex;gap:5px;">
+            <button onclick="copyMsg(\`${msg.text || ""}\`)">📋</button>
+            <button onclick="deleteMsg('${id}')">🗑️</button>
+            <button onclick="markRead('${id}')">✔</button>
+        </div>
+
+        </div>
+        `;
+    });
+
+    inboxEl.innerHTML = html;
+
+    // 🔔 UPDATE COUNTER
+    if (notifCount) {
+        notifCount.innerText = unread > 0 ? unread : "";
+    }
 
 });
-
-});
-
-
-
-
-
-
-
 // ================= ACTIONS =================
 
 // 📋 Copier
@@ -135,8 +156,17 @@ await remove(ref(db,"messages/"+userPhone+"/"+id));
 }
 };
 
-// ================= ✉️ ENVOYER AU SUPPORT =================
 
+// ================= ✉️ ENVOYER AU SUPPORT =================
+function toggleNotif(){
+
+    const box = document.getElementById("inbox");
+
+    if(!box) return;
+
+    box.scrollIntoView({ behavior: "smooth" });
+
+}
 // ================= ✉️ ENVOYER MESSAGE (USER → ADMIN) =================
 document.getElementById("sendBtn").onclick = async ()=>{
 
