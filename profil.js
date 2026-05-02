@@ -63,87 +63,107 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
         badgeBox.innerHTML = `<div class="badge">💰 Compte monétisé</div>`;
     }
 
-    // ================= MONÉTISATION =================
+// ================= 💰 MONÉTISATION =================
 
-    // 🔒 si pas encore activé
+const userRef = ref(db,"users/"+userPhone);
+
+onValue(userRef, async snap => {
+
+    if(!snap.exists()) return;
+
+    let data = snap.val();
+    const now = Date.now();
+
+    // 🔥 créer createdAt si absent
     if(!data.createdAt){
-        await update(ref(db,"users/"+userPhone),{
-            createdAt: Date.now()
-        });
+        await update(userRef,{ createdAt: now });
+        data.createdAt = now; // IMPORTANT FIX
     }
 
-    const now = Date.now();
-    const created = data.createdAt || now;
+    const created = data.createdAt;
 
-    // ⏳ 30 jours
-    if(now - created < 30 * 24 * 60 * 60 * 1000){
-        monetBtn.innerText = "🔒 Disponible après 30 jours";
+    // ================= 30 JOURS =================
+    const limit = 30 * 24 * 60 * 60 * 1000;
+
+    if(now - created < limit){
+
+        const rest = Math.ceil((limit - (now - created)) / (24*60*60*1000));
+
+        monetBtn.innerText = `🔒 Disponible dans ${rest} jour(s)`;
         monetBtn.className = "locked";
         monetBtn.disabled = true;
+
         return;
     }
 
-    // ⏳ déjà demandé
+    // ================= EN ATTENTE =================
     if(data.monetRequest === true){
+
         monetBtn.innerText = "⏳ En attente admin";
         monetBtn.className = "wait";
         monetBtn.disabled = true;
+
         return;
     }
 
-    // ✅ déjà activé
+    // ================= ACTIVÉ =================
     if(data.monetized === true){
+
         monetBtn.innerText = "✅ Monétisation active";
         monetBtn.className = "active";
         monetBtn.disabled = true;
+
         return;
     }
 
-    // 🔓 prêt
-    monetBtn.innerText = "💰 Activer la monétisation (2500 FC)";
+    // ================= PRÊT =================
+    monetBtn.innerText = "💰 Activer (2500 FC)";
     monetBtn.className = "active";
     monetBtn.disabled = false;
 
 });
 
-// ================= 💰 DEMANDE MONÉTISATION =================
-monetBtn.onclick = async ()=>{
 
-    const userRef = ref(db,"users/"+userPhone);
+// ================= 💰 DEMANDE =================
+monetBtn.onclick = async () => {
+
     const snap = await get(userRef);
-
     if(!snap.exists()) return;
 
     const data = snap.val();
     const balance = data.balance || 0;
 
-    if(balance < 2500){
-        return alert("❌ Solde insuffisant (2500 FC requis)");
+    // ❌ sécurité anti double clic
+    if(data.monetRequest){
+        return alert("⏳ Déjà envoyé");
     }
 
-    // 🔻 retirer argent
+    if(balance < 2500){
+        return alert("❌ Solde insuffisant");
+    }
+
     await update(userRef,{
         balance: balance - 2500,
         monetRequest: true
     });
 
-    // 📤 envoyer à admin
     await push(ref(db,"monetisation_requests"),{
         user: userPhone,
         name: data.name || "Utilisateur",
         photo: data.photo || "",
+        amount: 2500,
+        status: "pending", // 🔥 IMPORTANT
         date: Date.now()
     });
 
-    // 📩 message user
     await push(ref(db,"messages/"+userPhone),{
-        text: "🔂 Demande de monétisation envoyée. En attente de validation admin.",
-        date: Date.now()
+        text:"🔂 Demande envoyée avec succès",
+        date: Date.now(),
+        read:false
     });
 
-    alert("✅ Demande envoyée");
+    alert("✅ Envoyé");
 };
-
 // ================= 💸 CALCUL REVENUS =================
 onValue(ref(db,"orders/validated/" + userPhone), async snap=>{
 
