@@ -28,7 +28,7 @@ min-height:100vh;
 padding-bottom:100px;
 }
 
-/* 🔔 NOTIF BELL */
+/* 🔔 NOTIF */
 .notif{
 position:fixed;
 top:15px;
@@ -37,6 +37,7 @@ font-size:22px;
 z-index:999;
 cursor:pointer;
 }
+
 .notif span{
 position:absolute;
 top:-6px;
@@ -47,7 +48,22 @@ padding:3px 6px;
 border-radius:50%;
 }
 
-/* 🤖 FLOAT BOT */
+/* 📩 PANEL MESSAGES */
+.notif-box{
+position:fixed;
+top:60px;
+right:15px;
+width:300px;
+max-height:400px;
+overflow:auto;
+background:#0d1625;
+border-radius:12px;
+display:none;
+z-index:999;
+padding:10px;
+}
+
+/* 🤖 BOT */
 .bot-float{
 position:fixed;
 bottom:140px;
@@ -83,10 +99,7 @@ z-index:999;
 }
 
 /* HEADER */
-.header{
-text-align:center;
-padding:30px 20px;
-}
+.header{text-align:center;padding:30px 20px;}
 
 .avatar{
 width:95px;
@@ -97,32 +110,24 @@ border:2px solid var(--blue);
 box-shadow:0 0 20px var(--blue);
 }
 
-/* CARD */
 .card{
 background:var(--glass);
-backdrop-filter: blur(12px);
 margin:15px;
 padding:18px;
 border-radius:18px;
-border:1px solid rgba(0,210,255,0.15);
 }
 
-/* MENU */
 .menu a{
 display:flex;
-align-items:center;
 gap:10px;
 padding:14px;
-margin:10px 15px;
+margin:10px;
 background:var(--glass);
 border-radius:12px;
-text-decoration:none;
 color:white;
+text-decoration:none;
 }
 
-.menu i{color:var(--blue);}
-
-/* BUTTON */
 .sendBtn{
 width:100%;
 padding:12px;
@@ -131,44 +136,6 @@ border:none;
 border-radius:12px;
 color:black;
 font-weight:bold;
-}
-
-/* CHAT ADMIN */
-.admin-chat{
-position:fixed;
-bottom:210px;
-right:15px;
-width:300px;
-background:#0d1625;
-border-radius:15px;
-display:none;
-flex-direction:column;
-overflow:hidden;
-z-index:999;
-}
-.admin-header{
-background:var(--blue);
-color:black;
-padding:10px;
-font-weight:bold;
-}
-.admin-messages{
-height:200px;
-overflow:auto;
-padding:10px;
-}
-.admin-input{
-display:flex;
-}
-.admin-input input{
-flex:1;
-padding:10px;
-border:none;
-}
-.admin-input button{
-background:var(--blue);
-border:none;
-padding:10px;
 }
 
 /* NAVBAR */
@@ -200,15 +167,17 @@ color:var(--blue);
 
 <body>
 
-<!-- 🔔 NOTIFICATION BELL -->
+<!-- 🔔 CLOCHE -->
 <div class="notif" onclick="toggleNotif()">
 <i class="fa-solid fa-bell"></i>
-<span id="inbox">0</span>
+<span id="notifCount">0</span>
 </div>
+
+<!-- 📩 BOITE MESSAGES -->
+<div id="notifBox" class="notif-box"></div>
 
 <div class="overlay">
 
-<!-- HEADER -->
 <div class="header">
 <img id="avatar" class="avatar">
 <h3 id="name">Utilisateur</h3>
@@ -216,85 +185,116 @@ color:var(--blue);
 <div id="badgeBox"></div>
 </div>
 
-<!-- STATS -->
 <div class="card">
 💰 Solde : <b id="solde">0</b> FC<br>
 📈 Revenus : <b id="revenus">0</b> FC<br>
 ⭐ Points : <b id="points">0</b>
 </div>
 
-<!-- MONET -->
 <div class="card">
 <h3>💰 Monétisation</h3>
 <button id="monetBtn" class="sendBtn">Activer</button>
 <small id="monetInfo"></small>
 </div>
 
-<!-- MENU -->
 <div class="menu">
 <a href="recharge.html"><i class="fa-solid fa-arrow-down"></i> Recharger</a>
 <a href="dashboard.html"><i class="fa-solid fa-chart-simple"></i> Dashboard</a>
 <a href="equipe.html"><i class="fa-solid fa-users"></i> Équipe</a>
 </div>
 
-<!-- MESSAGES ADMIN (profil.js -> inbox) -->
+<!-- MESSAGE ENVOI -->
 <div class="card">
-<h3>📩 Messages Admin</h3>
-<div id="inbox"></div>
-
 <textarea id="msgInput" placeholder="Écrire..."></textarea>
 <button id="sendBtn" class="sendBtn">Envoyer</button>
 </div>
 
-<!-- ADMIN CHAT FLOAT -->
-<div class="admin-chat" id="adminChat">
-<div class="admin-header">Support Admin</div>
-<div id="adminMsgs" class="admin-messages"></div>
-<div class="admin-input">
-<input id="adminInput" placeholder="Message...">
-<button onclick="sendAdmin()">➤</button>
-</div>
-</div>
-
-<!-- LOGOUT -->
 <a href="#" id="logout" class="sendBtn">Déconnexion</a>
 
 </div>
 
-<!-- 🤖 BOT FLOAT -->
-<div class="bot-float" onclick="toggleBot()">🤖</div>
+<!-- FLOAT -->
+<div class="bot-float">🤖</div>
 
-<!-- 📱 WHATSAPP -->
 <a href="https://wa.me/243982697752" class="whatsapp">
 <i class="fa-brands fa-whatsapp"></i>
 </a>
 
-<!-- NAVBAR -->
 <div class="navbar">
-<a href="dashboard.html"><i class="fa-solid fa-chart-pie"></i><br>Dash</a>
-<a href="service.html"><i class="fa-solid fa-store"></i><br>Shop</a>
-<a href="profil.html" class="active"><i class="fa-solid fa-user"></i><br>Profil</a>
+<a href="dashboard.html">Dash</a>
+<a href="service.html">Shop</a>
+<a href="profil.html" class="active">Profil</a>
 </div>
 
 <script type="module" src="profil.js"></script>
 
-<script>
-function toggleNotif(){
-alert("Ouvre profil.js pour charger les messages 🔔");
+<!-- 🔥 SCRIPT NOTIFICATION -->
+<script type="module">
+import { getDatabase, ref, onValue, update, get }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const db = getDatabase();
+const userPhone = localStorage.getItem("userPhone");
+
+const notifCount = document.getElementById("notifCount");
+const notifBox = document.getElementById("notifBox");
+
+// 🔄 TEMPS RÉEL
+onValue(ref(db,"messages/"+userPhone), snap=>{
+
+notifBox.innerHTML = "";
+let count = 0;
+
+if(!snap.exists()){
+notifCount.innerText = "0";
+return;
 }
 
-function toggleBot(){
-document.getElementById("adminChat").style.display="flex";
-}
+Object.entries(snap.val()).reverse().forEach(([id,msg])=>{
 
-function sendAdmin(){
-const input=document.getElementById("adminInput");
-const box=document.getElementById("adminMsgs");
-if(!input.value) return;
+if(msg.read === false) count++;
 
-box.innerHTML += `<div style="text-align:right">${input.value}</div>`;
-input.value="";
+notifBox.innerHTML += `
+<div style="
+background:#111;
+padding:10px;
+margin-top:8px;
+border-radius:10px;
+border-left:3px solid ${msg.read ? "#444" : "#00d2ff"};
+">
+${msg.text || ""}
+<br><small>${new Date(msg.date).toLocaleString()}</small>
+</div>
+`;
+
+});
+
+notifCount.innerText = count;
+
+});
+
+// 🔔 CLICK
+window.toggleNotif = async ()=>{
+
+notifBox.style.display =
+notifBox.style.display === "block" ? "none" : "block";
+
+// 🔥 marquer comme lus
+const snap = await get(ref(db,"messages/"+userPhone));
+if(!snap.exists()) return;
+
+const updates = {};
+
+Object.entries(snap.val()).forEach(([id,msg])=>{
+if(msg.read === false){
+updates["messages/"+userPhone+"/"+id+"/read"] = true;
 }
+});
+
+update(ref(db), updates);
+
+};
+
 </script>
 
 </body>
