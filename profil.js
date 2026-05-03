@@ -94,8 +94,7 @@ onValue(ref(db,"users/"+userPhone), snap=>{
 
     const data = snap.val();
 
-    // 🔥 appel badge
-    updateBadge(data);
+    
 
 }
 
