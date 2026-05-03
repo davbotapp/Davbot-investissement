@@ -97,16 +97,28 @@ const data = snap.val();
 
 
 
-// 🔒 créer date si pas existante
 if(!data.createdAt){
-    await update(ref(db,"users/"+userPhone),{
-        createdAt: Date.now()
-    });
-    return;
-}
+        await update(ref(db,"users/"+userPhone),{
+            createdAt: Date.now()
+        });
+    }
 
+    
+
+    
+
+
+// 🔒 créer date si pas existante
+
+if(!data.createdAt){
+        await update(ref(db,"users/"+userPhone),{
+            createdAt: Date.now()
+        });
+}
 const now = Date.now();
-const created = data.createdAt;
+    const created = data.createdAt || now;
+    
+
 
 // ================= 📦 COMPTER COMMANDES =================
 let totalCmd = 0;
