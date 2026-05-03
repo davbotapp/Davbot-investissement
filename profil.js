@@ -60,7 +60,32 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
 
 }); // ✅ 🔥 TRÈS IMPORTANT (FERMETURE)
 
-// ================= 💰 DEMANDE MONÉTISATION =================
+// ================= 💰 DEMANDE MONÉTISATION ==============
+// ================= BADGE MONÉTISATION =================
+function updateBadge(data){
+
+    if(!badgeBox) return; // sécurité
+
+    // 🔥 reset toujours
+    badgeBox.innerHTML = "";
+
+    if(data.monetized === true){
+
+        badgeBox.innerHTML = `
+        <div style="
+            background:#00d2ff;
+            color:#000;
+            padding:6px 12px;
+            border-radius:20px;
+            font-size:12px;
+            font-weight:bold;
+            display:inline-block;
+        ">
+        💰 Compte monétisé
+        </div>
+        `;
+    }
+}
 // ================= MONÉTISATION AUTO =================
 
 onValue(ref(db,"users/"+userPhone), async snap=>{
