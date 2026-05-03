@@ -61,130 +61,174 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
 }); // ✅ 🔥 TRÈS IMPORTANT (FERMETURE)
 
 // ================= 💰 DEMANDE MONÉTISATION =================
-// ================= 💰 MONÉTISATION =================
-onValue(ref(db, "users/" + userPhone), async snap => {
+// ================= MONÉTISATION AUTO =================
 
-    if (!snap.exists()) return;
+onValue(ref(db,"users/"+userPhone), async snap=>{
 
-    const data = snap.val();
-    currentUser = data;
+if(!snap.exists()) return;
 
-    // ================= BADGE =================
-    if (data.monetized === true) {
-        badgeBox.innerHTML = `<div class="badge">💰 Compte monétisé</div>`;
-    } else {
-        badgeBox.innerHTML = "";
-    }
+const data = snap.val();
 
-    // ================= DATE CRÉATION =================
-    if (!data.createdAt) {
-        await update(ref(db, "users/" + userPhone), {
-            createdAt: Date.now()
-        });
-    }
+// 🔒 créer date si pas existante
+if(!data.createdAt){
+    await update(ref(db,"users/"+userPhone),{
+        createdAt: Date.now()
+    });
+    return;
+}
 
-    const now = Date.now();
-    const created = data.createdAt || now;
+const now = Date.now();
+const created = data.createdAt;
 
-    // ================= BLOQUÉ 30 JOURS =================
-    if (now - created < 30 * 24 * 60 * 60 * 1000) {
+// ================= 📦 COMPTER COMMANDES =================
+let totalCmd = 0;
 
-        const joursRestants = Math.ceil(
-            (30 * 24 * 60 * 60 * 1000 - (now - created)) / (1000 * 60 * 60 * 24)
-        );
+const cmdSnap = await get(ref(db,"orders/validated/"+userPhone));
 
-        monetBtn.innerText = `🔒 Disponible dans ${joursRestants} jour(s)`;
-        monetBtn.className = "locked";
-        monetBtn.disabled = true;
+if(cmdSnap.exists()){
+    totalCmd = Object.keys(cmdSnap.val()).length;
+}
 
-        monetInfo.innerText = "⏳ Vous devez être actif pendant 30 jours avant d’activer la monétisation.";
-        return;
-    }
+// ================= CONDITIONS =================
 
-    // ================= EN ATTENTE =================
-    if (data.monetRequest === true) {
-        monetBtn.innerText = "⏳ En attente de validation";
-        monetBtn.className = "wait";
-        monetBtn.disabled = true;
+// ⏳ 28 jours
+if(now - created < 28 * 24 * 60 * 60 * 1000){
+    monetBtn.innerText = "🔒 Disponible après 28 jours";
+    monetBtn.disabled = true;
+    return;
+}
 
-        monetInfo.innerText = "Votre demande est en cours de traitement par l’administration.";
-        return;
-    }
+// 📦 minimum 4 commandes
+if(totalCmd < 4){
+    monetBtn.innerText = `🔒 ${totalCmd}/4 commandes requises`;
+    monetBtn.disabled = true;
+    return;
+}
 
-    // ================= DÉJÀ ACTIVÉ =================
-    if (data.monetized === true) {
-        monetBtn.innerText = "✅ Monétisation active";
-        monetBtn.className = "active";
-        monetBtn.disabled = true;
+// ✅ déjà actif
+if(data.monetized){
+    monetBtn.innerText = "✅ Monétisation active";
+    monetBtn.disabled = true;
+    return;
+}
 
-        monetInfo.innerText = "🎉 Votre compte génère déjà des revenus.";
-        return;
-    }
-
-    // ================= DISPONIBLE =================
-    monetBtn.innerText = "💰 Activer la monétisation (2500 FC)";
-    monetBtn.className = "active";
-    monetBtn.disabled = false;
-
-    monetInfo.innerText = "Activez la monétisation pour commencer à gagner de l'argent.";
+// 🔓 prêt
+monetBtn.innerText = "💰 Activer monétisation (1500 FC)";
+monetBtn.disabled = false;
 
 });
 
+// ================= ACTIVER MONÉTISATION =================
+monetBtn.onclick = async ()=>{
 
-// ================= 📤 DEMANDE MONÉTISATION =================
-monetBtn.onclick = async () => {
+const userRef = ref(db,"users/"+userPhone);
+const snap = await get(userRef);
 
-    const userRef = ref(db, "users/" + userPhone);
-    const snap = await get(userRef);
+if(!snap.exists()) return;
 
-    if (!snap.exists()) return;
+const data = snap.val();
+const balance = data.balance || 0;
 
-    const data = snap.val();
-    const balance = data.balance || 0;
+// 💰 vérifier solde
+if(balance < 1500){
+    return alert("❌ Solde insuffisant (1500 FC requis)");
+}
 
-    // ❌ solde insuffisant
-    if (balance < 2500) {
-        return alert("❌ Solde insuffisant (2500 FC requis)");
-    }
+// 🔥 activer DIRECT (pas admin)
+await update(userRef,{
+    balance: balance - 1500,
+    monetized: true,
+    revenus: 0,
+    lastRevenueTime: Date.now()
+});
 
-    // 🔒 éviter double clic
-    if (data.monetRequest === true) {
-        return alert("⏳ Demande déjà envoyée");
-    }
+// 📩 message
+await push(ref(db,"messages/"+userPhone),{
+    text: "🎉 Monétisation activée ! Vous gagnez maintenant 4.3% sur chaque commande.",
+    date: Date.now(),
+    read:false
+});
 
-    try {
+alert("✅ Monétisation activée");
 
-        // 💸 retirer argent
-        await update(userRef, {
-            balance: balance - 2500,
-            monetRequest: true
-        });
-
-        // 📤 envoyer demande ADMIN (🔥 BON CHEMIN)
-        await push(ref(db, "demandes_monetisation"), {
-            user: userPhone,
-            name: data.name || "Utilisateur",
-            photo: data.photo || "",
-            amount: 2500,
-            status: "pending", // 🔥 IMPORTANT
-            date: Date.now()
-        });
-
-        // 📩 message système
-        await push(ref(db, "messages/" + userPhone), {
-            text: "🔂 Votre demande de monétisation a été envoyée. Elle sera examinée par l’administration.",
-            from: "system",
-            date: Date.now(),
-            read: false
-        });
-
-        alert("✅ Demande envoyée avec succès");
-
-    } catch (e) {
-        console.error(e);
-        alert("❌ Erreur lors de la demande");
-    }
 };
+
+// ================= CALCUL REVENUS =================
+onValue(ref(db,"orders/validated/"+userPhone), async snap=>{
+
+if(!snap.exists()) return;
+
+const userSnap = await get(ref(db,"users/"+userPhone));
+if(!userSnap.exists()) return;
+
+const userData = userSnap.val();
+
+// ❌ si pas monétisé
+if(!userData.monetized){
+    await update(ref(db,"users/"+userPhone),{ revenus: 0 });
+    return;
+}
+
+let total = 0;
+
+Object.values(snap.val()).forEach(cmd=>{
+    const price = cmd.price || 0;
+
+    // 💰 4.3%
+    total += price * 0.043;
+});
+
+await update(ref(db,"users/"+userPhone),{
+    revenus: Math.floor(total)
+});
+
+});
+
+// ================= PAIEMENT MENSUEL =================
+onValue(ref(db,"users/"+userPhone), async snap=>{
+
+if(!snap.exists()) return;
+
+const data = snap.val();
+
+if(!data.lastRevenueTime){
+    await update(ref(db,"users/"+userPhone),{
+        lastRevenueTime: Date.now()
+    });
+    return;
+}
+
+const now = Date.now();
+const last = data.lastRevenueTime;
+
+// ⏳ 30 jours
+if(now - last > 30 * 24 * 60 * 60 * 1000){
+
+    const revenus = data.revenus || 0;
+
+    if(revenus > 0){
+
+        await update(ref(db,"users/"+userPhone),{
+            balance: (data.balance || 0) + revenus,
+            revenus: 0,
+            lastRevenueTime: now
+        });
+
+        // 📩 message
+        await push(ref(db,"messages/"+userPhone),{
+            text: "💰 Revenus mensuels ajoutés à votre solde. Continuez à générer des commandes 🚀",
+            date: Date.now(),
+            read:false
+        });
+
+    }else{
+        await update(ref(db,"users/"+userPhone),{
+            lastRevenueTime: now
+        });
+    }
+}
+
+});
 // ================= 📩 INBOX =================
 // ================= 📩 INBOX PRO =================
 
