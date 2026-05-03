@@ -97,7 +97,7 @@ onValue(ref(db,"users/"+userPhone), snap=>{
     // 🔥 appel badge
     updateBadge(data);
 
-
+}
 
 // 🔒 créer date si pas existante
 if(!data.createdAt){
