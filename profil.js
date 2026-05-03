@@ -88,11 +88,16 @@ function updateBadge(data){
 }
 // ================= MONÉTISATION AUTO =================
 
-onValue(ref(db,"users/"+userPhone), async snap=>{
+onValue(ref(db,"users/"+userPhone), snap=>{
 
-if(!snap.exists()) return;
+    if(!snap.exists()) return;
 
-const data = snap.val();
+    const data = snap.val();
+
+    // 🔥 appel badge
+    updateBadge(data);
+
+});
 
 // 🔒 créer date si pas existante
 if(!data.createdAt){
