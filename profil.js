@@ -86,17 +86,16 @@ function updateBadge(data){
         `;
     }
 }
+// ================= MONÉTISATION AUTO ===========
 // ================= MONÉTISATION AUTO =================
 
-onValue(ref(db,"users/"+userPhone), snap=>{
+onValue(ref(db,"users/"+userPhone), async snap=>{
 
-    if(!snap.exists()) return;
+if(!snap.exists()) return;
 
-    const data = snap.val();
+const data = snap.val();
 
-    
 
-}
 
 // 🔒 créer date si pas existante
 if(!data.createdAt){
