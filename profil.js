@@ -61,68 +61,130 @@ onValue(ref(db, "users/" + userPhone), async snap=>{
 }); // ✅ 🔥 TRÈS IMPORTANT (FERMETURE)
 
 // ================= 💰 DEMANDE MONÉTISATION =================
-monetBtn.onclick = async ()=>{
+// ================= 💰 MONÉTISATION =================
+onValue(ref(db, "users/" + userPhone), async snap => {
 
-    try{
+    if (!snap.exists()) return;
 
-        const userRef = ref(db,"users/"+userPhone);
-        const snap = await get(userRef);
+    const data = snap.val();
+    currentUser = data;
 
-        if(!snap.exists()){
-            return alert("❌ Utilisateur introuvable");
-        }
+    // ================= BADGE =================
+    if (data.monetized === true) {
+        badgeBox.innerHTML = `<div class="badge">💰 Compte monétisé</div>`;
+    } else {
+        badgeBox.innerHTML = "";
+    }
 
-        const data = snap.val();
-        const balance = Number(data.balance || 0);
+    // ================= DATE CRÉATION =================
+    if (!data.createdAt) {
+        await update(ref(db, "users/" + userPhone), {
+            createdAt: Date.now()
+        });
+    }
 
-        // 🔒 Vérification solde
-        if(balance < 2500){
-            return alert("❌ Solde insuffisant (2500 FC requis)");
-        }
+    const now = Date.now();
+    const created = data.createdAt || now;
 
-        // ⛔ éviter double demande
-        if(data.monetRequest === true){
-            return alert("⏳ Une demande est déjà en attente");
-        }
+    // ================= BLOQUÉ 30 JOURS =================
+    if (now - created < 30 * 24 * 60 * 60 * 1000) {
 
-        // ⛔ déjà activé
-        if(data.monetized === true){
-            return alert("✅ Monétisation déjà active");
-        }
+        const joursRestants = Math.ceil(
+            (30 * 24 * 60 * 60 * 1000 - (now - created)) / (1000 * 60 * 60 * 24)
+        );
 
-        // 🔻 Débit utilisateur
-        await update(userRef,{
+        monetBtn.innerText = `🔒 Disponible dans ${joursRestants} jour(s)`;
+        monetBtn.className = "locked";
+        monetBtn.disabled = true;
+
+        monetInfo.innerText = "⏳ Vous devez être actif pendant 30 jours avant d’activer la monétisation.";
+        return;
+    }
+
+    // ================= EN ATTENTE =================
+    if (data.monetRequest === true) {
+        monetBtn.innerText = "⏳ En attente de validation";
+        monetBtn.className = "wait";
+        monetBtn.disabled = true;
+
+        monetInfo.innerText = "Votre demande est en cours de traitement par l’administration.";
+        return;
+    }
+
+    // ================= DÉJÀ ACTIVÉ =================
+    if (data.monetized === true) {
+        monetBtn.innerText = "✅ Monétisation active";
+        monetBtn.className = "active";
+        monetBtn.disabled = true;
+
+        monetInfo.innerText = "🎉 Votre compte génère déjà des revenus.";
+        return;
+    }
+
+    // ================= DISPONIBLE =================
+    monetBtn.innerText = "💰 Activer la monétisation (2500 FC)";
+    monetBtn.className = "active";
+    monetBtn.disabled = false;
+
+    monetInfo.innerText = "Activez la monétisation pour commencer à gagner de l'argent.";
+
+});
+
+
+// ================= 📤 DEMANDE MONÉTISATION =================
+monetBtn.onclick = async () => {
+
+    const userRef = ref(db, "users/" + userPhone);
+    const snap = await get(userRef);
+
+    if (!snap.exists()) return;
+
+    const data = snap.val();
+    const balance = data.balance || 0;
+
+    // ❌ solde insuffisant
+    if (balance < 2500) {
+        return alert("❌ Solde insuffisant (2500 FC requis)");
+    }
+
+    // 🔒 éviter double clic
+    if (data.monetRequest === true) {
+        return alert("⏳ Demande déjà envoyée");
+    }
+
+    try {
+
+        // 💸 retirer argent
+        await update(userRef, {
             balance: balance - 2500,
             monetRequest: true
         });
 
-        // 📤 Envoi demande ADMIN
-        await push(ref(db,"monetisation_requests"),{
+        // 📤 envoyer demande ADMIN (🔥 BON CHEMIN)
+        await push(ref(db, "demandes_monetisation"), {
             user: userPhone,
             name: data.name || "Utilisateur",
             photo: data.photo || "",
             amount: 2500,
-            status: "pending", // 🔥 IMPORTANT pour admin
+            status: "pending", // 🔥 IMPORTANT
             date: Date.now()
         });
 
-        // 📩 Message utilisateur
-        await push(ref(db,"messages/"+userPhone),{
-            text: "🔂 Votre demande de monétisation a été envoyée avec succès.\n⏳ Elle est en cours de traitement par l'administration.",
+        // 📩 message système
+        await push(ref(db, "messages/" + userPhone), {
+            text: "🔂 Votre demande de monétisation a été envoyée. Elle sera examinée par l’administration.",
             from: "system",
             date: Date.now(),
-            read:false
+            read: false
         });
 
         alert("✅ Demande envoyée avec succès");
 
-    }catch(e){
+    } catch (e) {
         console.error(e);
-        alert("❌ Une erreur est survenue");
+        alert("❌ Erreur lors de la demande");
     }
-
 };
-  
 // ================= 📩 INBOX =================
 // ================= 📩 INBOX PRO =================
 
